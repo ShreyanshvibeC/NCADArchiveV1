@@ -15,8 +15,11 @@
 
     <!-- Main Content - Only show when initial images are loaded -->
     <div v-else>
-      <!-- Fixed Header with Logo on Left -->
-      <header class="fixed top-0 left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
+      <!-- Marquee Banner at the very top -->
+      <MarqueeBanner text="made on bolt.new" />
+
+      <!-- Fixed Header with Logo on Left - positioned below marquee -->
+      <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
         <div class="flex items-center">
           <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mr-4" />
           <svg class="h-6" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -27,8 +30,8 @@
         <div class="w-10"></div>
       </header>
 
-      <!-- Main Content Container with Desktop Margins and top padding for fixed header -->
-      <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-20">
+      <!-- Main Content Container with Desktop Margins and top padding for marquee + fixed header -->
+      <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
         <!-- Hero Section -->
         <section class="px-4 py-24">
           <h1 class="text-5xl font-bold leading-none mb-6">
@@ -131,6 +134,7 @@ import { onMounted, ref } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import MarqueeBanner from '../components/MarqueeBanner.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()

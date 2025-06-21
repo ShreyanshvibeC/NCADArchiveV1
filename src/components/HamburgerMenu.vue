@@ -1,9 +1,9 @@
 <template>
   <div v-if="showMenu">
-    <!-- Hamburger Button - Vertically centered in header area -->
+    <!-- Hamburger Button - Positioned to align with header (40px from top for marquee + header padding) -->
     <button 
       @click="isOpen = !isOpen"
-      class="fixed top-2 right-6 z-50 w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
+      class="fixed top-[52px] right-6 z-50 w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
     >
       <div class="w-6 h-6 flex flex-col justify-center space-y-1">
         <div 
