@@ -28,12 +28,16 @@ const repeatedText = computed(() => {
 <style scoped>
 .marquee-container {
   height: 40px;
-  background-color: #000000;
+  background-color: #ffffff;
   border-bottom: 1px solid #374151;
   overflow: hidden;
   white-space: nowrap;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  z-index: 40;
 }
 
 .marquee-content {
@@ -44,7 +48,7 @@ const repeatedText = computed(() => {
 
 .marquee-text {
   font-size: 18px;
-  color: #ffffff;
+  color: #000000;
   font-family: 'Spenser', sans-serif;
   font-weight: 400;
 }
