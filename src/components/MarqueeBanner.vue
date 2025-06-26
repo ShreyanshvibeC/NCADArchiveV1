@@ -34,6 +34,9 @@ const repeatedText = computed(() => {
   left: 0;
   right: 0;
   z-index: 40;
+
+    display: flex;
+  align-items: center;
 }
 
 .marquee-content {
