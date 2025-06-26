@@ -142,9 +142,10 @@
       </div>
 
             <!-- Floating CTA - Must be placed here, outside scrollable content -->
+<!-- Floating CTA Button -->
 <button 
   @click="handleUploadClick"
-  class="fixed bottom-6 left-6 w-20 h-20 text-white text-4xl font-light flex items-center justify-center z-50 shadow-lg
+  class="fixed bottom-6 left-6 w-20 h-20 text-white text-4xl font-light flex items-center justify-center z-[9999] shadow-lg
          cursor-pointer transition-all relative animate-rainbow
          bg-black
          bg-[linear-gradient(#000,#000),linear-gradient(#000_50%,rgba(0,0,0,0.6)_80%,rgba(0,0,0,0)),linear-gradient(90deg,#E40303,#FF8C00,#FFED00,#008026,#004CFF,#732982)]
@@ -153,6 +154,7 @@
          before:absolute before:bottom-[-20%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5
          before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,#E40303,#FF8C00,#FFED00,#008026,#004CFF,#732982)]
          before:[filter:blur(0.75rem)]"
+  style="pointer-events: auto;"
 >
   +
 </button>
