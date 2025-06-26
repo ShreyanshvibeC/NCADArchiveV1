@@ -8,27 +8,28 @@
     </svg>
   </button>
 
-  <h1 class="text-xl font-semibold text-white leading-none">Profile</h1>
+  <h1 class="text-xl font-semibold text-white leading-none">{{ isOwnProfile ? 'Profile' : `${profileUser?.name || 'User'}'s Profile` }}</h1>
 
   <button
-    v-if="authStore.isAuthenticated"
+    v-if="authStore.isAuthenticated && isOwnProfile"
     @click="handleLogout"
     class="p-2 text-gray-400 hover:text-white text-sm transition-colors"
   >
     Logout
   </button>
+  <div v-else class="w-6"></div>
 </header>
 
 
     <!-- Main Content Container with Desktop Margins -->
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-8">
       <!-- Loading State -->
-      <div v-if="authStore.loading" class="flex justify-center items-center py-12">
+      <div v-if="loading" class="flex justify-center items-center py-12">
         <div class="text-gray-400">Loading...</div>
       </div>
 
-      <!-- Not Authenticated - Show Login Options -->
-      <div v-else-if="!authStore.isAuthenticated" class="space-y-6">
+      <!-- Not Authenticated and viewing own profile - Show Login Options -->
+      <div v-else-if="!authStore.isAuthenticated && isOwnProfile" class="space-y-6">
         <div class="text-center space-y-4">
           <h2 class="text-2xl font-bold">Welcome to NCAD Archive</h2>
           <p class="text-gray-400">
@@ -59,6 +60,11 @@
         </div>
       </div>
 
+      <!-- User not found -->
+      <div v-else-if="!profileUser" class="text-center py-12">
+        <p class="text-gray-400">User not found</p>
+      </div>
+
       <!-- Profile Content -->
       <div v-else class="space-y-8">
         <!-- Profile Info -->
@@ -68,11 +74,15 @@
               <span class="text-2xl font-bold">{{ userInitials }}</span>
             </div>
             <div class="flex-1">
-              <h2 class="text-xl font-semibold">{{ authStore.user?.name }}</h2>
-              <p class="text-gray-400">{{ authStore.user?.email }}</p>
-              <p v-if="authStore.user?.bio" class="text-sm text-gray-400 mt-1">{{ authStore.user.bio }}</p>
+              <h2 class="text-xl font-semibold">{{ profileUser.name }}</h2>
+              <p class="text-gray-400">{{ profileUser.email }}</p>
+              <p v-if="profileUser.bio" class="text-sm text-gray-400 mt-1">{{ profileUser.bio }}</p>
             </div>
-            <button @click="showEditProfile = true" class="text-gray-400 hover:text-white transition-colors">
+            <button 
+              v-if="isOwnProfile"
+              @click="showEditProfile = true" 
+              class="text-gray-400 hover:text-white transition-colors"
+            >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
               </svg>
@@ -95,16 +105,16 @@
             </div>
           </div>
 
-          <!-- Upload Limit Warning -->
-          <div v-if="actualPhotoCount >= 25" class="bg-ncad-green bg-opacity-20 border border-ncad-green p-4">
+          <!-- Upload Limit Warning - Only show for own profile -->
+          <div v-if="isOwnProfile && actualPhotoCount >= 25" class="bg-ncad-green bg-opacity-20 border border-ncad-green p-4">
             <p class="text-ncad-green text-sm">
               You've reached the upload limit of 25 photos. Delete some photos to upload new ones.
             </p>
           </div>
         </div>
 
-        <!-- Tab Navigation with Black Selected Tab -->
-        <div class="flex space-x-1 bg-gray-900">
+        <!-- Tab Navigation - Only show for own profile -->
+        <div v-if="isOwnProfile" class="flex space-x-1 bg-gray-900">
           <button 
             @click="activeTab = 'photos'"
             :class="{ 
@@ -128,7 +138,7 @@
         </div>
 
         <!-- User's Photos Tab -->
-        <div v-if="activeTab === 'photos'" class="space-y-4">
+        <div v-if="isOwnProfile && activeTab === 'photos'" class="space-y-4">
           <div v-if="loadingPhotos" class="text-center py-8 text-gray-400">
             <p>Loading your photos...</p>
           </div>
@@ -164,7 +174,7 @@
         </div>
 
         <!-- Saved Photos Tab -->
-        <div v-if="activeTab === 'saved'" class="space-y-4">
+        <div v-if="isOwnProfile && activeTab === 'saved'" class="space-y-4">
           <div v-if="loadingSavedPhotos" class="text-center py-8 text-gray-400">
             <p>Loading saved photos...</p>
           </div>
@@ -192,11 +202,42 @@
             </div>
           </div>
         </div>
+
+        <!-- Other User's Photos (when viewing someone else's profile) -->
+        <div v-if="!isOwnProfile" class="space-y-4">
+          <h3 class="text-lg font-semibold">Photos by {{ profileUser.name }}</h3>
+          
+          <div v-if="loadingPhotos" class="text-center py-8 text-gray-400">
+            <p>Loading photos...</p>
+          </div>
+          
+          <div v-else-if="userPhotos.length === 0" class="text-center py-12 text-gray-400">
+            <p>No photos uploaded yet</p>
+          </div>
+
+          <div v-else class="grid grid-cols-2 gap-4">
+            <div 
+              v-for="photo in userPhotos" 
+              :key="photo.id"
+              class="relative cursor-pointer"
+              @click="$router.push(`/photo/${photo.id}`)"
+            >
+              <img 
+                :src="photo.imageURL" 
+                :alt="photo.title || 'Photo'"
+                class="w-full aspect-square object-cover"
+              />
+              <div class="absolute bottom-2 left-2 bg-gray-900 bg-opacity-75 px-2 py-1">
+                <span class="text-xs">{{ photo.visits }} visits</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Edit Profile Modal -->
-    <div v-if="showEditProfile" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+    <!-- Edit Profile Modal - Only show for own profile -->
+    <div v-if="showEditProfile && isOwnProfile" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
       <div class="bg-gray-900 p-4 w-full max-w-md">
         <h3 class="text-lg font-semibold mb-4">Edit Profile</h3>
         
@@ -245,9 +286,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useGalleryStore } from '../stores/gallery'
+import { doc, getDoc } from 'firebase/firestore'
+import { db } from '../config/firebase'
 
+const route = useRoute()
 const authStore = useAuthStore()
 const galleryStore = useGalleryStore()
 
@@ -258,15 +303,22 @@ const loadingSavedPhotos = ref(false)
 const totalVisits = ref(0)
 const totalLikes = ref(0)
 const activeTab = ref('photos')
+const loading = ref(true)
+const profileUser = ref(null)
 
 const showEditProfile = ref(false)
 const editName = ref('')
 const editBio = ref('')
 const updatingProfile = ref(false)
 
+// Check if viewing own profile or another user's profile
+const isOwnProfile = computed(() => {
+  return !route.params.id || (authStore.user && route.params.id === authStore.user.id)
+})
+
 const userInitials = computed(() => {
-  if (!authStore.user?.name) return 'U'
-  return authStore.user.name.split(' ').map(n => n[0]).join('').toUpperCase()
+  if (!profileUser.value?.name) return 'U'
+  return profileUser.value.name.split(' ').map(n => n[0]).join('').toUpperCase()
 })
 
 // Computed property for actual photo count from loaded photos
@@ -275,37 +327,88 @@ const actualPhotoCount = computed(() => {
 })
 
 onMounted(async () => {
-  if (authStore.isAuthenticated && authStore.user) {
-    await loadUserPhotos()
-  }
+  await loadProfileData()
 })
+
+// Watch for route changes (when navigating between different user profiles)
+watch(() => route.params.id, async () => {
+  await loadProfileData()
+})
+
+const loadProfileData = async () => {
+  loading.value = true
+  
+  try {
+    if (isOwnProfile.value) {
+      // Loading own profile
+      if (authStore.isAuthenticated && authStore.user) {
+        profileUser.value = authStore.user
+        await loadUserPhotos()
+      }
+    } else {
+      // Loading another user's profile
+      const userId = route.params.id as string
+      await loadOtherUserProfile(userId)
+      await loadUserPhotos(userId)
+    }
+  } catch (error) {
+    console.error('Error loading profile data:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadOtherUserProfile = async (userId: string) => {
+  try {
+    const userDoc = await getDoc(doc(db, 'users', userId))
+    if (userDoc.exists()) {
+      const userData = userDoc.data()
+      profileUser.value = {
+        id: userId,
+        email: userData.email,
+        name: userData.name,
+        bio: userData.bio,
+        uploadCount: userData.uploadCount || 0,
+        createdAt: userData.createdAt?.toDate() || new Date()
+      }
+    } else {
+      profileUser.value = null
+    }
+  } catch (error) {
+    console.error('Error loading user profile:', error)
+    profileUser.value = null
+  }
+}
 
 // Watch for tab changes
 watch(activeTab, async (newTab) => {
-  if (newTab === 'saved' && authStore.isAuthenticated && authStore.user && savedPhotos.value.length === 0) {
+  if (newTab === 'saved' && authStore.isAuthenticated && authStore.user && savedPhotos.value.length === 0 && isOwnProfile.value) {
     await loadSavedPhotos()
   }
 })
 
-// Watch for changes in actual photo count and sync with auth store
+// Watch for changes in actual photo count and sync with auth store (only for own profile)
 watch(actualPhotoCount, async (newCount) => {
-  if (authStore.user && authStore.user.uploadCount !== newCount) {
+  if (isOwnProfile.value && authStore.user && authStore.user.uploadCount !== newCount) {
     console.log(`Photo count mismatch detected. Auth store: ${authStore.user.uploadCount}, Actual: ${newCount}`)
     await authStore.syncUploadCount(newCount)
   }
 })
 
-const loadUserPhotos = async () => {
-  if (!authStore.user) return
+const loadUserPhotos = async (userId?: string) => {
+  const targetUserId = userId || (authStore.user?.id)
+  if (!targetUserId) return
   
   loadingPhotos.value = true
   try {
-    userPhotos.value = await galleryStore.loadUserPhotos(authStore.user.id)
+    userPhotos.value = await galleryStore.loadUserPhotos(targetUserId)
     totalVisits.value = userPhotos.value.reduce((total, photo) => total + photo.visits, 0)
     totalLikes.value = userPhotos.value.reduce((total, photo) => total + (photo.likes || 0), 0)
     
-    // Sync the upload count with actual photo count
-    await authStore.syncUploadCount(userPhotos.value.length)
+    // Sync the upload count with actual photo count (only for own profile)
+    if (isOwnProfile.value && authStore.user) {
+      await authStore.syncUploadCount(userPhotos.value.length)
+    }
   } catch (error) {
     console.error('Error loading user photos:', error)
   } finally {
@@ -314,7 +417,7 @@ const loadUserPhotos = async () => {
 }
 
 const loadSavedPhotos = async () => {
-  if (!authStore.user) return
+  if (!authStore.user || !isOwnProfile.value) return
   
   loadingSavedPhotos.value = true
   try {
@@ -346,6 +449,11 @@ const updateProfile = async () => {
     
     if (result.success) {
       showEditProfile.value = false
+      // Update local profile data
+      if (profileUser.value) {
+        profileUser.value.name = editName.value
+        profileUser.value.bio = editBio.value
+      }
     }
   } catch (error) {
     console.error('Error updating profile:', error)
@@ -356,15 +464,15 @@ const updateProfile = async () => {
 
 const cancelEdit = () => {
   showEditProfile.value = false
-  editName.value = authStore.user?.name || ''
-  editBio.value = authStore.user?.bio || ''
+  editName.value = profileUser.value?.name || ''
+  editBio.value = profileUser.value?.bio || ''
 }
 
 // Initialize edit form when showing
 watch(showEditProfile, (show) => {
   if (show) {
-    editName.value = authStore.user?.name || ''
-    editBio.value = authStore.user?.bio || ''
+    editName.value = profileUser.value?.name || ''
+    editBio.value = profileUser.value?.bio || ''
   }
 })
 </script>

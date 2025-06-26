@@ -2,7 +2,7 @@
   <div v-if="photo" class="h-screen bg-black overflow-hidden">
     <!-- Header -->
     <header class="flex items-center justify-between p-4 bg-black">
-      <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
+      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -12,7 +12,7 @@
       <button 
         v-if="authStore.isAuthenticated && authStore.user && photo.userId === authStore.user.id"
         @click="showDeleteConfirm = true"
-        class="p-2 text-red-500 hover:text-red-400 transition-colors"
+        class="text-white hover:text-gray-400 transition-colors"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -40,25 +40,29 @@
 
           <!-- User Info and Date Row -->
           <div class="w-full flex items-center justify-between px-4">
-            <!-- User info -->
-            <div class="flex items-center space-x-3">
+            <!-- User info - Clickable to navigate to user profile -->
+            <router-link 
+              :to="`/profile/${photo.userId}`"
+              class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+            >
               <!-- User avatar -->
               <div class="w-8 h-8 bg-gray-600 flex items-center justify-center">
                 <span class="text-sm font-bold">{{ getUserInitials(authorName) }}</span>
               </div>
               <!-- User name -->
               <span class="text-white font-medium">{{ authorName }}</span>
-            </div>
+            </router-link>
             <!-- Date -->
             <span class="text-gray-400 text-sm">{{ formatDate(photo.timestamp) }}</span>
           </div>
 
-          <!-- Main Image - 1:1 aspect ratio with full width -->
+          <!-- Main Image - 1:1 aspect ratio with full width and double-click to like -->
           <div class="w-full aspect-square relative">
             <img 
               :src="photo.imageURL" 
               :alt="photo.title || 'NCAD Archive Photo'"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover cursor-pointer"
+              @dblclick="toggleLike"
             />
             
             <!-- Temporary Badge -->
@@ -81,24 +85,24 @@
               
               <!-- Likes count -->
               <button @click="toggleLike" class="flex items-center space-x-2 transition-colors">
-                <svg class="w-6 h-6" :fill="isLiked ? '#00FF41' : 'none'" :stroke="isLiked ? '#00FF41' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
+                <svg class="w-6 h-6" :fill="isLiked ? '#52489C' : 'none'" :stroke="isLiked ? '#52489C' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
-                <span :class="isLiked ? 'text-ncad-green' : 'text-white'" class="text-lg font-medium">{{ photo.likes || 0 }}</span>
+                <span :class="isLiked ? 'text-[#52489C]' : 'text-white'" class="text-lg font-medium">{{ photo.likes || 0 }}</span>
               </button>
             </div>
 
             <!-- Right side - Actions -->
             <div class="flex items-center space-x-4">
               <!-- Share button -->
-              <button @click="shareImage" class="p-2 text-white hover:text-gray-400 transition-colors">
+              <button @click="shareImage" class="text-white hover:text-gray-400 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
                 </svg>
               </button>
               
               <!-- Save button -->
-              <button @click="toggleSave" class="p-2 transition-colors" :class="isSaved ? 'text-ncad-green' : 'text-white hover:text-gray-400'">
+              <button @click="toggleSave" class="transition-colors" :class="isSaved ? 'text-ncad-green' : 'text-white hover:text-gray-400'">
                 <svg class="w-6 h-6" :fill="isSaved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                 </svg>
