@@ -1,18 +1,20 @@
 <template>
   <div class="min-h-screen bg-black overflow-x-hidden">
     <!-- Header -->
-    <header class="flex items-center justify-between mb-8 bg-black p-4 -m-4 mb-8">
-      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
+    <header class="flex items-center justify-between bg-black py-4">
+      <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
       </button>
-      <h1 class="text-xl font-semibold flex items-center">About</h1>
+
+      <h1 class="text-xl font-semibold text-white leading-none">About</h1>
+
       <div class="w-6"></div>
     </header>
 
     <!-- Main Content Container with Desktop Margins -->
-    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl px-4 py-8">
+    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl px-4 pt-8">
       <div class="space-y-8">
         <!-- Hero Section -->
         <section class="text-center space-y-4">

@@ -2,12 +2,14 @@
   <div class="h-screen bg-black relative">
     <!-- Header with Back Button -->
     <header class="flex items-center justify-between p-4 absolute top-0 left-0 right-0 z-[1000] bg-black bg-opacity-90">
-      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
+      <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
       </button>
-      <h1 class="text-xl font-semibold flex items-center">Campus Map</h1>
+
+      <h1 class="text-xl font-semibold text-white leading-none">Campus Map</h1>
+
       <div class="w-6"></div>
     </header>
 
