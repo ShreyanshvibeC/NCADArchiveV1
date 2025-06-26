@@ -140,7 +140,8 @@
           </div>
         </div>
       </div>
-      <!-- Floating CTA - Must be placed here, outside scrollable content -->
+    </div>
+          <!-- Floating CTA - Must be placed here, outside scrollable content -->
 <button 
   @click="handleUploadClick"
   class="fixed bottom-6 left-6 w-20 h-20 text-white text-4xl font-light flex items-center justify-center z-50 shadow-lg
@@ -156,7 +157,6 @@
   +
 </button>
 
-    </div>
   </div>
 </template>
 
