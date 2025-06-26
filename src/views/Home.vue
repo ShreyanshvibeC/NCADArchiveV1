@@ -1,5 +1,8 @@
 <template>
   <div class="min-h-screen bg-black">
+    <!-- Marquee Banner at the very top - Always visible -->
+    <MarqueeBanner text="made on bolt.new" />
+
     <!-- Loading Screen - Show until top 5 images are actually loaded -->
     <div v-if="!initialImagesLoaded" class="fixed inset-0 bg-black flex items-center justify-center z-50">
       <div class="text-center space-y-4">
@@ -15,9 +18,6 @@
 
     <!-- Main Content - Only show when initial images are loaded -->
     <div v-else>
-      <!-- Marquee Banner at the very top -->
-      <MarqueeBanner text="made on bolt.new" />
-
       <!-- Fixed Header with Logo on Left - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
         <div class="flex items-center">
