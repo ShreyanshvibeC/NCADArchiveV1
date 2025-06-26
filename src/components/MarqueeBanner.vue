@@ -1,7 +1,8 @@
 <template>
   <div class="marquee-container">
     <div class="marquee-content">
-      <span class="marquee-text">{{ repeatedText }}</span>
+      <span class="marquee-text">{{ fullTextContent }}</span>
+      <span class="marquee-text">{{ fullTextContent }}</span>
     </div>
   </div>
 </template>
@@ -17,11 +18,9 @@ const props = defineProps<{
 const baseText = props.text || 'made on bolt.new'
 const separator = ' * '
 
-// Create repeated text for seamless scrolling
-const repeatedText = computed(() => {
-  const fullText = baseText + separator
-  // Repeat the text multiple times to ensure smooth endless scrolling
-  return Array(20).fill(fullText).join('')
+// Create single instance of text with separator for duplication
+const fullTextContent = computed(() => {
+  return baseText + separator
 })
 </script>
 
@@ -41,8 +40,8 @@ const repeatedText = computed(() => {
 }
 
 .marquee-content {
-  display: inline-block;
-  animation: marquee 60s linear infinite;
+  display: flex;
+  animation: marquee 30s linear infinite;
   line-height: 40px;
 }
 
@@ -51,14 +50,15 @@ const repeatedText = computed(() => {
   color: #000000;
   font-family: 'Spenser', sans-serif;
   font-weight: 400;
+  white-space: nowrap;
 }
 
 @keyframes marquee {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0%);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
 }
 </style>
