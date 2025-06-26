@@ -16,23 +16,8 @@
       </div>
     </div>
 
-    <!-- Floating Add Button - Fixed to viewport with rainbow animation -->
-    <button 
-      @click="handleUploadClick"
-      class="fixed bottom-6 left-6 w-20 h-20 text-white text-4xl font-light flex items-center justify-center z-50 shadow-lg
-             group transition-all relative cursor-pointer border-0 animate-rainbow
-             bg-[linear-gradient(#000,#000),linear-gradient(#000_50%,rgba(0,0,0,0.6)_80%,rgba(0,0,0,0)),linear-gradient(90deg,#E40303,#FF8C00,#FFED00,#008026,#004CFF,#732982)]
-             bg-[length:200%] [background-clip:padding-box,border-box,border-box]
-             [background-origin:border-box] [border:calc(0.125rem)_solid_transparent]
-             before:absolute before:bottom-[-20%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5
-             before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,#E40303,#FF8C00,#FFED00,#008026,#004CFF,#732982)]
-             before:[filter:blur(0.75rem)]"
-    >
-      +
-    </button>
-
     <!-- Main Content - Only show when initial images are loaded -->
-    <div v-if="initialImagesLoaded">
+    <div v-else>
       <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
         <div class="flex items-center">
@@ -154,6 +139,22 @@
           </div>
         </div>
       </div>
+
+      <!-- Floating Add Button - Fixed position with rainbow animation -->
+      <button 
+        @click="handleUploadClick"
+        class="fixed bottom-6 left-6 w-20 h-20 text-white text-4xl font-light flex items-center justify-center z-40 shadow-lg
+               group transition-all relative cursor-pointer border-0 animate-rainbow
+               bg-[linear-gradient(#000,#000),linear-gradient(#000_50%,rgba(0,0,0,0.6)_80%,rgba(0,0,0,0)),linear-gradient(90deg,#E40303,#FF8C00,#FFED00,#008026,#004CFF,#732982)]
+               bg-[length:200%] [background-clip:padding-box,border-box,border-box]
+               [background-origin:border-box] [border:calc(0.125rem)_solid_transparent]
+               before:absolute before:bottom-[-20%] before:left-1/2 before:z-0 before:h-1/5 before:w-3/5
+               before:-translate-x-1/2 before:animate-rainbow before:bg-[linear-gradient(90deg,#E40303,#FF8C00,#FFED00,#008026,#004CFF,#732982)]
+               before:[filter:blur(0.75rem)]"
+      >
+        +
+      </button>
+
     </div>
   </div>
 </template>
