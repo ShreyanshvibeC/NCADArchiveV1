@@ -18,6 +18,7 @@
 
     <!-- Main Content - Only show when initial images are loaded -->
     <div v-else>
+     
       <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
         <div class="flex items-center">
@@ -139,9 +140,8 @@
           </div>
         </div>
       </div>
-
-      <!-- Floating Add Button - Fixed position with rainbow animation -->
- <button 
+      <!-- Floating CTA - Must be placed here, outside scrollable content -->
+<button 
   @click="handleUploadClick"
   class="fixed bottom-6 left-6 w-20 h-20 text-white text-4xl font-light flex items-center justify-center z-50 shadow-lg
          cursor-pointer transition-all relative animate-rainbow
