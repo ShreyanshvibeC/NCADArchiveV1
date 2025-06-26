@@ -2,9 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-/*Flotaing CTA rainbow effect */
+/*Floating CTA rainbow effect */
 
-@keyframes animate-rainbow {
+@keyframes rainbow {
   0% {
     background-position: 0% 50%;
   }
