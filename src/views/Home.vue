@@ -108,7 +108,7 @@
               />
               
               <!-- Temporary Badge -->
-              <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-2 py-1 z-20">
+              <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
                 <span class="text-xs font-medium text-white">LEAVING SOON</span>
               </div>
 
