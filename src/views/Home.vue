@@ -18,7 +18,7 @@
 
     <!-- Main Content - Only show when initial images are loaded -->
     <div v-else>
-      <!-- Fixed Header with Logo on Left - positioned below marquee -->
+      <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
         <div class="flex items-center">
           <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mr-4" />
@@ -26,9 +26,31 @@
             <text x="0" y="15" fill="white" font-family="Spenser" font-size="18" font-weight="900">ARCHIVE</text>
           </svg>
         </div>
-        <!-- Space for hamburger menu on right -->
-        <div class="w-10"></div>
+        
+        <!-- Hamburger Button - Vertically centered in header -->
+        <button 
+          @click="hamburgerMenu?.toggleMenu()"
+          class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
+        >
+          <div class="w-6 h-6 flex flex-col justify-center space-y-1">
+            <div 
+              class="w-full h-0.5 bg-white transition-all duration-300"
+              :class="{ 'rotate-45 translate-y-1.5': hamburgerMenu?.isOpen }"
+            ></div>
+            <div 
+              class="w-full h-0.5 bg-white transition-all duration-300"
+              :class="{ 'opacity-0': hamburgerMenu?.isOpen }"
+            ></div>
+            <div 
+              class="w-full h-0.5 bg-white transition-all duration-300"
+              :class="{ '-rotate-45 -translate-y-1.5': hamburgerMenu?.isOpen }"
+            ></div>
+          </div>
+        </button>
       </header>
+
+      <!-- Hamburger Menu Component -->
+      <HamburgerMenu ref="hamburgerMenu" />
 
       <!-- Main Content Container with Desktop Margins and top padding for marquee + fixed header -->
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
@@ -135,6 +157,7 @@ import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
+import HamburgerMenu from '../components/HamburgerMenu.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
@@ -142,6 +165,7 @@ const router = useRouter()
 const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
 const loadingProgress = ref('Loading photos...')
+const hamburgerMenu = ref()
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {

@@ -1,26 +1,5 @@
 <template>
   <div v-if="showMenu">
-    <!-- Hamburger Button - Positioned to align with header (40px from top for marquee + header padding) -->
-    <button 
-      @click="isOpen = !isOpen"
-      class="fixed top-[52px] right-6 z-50 w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
-    >
-      <div class="w-6 h-6 flex flex-col justify-center space-y-1">
-        <div 
-          class="w-full h-0.5 bg-white transition-all duration-300"
-          :class="{ 'rotate-45 translate-y-1.5': isOpen }"
-        ></div>
-        <div 
-          class="w-full h-0.5 bg-white transition-all duration-300"
-          :class="{ 'opacity-0': isOpen }"
-        ></div>
-        <div 
-          class="w-full h-0.5 bg-white transition-all duration-300"
-          :class="{ '-rotate-45 -translate-y-1.5': isOpen }"
-        ></div>
-      </div>
-    </button>
-
     <!-- Menu Overlay -->
     <div 
       v-if="isOpen"
@@ -125,4 +104,12 @@ const handleLogout = async () => {
   isOpen.value = false
   router.push('/')
 }
+
+// Expose the toggle function and isOpen state for parent component
+defineExpose({
+  toggleMenu: () => {
+    isOpen.value = !isOpen.value
+  },
+  isOpen
+})
 </script>
