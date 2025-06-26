@@ -21,7 +21,7 @@
 
 
     <!-- Main Content Container with Desktop Margins -->
-    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
+    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-8">
       <!-- Loading State -->
       <div v-if="authStore.loading" class="flex justify-center items-center py-12">
         <div class="text-gray-400">Loading...</div>
