@@ -1,18 +1,24 @@
 <template>
   <div class="min-h-screen bg-black p-4">
     <!-- Header -->
-    <header class="flex items-center justify-between mb-8 bg-black p-4 -m-4 mb-8">
-      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-      </button>
-      <h1 class="text-xl font-semibold flex items-center">Profile</h1>
-      <button v-if="authStore.isAuthenticated" @click="handleLogout" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center justify-center">
-        Logout
-      </button>
-      <div v-else class="w-16"></div>
-    </header>
+<header class="flex items-center justify-between bg-black p-4">
+  <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+    </svg>
+  </button>
+
+  <h1 class="text-xl font-semibold text-white leading-none">Profile</h1>
+
+  <button
+    v-if="authStore.isAuthenticated"
+    @click="handleLogout"
+    class="p-2 text-gray-400 hover:text-white text-sm transition-colors"
+  >
+    Logout
+  </button>
+</header>
+
 
     <!-- Main Content Container with Desktop Margins -->
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
