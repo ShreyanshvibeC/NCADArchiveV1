@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-black">
+  <div class="min-h-screen bg-black p-4">
     <!-- Header -->
     <header class="flex items-center justify-between mb-8 bg-black p-4 -m-4 mb-8">
       <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
@@ -14,8 +14,8 @@
       <div v-else class="w-16"></div>
     </header>
 
-    <!-- Main Content Container with Desktop Margins - Removed p-4 to eliminate padding -->
-    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl px-4">
+    <!-- Main Content Container with Desktop Margins -->
+    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
       <!-- Loading State -->
       <div v-if="authStore.loading" class="flex justify-center items-center py-12">
         <div class="text-gray-400">Loading...</div>
@@ -138,7 +138,7 @@
             </router-link>
           </div>
 
-          <div v-else class="grid grid-cols-2 gap-4 pb-4">
+          <div v-else class="grid grid-cols-2 gap-4">
             <div 
               v-for="photo in userPhotos" 
               :key="photo.id"
@@ -168,7 +168,7 @@
             <p class="text-sm mt-2">Save photos by tapping the bookmark icon on any photo</p>
           </div>
 
-          <div v-else class="grid grid-cols-2 gap-4 pb-4">
+          <div v-else class="grid grid-cols-2 gap-4">
             <div 
               v-for="photo in savedPhotos" 
               :key="photo.id"
