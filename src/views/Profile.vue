@@ -2,15 +2,16 @@
   <div class="min-h-screen bg-black p-4">
     <!-- Header -->
     <header class="flex items-center justify-between mb-8 bg-black p-4 -m-4 mb-8">
-      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
+      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
       </button>
-      <h1 class="text-xl font-semibold">Profile</h1>
-      <button v-if="authStore.isAuthenticated" @click="handleLogout" class="text-gray-400 hover:text-white text-sm transition-colors">
+      <h1 class="text-xl font-semibold flex items-center">Profile</h1>
+      <button v-if="authStore.isAuthenticated" @click="handleLogout" class="text-gray-400 hover:text-white text-sm transition-colors flex items-center justify-center">
         Logout
       </button>
+      <div v-else class="w-16"></div>
     </header>
 
     <!-- Main Content Container with Desktop Margins -->
@@ -73,10 +74,14 @@
           </div>
 
           <!-- Stats -->
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-3 gap-4">
             <div class="bg-gray-900 p-4 text-center">
               <div class="text-2xl font-bold">{{ actualPhotoCount }}</div>
               <div class="text-sm text-gray-400">Photos</div>
+            </div>
+            <div class="bg-gray-900 p-4 text-center">
+              <div class="text-2xl font-bold">{{ totalLikes }}</div>
+              <div class="text-sm text-gray-400">Likes</div>
             </div>
             <div class="bg-gray-900 p-4 text-center">
               <div class="text-2xl font-bold">{{ totalVisits }}</div>
@@ -245,6 +250,7 @@ const savedPhotos = ref([])
 const loadingPhotos = ref(false)
 const loadingSavedPhotos = ref(false)
 const totalVisits = ref(0)
+const totalLikes = ref(0)
 const activeTab = ref('photos')
 
 const showEditProfile = ref(false)
@@ -290,6 +296,7 @@ const loadUserPhotos = async () => {
   try {
     userPhotos.value = await galleryStore.loadUserPhotos(authStore.user.id)
     totalVisits.value = userPhotos.value.reduce((total, photo) => total + photo.visits, 0)
+    totalLikes.value = userPhotos.value.reduce((total, photo) => total + (photo.likes || 0), 0)
     
     // Sync the upload count with actual photo count
     await authStore.syncUploadCount(userPhotos.value.length)
@@ -318,6 +325,7 @@ const handleLogout = async () => {
   userPhotos.value = []
   savedPhotos.value = []
   totalVisits.value = 0
+  totalLikes.value = 0
   activeTab.value = 'photos'
 }
 

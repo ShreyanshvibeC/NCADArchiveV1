@@ -2,12 +2,12 @@
   <div class="min-h-screen bg-black p-4">
     <!-- Header -->
     <header class="flex items-center justify-between mb-8 bg-black p-4 -m-4 mb-8">
-      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
+      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
       </button>
-      <h1 class="text-xl font-semibold">Create Account</h1>
+      <h1 class="text-xl font-semibold flex items-center">Create Account</h1>
       <div class="w-6"></div>
     </header>
 

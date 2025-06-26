@@ -2,7 +2,7 @@
   <div v-if="photo" class="h-screen bg-black overflow-hidden">
     <!-- Header -->
     <header class="flex items-center justify-between p-4 bg-black">
-      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
+      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -12,7 +12,7 @@
       <button 
         v-if="authStore.isAuthenticated && authStore.user && photo.userId === authStore.user.id"
         @click="showDeleteConfirm = true"
-        class="text-red-500 hover:text-red-400 transition-colors"
+        class="text-red-500 hover:text-red-400 transition-colors flex items-center justify-center"
       >
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
@@ -91,14 +91,14 @@
             <!-- Right side - Actions -->
             <div class="flex items-center space-x-4">
               <!-- Share button -->
-              <button @click="shareImage" class="text-white hover:text-gray-400 transition-colors">
+              <button @click="shareImage" class="text-white hover:text-gray-400 transition-colors flex items-center justify-center">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
                 </svg>
               </button>
               
               <!-- Save button -->
-              <button @click="toggleSave" class="transition-colors" :class="isSaved ? 'text-ncad-green' : 'text-white hover:text-gray-400'">
+              <button @click="toggleSave" class="transition-colors flex items-center justify-center" :class="isSaved ? 'text-ncad-green' : 'text-white hover:text-gray-400'">
                 <svg class="w-6 h-6" :fill="isSaved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                 </svg>
