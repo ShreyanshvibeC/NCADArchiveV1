@@ -34,7 +34,7 @@
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
         <!-- Hero Section -->
         <section class="px-4 py-24">
-          <h1 class="text-5xl font-bold leading-none mb-6">
+          <h1 class="typewriter-text text-5xl font-bold leading-none mb-6">
             CREATIVE<br>
             TRAILS<br>
             ACROSS<br>
@@ -242,3 +242,43 @@ onMounted(async () => {
   }
 })
 </script>
+
+<style scoped>
+/* Typewriter effect for hero text */
+.typewriter-text {
+  font-family: 'Spenser', monospace;
+  border-right: 0.1em solid white;
+  white-space: nowrap;
+  overflow: hidden;
+  width: fit-content;
+  animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite alternate;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: white;
+  }
+}
+
+/* Ensure the text doesn't wrap during animation */
+.typewriter-text br {
+  display: none;
+}
+
+/* After animation completes, show the line breaks */
+.typewriter-text.animation-complete br {
+  display: block;
+}
+</style>
