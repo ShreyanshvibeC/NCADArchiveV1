@@ -109,7 +109,7 @@
               
               <!-- Temporary Badge -->
               <div v-if="photo.temporary" class="absolute top-4 left-4 bg-gray-900 border border-ncad-green px-3 py-2 z-20">
-                <span class="text-xs font-medium text-ncad-green">Temporary spot</span>
+                <span class="text-xs font-medium text-ncad-green">LEAVING SOON</span>
               </div>
 
               <!-- Visit Count with Gradient -->
