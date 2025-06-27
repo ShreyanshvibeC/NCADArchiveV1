@@ -146,110 +146,6 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
-  // Enhanced photo upload with security and optimization
-  const addPhoto = async (photoData: Omit<Photo, 'id' | 'visits' | 'likes' | 'timestamp'>, imageFile: File) => {
-    try {
-      console.log('Starting enhanced photo upload process...')
-      
-      // Security validations
-      const auth = getAuth()
-      if (!auth.currentUser) {
-        throw new Error('User not authenticated. Please sign in and try again.')
-      }
-      
-      // Rate limiting check
-      if (!uploadRateLimiter.isAllowed(auth.currentUser.uid)) {
-        const remainingTime = uploadRateLimiter.getRemainingTime(auth.currentUser.uid)
-        throw new Error(`Upload rate limit exceeded. Please wait ${Math.ceil(remainingTime / 1000)} seconds.`)
-      }
-      
-      // Validate image file
-      const validation = await validateImageFile(imageFile)
-      if (!validation.valid) {
-        throw new Error(validation.error)
-      }
-      
-      // Sanitize inputs
-      const sanitizedData = {
-        ...photoData,
-        title: photoData.title ? sanitizeInput(photoData.title) : undefined,
-        description: photoData.description ? sanitizeInput(photoData.description) : undefined
-      }
-      
-      performanceMonitor.startTiming('imageOptimization')
-      
-      // Optimize image
-      const optimizedFile = await optimizeImage(imageFile)
-      console.log(`Image optimized: ${imageFile.size} -> ${optimizedFile.size} bytes`)
-      
-      performanceMonitor.endTiming('imageOptimization')
-      
-      // Upload with retry mechanism
-      const imageURL = await withRetry(async () => {
-        return await uploadImage(optimizedFile, auth.currentUser!.uid)
-      }, { maxAttempts: 3, delay: 1000 })
-      
-      // Create photo document with retry
-      const newPhoto = {
-        ...sanitizedData,
-        imageURL,
-        visits: 0,
-        likes: 0,
-        timestamp: new Date()
-      }
-      
-      const docRef = await withRetry(async () => {
-        return await addDoc(collection(db, 'photos'), newPhoto)
-      }, { maxAttempts: 3, delay: 1000 })
-      
-      // Update local state and clear cache
-      const photoWithId = { ...newPhoto, id: docRef.id }
-      photos.value.unshift(photoWithId)
-      cacheManager.clear()
-      
-      console.log('Enhanced photo upload completed successfully')
-      return { success: true, photoId: docRef.id }
-      
-    } catch (error: any) {
-      console.error('Enhanced upload error:', error)
-      return { success: false, error: handleNetworkError(error) }
-    }
-  }
-
-  // New function to refresh all likes by reloading photos
-  const refreshAllLikes = async () => {
-    console.log('🔄 Refreshing all likes from database...')
-    loading.value = true
-    
-    try {
-      // Reload all photos from database to get fresh like counts
-      const q = query(collection(db, 'photos'), orderBy('timestamp', 'desc'))
-      const querySnapshot = await getDocs(q)
-      
-      const refreshedPhotos = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || new Date()
-      })) as Photo[]
-      
-      // Update the photos array with fresh data
-      photos.value = refreshedPhotos
-      
-      // Clear cache to ensure fresh data
-      cacheManager.clear()
-      
-      console.log('✅ All likes refreshed successfully')
-      console.log(`📊 Loaded ${refreshedPhotos.length} photos with updated like counts`)
-      
-      return { success: true, count: refreshedPhotos.length }
-    } catch (error) {
-      console.error('❌ Error refreshing likes:', error)
-      return { success: false, error: error.message }
-    } finally {
-      loading.value = false
-    }
-  }
-
   const loadUserPhotos = async (userId: string) => {
     try {
       // Try the optimized query first (requires composite index)
@@ -529,9 +425,10 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
+  // Enhanced deletePhoto function with soft delete for storage
   const deletePhoto = async (photoId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('🗑️ Starting comprehensive photo deletion process for:', photoId)
+      console.log('🗑️ Starting enhanced photo deletion with soft delete for storage:', photoId)
       
       const userId = getCurrentUserId()
       if (!userId) {
@@ -564,86 +461,67 @@ export const useGalleryStore = defineStore('gallery', () => {
       }
       console.log('✅ Ownership verified')
       
-      // Step 1: Delete from Firebase Storage first
+      // Step 1: Add image to storage cleanup queue (soft delete)
       const imageURL = photoData.imageURL
       if (imageURL) {
         try {
-          console.log('🗂️ Starting storage deletion...')
-          console.log('🔗 Image URL:', imageURL)
+          console.log('📝 Adding image to storage cleanup queue for delayed deletion...')
           
-          // Extract the storage path from the download URL
-          const storagePath = extractStoragePathFromURL(imageURL)
-          
-          if (storagePath) {
-            console.log('📁 Extracted storage path:', storagePath)
-            
-            // Create storage reference using the extracted path
-            const imageRef = storageRef(storage, storagePath)
-            console.log('🗂️ Attempting to delete from storage...')
-            
-            await deleteObject(imageRef)
-            console.log('✅ Image deleted from storage successfully')
-          } else {
-            console.warn('⚠️ Could not extract storage path from URL, skipping storage deletion')
-          }
-        } catch (storageError: any) {
-          console.error('❌ Error deleting image from storage:', storageError)
-          console.error('Storage error details:', {
-            code: storageError.code,
-            message: storageError.message
+          await addDoc(collection(db, 'storageCleanupQueue'), {
+            photoId: photoId,
+            imageURL: imageURL,
+            userId: userId,
+            timestamp: new Date(),
+            processed: false
           })
           
-          // If it's a permission error, throw it to show the user
-          if (storageError.code === 'storage/unauthorized') {
-            throw new Error('Storage permission denied. Please check Firebase Storage security rules.')
-          }
-          
-          // For other storage errors, continue with Firestore deletion
-          console.warn('⚠️ Continuing with Firestore deletion despite storage error')
+          console.log('✅ Image added to cleanup queue successfully')
+        } catch (queueError) {
+          console.error('❌ Error adding to cleanup queue:', queueError)
+          // Continue with deletion even if queue addition fails
+          console.warn('⚠️ Continuing with Firestore deletion despite queue error')
         }
       }
       
       console.log('🗑️ Starting comprehensive Firestore cleanup...')
       
-      // Step 2: Delete all related likes (both by document ID pattern and photoId field)
+      // Step 2: Delete all related likes
       console.log('❤️ Deleting all related likes...')
       try {
-        // Method 1: Query by photoId field (more reliable)
         const likesQuery = query(
           collection(db, 'likes'),
           where('photoId', '==', photoId)
         )
         const likesSnapshot = await getDocs(likesQuery)
-        console.log(`❤️ Found ${likesSnapshot.docs.length} likes to delete via photoId query`)
+        console.log(`❤️ Found ${likesSnapshot.docs.length} likes to delete`)
         
         const likeDeletePromises = likesSnapshot.docs.map(doc => {
           console.log(`❤️ Deleting like document: ${doc.id}`)
           return deleteDoc(doc.ref)
         })
         await Promise.all(likeDeletePromises)
-        console.log('✅ All likes deleted via photoId query')
+        console.log('✅ All likes deleted')
       } catch (likesError) {
         console.error('❌ Error deleting likes:', likesError)
         // Continue with deletion even if likes cleanup fails
       }
       
-      // Step 3: Delete all related saved photos (both by document ID pattern and photoId field)
+      // Step 3: Delete all related saved photos
       console.log('💾 Deleting all related saved photos...')
       try {
-        // Method 1: Query by photoId field (more reliable)
         const savedQuery = query(
           collection(db, 'savedPhotos'),
           where('photoId', '==', photoId)
         )
         const savedSnapshot = await getDocs(savedQuery)
-        console.log(`💾 Found ${savedSnapshot.docs.length} saved photos to delete via photoId query`)
+        console.log(`💾 Found ${savedSnapshot.docs.length} saved photos to delete`)
         
         const savedDeletePromises = savedSnapshot.docs.map(doc => {
           console.log(`💾 Deleting saved photo document: ${doc.id}`)
           return deleteDoc(doc.ref)
         })
         await Promise.all(savedDeletePromises)
-        console.log('✅ All saved photos deleted via photoId query')
+        console.log('✅ All saved photos deleted')
       } catch (savedError) {
         console.error('❌ Error deleting saved photos:', savedError)
         // Continue with deletion even if saved photos cleanup fails
@@ -670,7 +548,8 @@ export const useGalleryStore = defineStore('gallery', () => {
       await loadPhotos(false) // Don't use cache
       console.log('✅ Photos refreshed from server')
       
-      console.log('🎉 Comprehensive photo deletion completed successfully!')
+      console.log('🎉 Enhanced photo deletion completed successfully!')
+      console.log('📝 Note: Image will be deleted from Firebase Storage by the cleanup service within 24 hours')
       return { success: true }
     } catch (error: any) {
       console.error('❌ Error deleting photo:', error)
@@ -683,10 +562,8 @@ export const useGalleryStore = defineStore('gallery', () => {
       let errorMessage = error.message || 'Failed to delete photo'
       
       // Provide specific error messages
-      if (error.code === 'storage/unauthorized') {
-        errorMessage = 'Storage permission denied. Please update Firebase Storage security rules to allow delete operations.'
-      } else if (error.code === 'permission-denied') {
-        errorMessage = 'Firestore permission denied. Please check Firestore security rules.'
+      if (error.code === 'permission-denied') {
+        errorMessage = 'Permission denied. Please check Firestore security rules.'
       } else if (error.message?.includes('User not authenticated')) {
         errorMessage = 'Authentication required. Please sign in again.'
       } else if (error.message?.includes('You can only delete your own photos')) {
@@ -759,6 +636,110 @@ export const useGalleryStore = defineStore('gallery', () => {
       }
       
       throw new Error(`Image upload failed: ${error.message || 'Unknown error'}`)
+    }
+  }
+
+  // Enhanced photo upload with security and optimization
+  const addPhoto = async (photoData: Omit<Photo, 'id' | 'visits' | 'likes' | 'timestamp'>, imageFile: File) => {
+    try {
+      console.log('Starting enhanced photo upload process...')
+      
+      // Security validations
+      const auth = getAuth()
+      if (!auth.currentUser) {
+        throw new Error('User not authenticated. Please sign in and try again.')
+      }
+      
+      // Rate limiting check
+      if (!uploadRateLimiter.isAllowed(auth.currentUser.uid)) {
+        const remainingTime = uploadRateLimiter.getRemainingTime(auth.currentUser.uid)
+        throw new Error(`Upload rate limit exceeded. Please wait ${Math.ceil(remainingTime / 1000)} seconds.`)
+      }
+      
+      // Validate image file
+      const validation = await validateImageFile(imageFile)
+      if (!validation.valid) {
+        throw new Error(validation.error)
+      }
+      
+      // Sanitize inputs
+      const sanitizedData = {
+        ...photoData,
+        title: photoData.title ? sanitizeInput(photoData.title) : undefined,
+        description: photoData.description ? sanitizeInput(photoData.description) : undefined
+      }
+      
+      performanceMonitor.startTiming('imageOptimization')
+      
+      // Optimize image
+      const optimizedFile = await optimizeImage(imageFile)
+      console.log(`Image optimized: ${imageFile.size} -> ${optimizedFile.size} bytes`)
+      
+      performanceMonitor.endTiming('imageOptimization')
+      
+      // Upload with retry mechanism
+      const imageURL = await withRetry(async () => {
+        return await uploadImage(optimizedFile, auth.currentUser!.uid)
+      }, { maxAttempts: 3, delay: 1000 })
+      
+      // Create photo document with retry
+      const newPhoto = {
+        ...sanitizedData,
+        imageURL,
+        visits: 0,
+        likes: 0,
+        timestamp: new Date()
+      }
+      
+      const docRef = await withRetry(async () => {
+        return await addDoc(collection(db, 'photos'), newPhoto)
+      }, { maxAttempts: 3, delay: 1000 })
+      
+      // Update local state and clear cache
+      const photoWithId = { ...newPhoto, id: docRef.id }
+      photos.value.unshift(photoWithId)
+      cacheManager.clear()
+      
+      console.log('Enhanced photo upload completed successfully')
+      return { success: true, photoId: docRef.id }
+      
+    } catch (error: any) {
+      console.error('Enhanced upload error:', error)
+      return { success: false, error: handleNetworkError(error) }
+    }
+  }
+
+  // New function to refresh all likes by reloading photos
+  const refreshAllLikes = async () => {
+    console.log('🔄 Refreshing all likes from database...')
+    loading.value = true
+    
+    try {
+      // Reload all photos from database to get fresh like counts
+      const q = query(collection(db, 'photos'), orderBy('timestamp', 'desc'))
+      const querySnapshot = await getDocs(q)
+      
+      const refreshedPhotos = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate() || new Date()
+      })) as Photo[]
+      
+      // Update the photos array with fresh data
+      photos.value = refreshedPhotos
+      
+      // Clear cache to ensure fresh data
+      cacheManager.clear()
+      
+      console.log('✅ All likes refreshed successfully')
+      console.log(`📊 Loaded ${refreshedPhotos.length} photos with updated like counts`)
+      
+      return { success: true, count: refreshedPhotos.length }
+    } catch (error) {
+      console.error('❌ Error refreshing likes:', error)
+      return { success: false, error: error.message }
+    } finally {
+      loading.value = false
     }
   }
 

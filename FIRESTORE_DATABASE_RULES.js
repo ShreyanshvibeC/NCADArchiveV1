@@ -19,12 +19,14 @@ service cloud.firestore {
       allow delete: if request.auth != null && request.auth.uid == resource.data.userId;
     }
     
-    // Authenticated users can read and write their own saved photos
-    // Photo owners can also delete any saved photos of their photos
+    // Enhanced rules for saved photos - allow photo owners to read all saved photos of their photos
     match /savedPhotos/{saveId} {
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
-         saveId.matches('^' + request.auth.uid + '_.*'));
+         saveId.matches('^' + request.auth.uid + '_.*') ||
+         (resource.data.photoId is string &&
+          exists(/databases/$(database)/documents/photos/$(resource.data.photoId)) &&
+          get(/databases/$(database)/documents/photos/$(resource.data.photoId)).data.userId == request.auth.uid));
       allow write: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
          saveId.matches('^' + request.auth.uid + '_.*'));
@@ -38,12 +40,14 @@ service cloud.firestore {
           get(/databases/$(database)/documents/photos/$(resource.data.photoId)).data.userId == request.auth.uid));
     }
     
-    // Authenticated users can read and write their own likes
-    // Photo owners can also delete any likes on their photos
+    // Enhanced rules for likes - allow photo owners to read all likes on their photos
     match /likes/{likeId} {
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
-         likeId.matches('^' + request.auth.uid + '_.*'));
+         likeId.matches('^' + request.auth.uid + '_.*') ||
+         (resource.data.photoId is string &&
+          exists(/databases/$(database)/documents/photos/$(resource.data.photoId)) &&
+          get(/databases/$(database)/documents/photos/$(resource.data.photoId)).data.userId == request.auth.uid));
       allow write: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
          likeId.matches('^' + request.auth.uid + '_.*'));
@@ -55,6 +59,15 @@ service cloud.firestore {
          (resource.data.photoId is string &&
           exists(/databases/$(database)/documents/photos/$(resource.data.photoId)) &&
           get(/databases/$(database)/documents/photos/$(resource.data.photoId)).data.userId == request.auth.uid));
+    }
+    
+    // New collection for storage cleanup queue - only authenticated users can create entries
+    // Only system/admin can read and delete (for Cloud Function cleanup)
+    match /storageCleanupQueue/{queueId} {
+      allow read: if false; // Only Cloud Functions should read this
+      allow create: if request.auth != null && 
+        request.auth.uid == request.resource.data.userId;
+      allow delete: if false; // Only Cloud Functions should delete this
     }
   }
 }
