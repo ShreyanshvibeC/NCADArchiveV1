@@ -27,7 +27,70 @@ export default defineConfig({
             type: 'image/png'
           }
         ]
+      },
+      workbox: {
+        // Cache strategy for images
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'firebase-images',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+              },
+              cacheKeyWillBeUsed: async ({ request }) => {
+                // Remove query parameters for better caching
+                const url = new URL(request.url)
+                url.search = ''
+                return url.href
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/.*\.googleapis\.com\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'google-apis',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              }
+            }
+          }
+        ]
       }
     })
   ],
+  build: {
+    // Optimize bundle
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['vue', 'vue-router', 'pinia'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+          leaflet: ['leaflet']
+        }
+      }
+    },
+    // Enable source maps for better debugging
+    sourcemap: true,
+    // Optimize assets
+    assetsInlineLimit: 4096,
+    // Enable compression
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    }
+  },
+  // Development server optimizations
+  server: {
+    hmr: {
+      overlay: false
+    }
+  }
 })

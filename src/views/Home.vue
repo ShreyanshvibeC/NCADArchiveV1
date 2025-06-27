@@ -1,5 +1,10 @@
 <template>
   <div class="min-h-screen bg-black">
+    <!-- Offline Indicator -->
+    <div v-if="showOfflineMessage" class="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 z-50">
+      <p class="text-sm">You're offline. Some features may not work.</p>
+    </div>
+
     <!-- Marquee Banner at the very top - Always visible -->
     <MarqueeBanner text="made on bolt.new" />
 
@@ -30,6 +35,17 @@
         
         <!-- Header Actions -->
         <div class="flex items-center space-x-3">
+          <!-- Search Toggle Button -->
+          <button 
+            @click="showSearch = !showSearch"
+            class="p-2 text-gray-400 hover:text-white transition-colors"
+            title="Search photos"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </button>
+          
           <!-- Refresh Likes Button -->
           <button 
             @click="refreshLikes"
@@ -76,6 +92,11 @@
 
       <!-- Main Content Container with Desktop Margins and top padding for marquee + fixed header -->
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
+        <!-- Search and Filter Section -->
+        <div v-if="showSearch" class="px-4 py-4 bg-gray-900 mb-4">
+          <SearchFilter v-model="searchFilters" />
+        </div>
+
         <!-- Hero Section -->
         <section class="px-4 py-24">
           <h1 class="text-5xl font-bold leading-none mb-6">
@@ -103,9 +124,10 @@
 
         <!-- Image Feed -->
         <div class="pb-24">
-          <div v-if="galleryStore.photos.length === 0" class="text-center py-12 text-gray-400">
-            <p>No photos uploaded yet</p>
+          <div v-if="displayedPhotos.length === 0" class="text-center py-12 text-gray-400">
+            <p>{{ showSearch && (searchFilters.search || searchFilters.filters.length > 0) ? 'No photos match your search' : 'No photos uploaded yet' }}</p>
             <button 
+              v-if="!showSearch"
               @click="handleUploadClick"
               class="inline-block mt-4 bg-ncad-green text-black px-6 py-2 font-medium hover:bg-opacity-80 transition-all"
             >
@@ -114,7 +136,7 @@
           </div>
 
           <div 
-            v-for="photo in galleryStore.photos" 
+            v-for="photo in displayedPhotos" 
             :key="photo.id"
             class="mb-10 cursor-pointer"
             @click="navigateToPhoto(photo.id)"
@@ -126,13 +148,12 @@
 
             <!-- Image Container - 1:1 aspect ratio with lazy loading -->
             <div class="relative w-full aspect-square overflow-hidden">
-              <img 
-                :src="photo.imageURL" 
+              <LazyImage
+                :src="photo.imageURL"
                 :alt="photo.title || 'NCAD Archive Photo'"
-                class="w-full h-full object-cover lazy-image"
-                loading="lazy"
-                @load="onImageLoad"
-                @error="onImageError"
+                :eager="displayedPhotos.indexOf(photo) < 3"
+                container-class="w-full h-full"
+                image-class="w-full h-full object-cover"
               />
               
               <!-- Temporary Badge -->
@@ -170,7 +191,7 @@
         </div>
       </div>
 
-      <!-- Floating CTA Button with Rainbow Animation -->
+      <!-- Floating CTA Button -->
       <button 
         @click="handleUploadClick"
         class="fixed bottom-6 left-6 w-20 h-20 bg-black border-2 border-white text-white flex items-center justify-center hover:bg-gray-900 transition-all z-40 shadow-lg"
@@ -182,25 +203,53 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed, watch } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import { useOffline } from '../composables/useOffline'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
+import LazyImage from '../components/LazyImage.vue'
+import SearchFilter from '../components/SearchFilter.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
 const router = useRouter()
+const { isOnline, showOfflineMessage } = useOffline()
+
 const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
+const showSearch = ref(false)
+
+// Search and filter state
+const searchFilters = ref({
+  search: '',
+  filters: [],
+  sort: 'newest'
+})
 
 // New reactive variables for like progress tracking and refresh functionality
 const likingInProgress = ref<Record<string, boolean>>({})
 const refreshingLikes = ref(false)
 const refreshMessage = ref('')
+
+// Computed property for displayed photos (either search results or all photos)
+const displayedPhotos = computed(() => {
+  if (showSearch.value && (searchFilters.value.search || searchFilters.value.filters.length > 0)) {
+    return galleryStore.searchResults
+  }
+  return galleryStore.photos
+})
+
+// Watch for search filter changes
+watch(searchFilters, async (newFilters) => {
+  if (showSearch.value) {
+    await galleryStore.searchPhotos(newFilters.search, newFilters.filters, newFilters.sort)
+  }
+}, { deep: true })
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
@@ -213,14 +262,6 @@ const preloadImage = (src: string): Promise<void> => {
     }
     img.src = src
   })
-}
-
-const onImageLoad = () => {
-  // Handle individual image load events if needed
-}
-
-const onImageError = () => {
-  // Handle image load errors if needed
 }
 
 const handleUploadClick = () => {

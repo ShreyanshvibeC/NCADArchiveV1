@@ -14,11 +14,15 @@ import {
   setDoc,
   deleteDoc,
   startAt,
-  endAt
+  endAt,
+  limit
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from '../config/firebase'
 import { getAuth, getIdToken } from 'firebase/auth'
+import { withRetry, handleNetworkError } from '../utils/errorHandling'
+import { optimizeImage, cacheManager, performanceMonitor } from '../utils/performance'
+import { sanitizeInput, validateImageFile, uploadRateLimiter } from '../utils/security'
 
 export interface Photo {
   id: string
@@ -39,22 +43,176 @@ export interface Photo {
 export const useGalleryStore = defineStore('gallery', () => {
   const photos = ref<Photo[]>([])
   const loading = ref(false)
+  const searchResults = ref<Photo[]>([])
 
-  const loadPhotos = async () => {
+  // Enhanced photo loading with caching and error handling
+  const loadPhotos = async (useCache: boolean = true) => {
+    const cacheKey = 'all-photos'
+    
+    if (useCache) {
+      const cached = cacheManager.get(cacheKey)
+      if (cached) {
+        photos.value = cached
+        return
+      }
+    }
+    
     loading.value = true
+    performanceMonitor.startTiming('loadPhotos')
+    
     try {
-      const q = query(collection(db, 'photos'), orderBy('timestamp', 'desc'))
-      const querySnapshot = await getDocs(q)
+      const result = await withRetry(async () => {
+        const q = query(collection(db, 'photos'), orderBy('timestamp', 'desc'))
+        const querySnapshot = await getDocs(q)
+        
+        return querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().timestamp?.toDate() || new Date()
+        })) as Photo[]
+      })
       
-      photos.value = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || new Date()
-      })) as Photo[]
+      photos.value = result
+      
+      // Cache for 5 minutes
+      if (useCache) {
+        cacheManager.set(cacheKey, result, 300000)
+      }
+      
     } catch (error) {
-      console.error('Error loading photos:', error)
+      console.error('Error loading photos:', handleNetworkError(error))
+      throw error
     } finally {
       loading.value = false
+      performanceMonitor.endTiming('loadPhotos')
+    }
+  }
+
+  // Enhanced search functionality
+  const searchPhotos = async (searchQuery: string, filters: string[], sortBy: string) => {
+    if (!searchQuery.trim() && filters.length === 0) {
+      searchResults.value = [...photos.value]
+      return
+    }
+    
+    performanceMonitor.startTiming('searchPhotos')
+    
+    try {
+      let results = [...photos.value]
+      
+      // Text search
+      if (searchQuery.trim()) {
+        const query = sanitizeInput(searchQuery.toLowerCase())
+        results = results.filter(photo => 
+          photo.title?.toLowerCase().includes(query) ||
+          photo.description?.toLowerCase().includes(query)
+        )
+      }
+      
+      // Apply filters
+      if (filters.includes('temporary')) {
+        results = results.filter(photo => photo.temporary)
+      }
+      
+      if (filters.includes('has-location')) {
+        results = results.filter(photo => photo.location)
+      }
+      
+      if (filters.includes('recent')) {
+        const weekAgo = new Date()
+        weekAgo.setDate(weekAgo.getDate() - 7)
+        results = results.filter(photo => photo.timestamp > weekAgo)
+      }
+      
+      // Apply sorting
+      switch (sortBy) {
+        case 'oldest':
+          results.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime())
+          break
+        case 'most-liked':
+          results.sort((a, b) => (b.likes || 0) - (a.likes || 0))
+          break
+        case 'most-visited':
+          results.sort((a, b) => b.visits - a.visits)
+          break
+        default: // newest
+          results.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+      }
+      
+      searchResults.value = results
+      
+    } finally {
+      performanceMonitor.endTiming('searchPhotos')
+    }
+  }
+
+  // Enhanced photo upload with security and optimization
+  const addPhoto = async (photoData: Omit<Photo, 'id' | 'visits' | 'likes' | 'timestamp'>, imageFile: File) => {
+    try {
+      console.log('Starting enhanced photo upload process...')
+      
+      // Security validations
+      const auth = getAuth()
+      if (!auth.currentUser) {
+        throw new Error('User not authenticated. Please sign in and try again.')
+      }
+      
+      // Rate limiting check
+      if (!uploadRateLimiter.isAllowed(auth.currentUser.uid)) {
+        const remainingTime = uploadRateLimiter.getRemainingTime(auth.currentUser.uid)
+        throw new Error(`Upload rate limit exceeded. Please wait ${Math.ceil(remainingTime / 1000)} seconds.`)
+      }
+      
+      // Validate image file
+      const validation = await validateImageFile(imageFile)
+      if (!validation.valid) {
+        throw new Error(validation.error)
+      }
+      
+      // Sanitize inputs
+      const sanitizedData = {
+        ...photoData,
+        title: photoData.title ? sanitizeInput(photoData.title) : undefined,
+        description: photoData.description ? sanitizeInput(photoData.description) : undefined
+      }
+      
+      performanceMonitor.startTiming('imageOptimization')
+      
+      // Optimize image
+      const optimizedFile = await optimizeImage(imageFile)
+      console.log(`Image optimized: ${imageFile.size} -> ${optimizedFile.size} bytes`)
+      
+      performanceMonitor.endTiming('imageOptimization')
+      
+      // Upload with retry mechanism
+      const imageURL = await withRetry(async () => {
+        return await uploadImage(optimizedFile, auth.currentUser!.uid)
+      }, { maxAttempts: 3, delay: 1000 })
+      
+      // Create photo document with retry
+      const newPhoto = {
+        ...sanitizedData,
+        imageURL,
+        visits: 0,
+        likes: 0,
+        timestamp: new Date()
+      }
+      
+      const docRef = await withRetry(async () => {
+        return await addDoc(collection(db, 'photos'), newPhoto)
+      }, { maxAttempts: 3, delay: 1000 })
+      
+      // Update local state and clear cache
+      const photoWithId = { ...newPhoto, id: docRef.id }
+      photos.value.unshift(photoWithId)
+      cacheManager.clear()
+      
+      console.log('Enhanced photo upload completed successfully')
+      return { success: true, photoId: docRef.id }
+      
+    } catch (error: any) {
+      console.error('Enhanced upload error:', error)
+      return { success: false, error: handleNetworkError(error) }
     }
   }
 
@@ -76,6 +234,9 @@ export const useGalleryStore = defineStore('gallery', () => {
       
       // Update the photos array with fresh data
       photos.value = refreshedPhotos
+      
+      // Clear cache to ensure fresh data
+      cacheManager.clear()
       
       console.log('✅ All likes refreshed successfully')
       console.log(`📊 Loaded ${refreshedPhotos.length} photos with updated like counts`)
@@ -501,9 +662,12 @@ export const useGalleryStore = defineStore('gallery', () => {
         console.log('✅ Photo removed from main photos array')
       }
       
+      // Clear cache to ensure consistency
+      cacheManager.clear()
+      
       // Step 6: Force refresh photos from server to ensure consistency
       console.log('🔄 Refreshing photos from server...')
-      await loadPhotos()
+      await loadPhotos(false) // Don't use cache
       console.log('✅ Photos refreshed from server')
       
       console.log('🎉 Comprehensive photo deletion completed successfully!')
@@ -598,103 +762,6 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
-  const addPhoto = async (photoData: Omit<Photo, 'id' | 'visits' | 'likes' | 'timestamp'>, imageFile: File) => {
-    try {
-      console.log('Starting photo upload process...')
-      console.log('Photo data:', photoData)
-      console.log('User ID:', photoData.userId)
-      
-      // Verify user is authenticated
-      const auth = getAuth()
-      if (!auth.currentUser) {
-        throw new Error('User not authenticated. Please sign in and try again.')
-      }
-      
-      // Verify the userId matches the current user
-      if (auth.currentUser.uid !== photoData.userId) {
-        throw new Error('User ID mismatch. Please sign out and sign back in.')
-      }
-      
-      console.log('Authentication verified. Current user UID:', auth.currentUser.uid)
-      
-      // Force refresh the auth token to ensure it's valid
-      try {
-        console.log('Refreshing authentication token...')
-        const token = await getIdToken(auth.currentUser, true)
-        console.log('Fresh auth token obtained successfully')
-        
-        // Wait a moment for the token to propagate
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      } catch (tokenError) {
-        console.error('Error getting auth token:', tokenError)
-        throw new Error('Authentication token expired. Please sign out and sign back in.')
-      }
-      
-      // Upload image first
-      console.log('Uploading image file...')
-      const imageURL = await uploadImage(imageFile, photoData.userId)
-      console.log('Image uploaded successfully, URL:', imageURL)
-      
-      // Create photo document
-      const newPhoto = {
-        ...photoData,
-        imageURL,
-        visits: 0,
-        likes: 0,
-        timestamp: new Date()
-      }
-      
-      console.log('Creating photo document in Firestore...')
-      console.log('Document data:', newPhoto)
-      
-      const docRef = await addDoc(collection(db, 'photos'), newPhoto)
-      console.log('Photo document created with ID:', docRef.id)
-      
-      // Add to local state
-      const photoWithId = {
-        ...newPhoto,
-        id: docRef.id
-      }
-      photos.value.unshift(photoWithId)
-      
-      console.log('Photo added to local state successfully')
-      return { success: true, photoId: docRef.id }
-    } catch (error: any) {
-      console.error('Error adding photo:', error)
-      console.error('Error code:', error.code)
-      console.error('Error message:', error.message)
-      
-      // Provide more specific error messages
-      let errorMessage = 'Upload failed. Please try again.'
-      
-      if (error.code === 'permission-denied') {
-        errorMessage = 'Permission denied. Please sign out and sign back in to refresh your authentication. Also verify that localhost is in your Firebase authorized domains.'
-      } else if (error.code === 'unauthenticated') {
-        errorMessage = 'Authentication required. Please sign out and sign back in.'
-      } else if (error.code === 'invalid-argument') {
-        errorMessage = 'Invalid data provided. Please check your input and try again.'
-      } else if (error.message?.includes('Missing or insufficient permissions')) {
-        errorMessage = 'Permission denied. Please sign out and sign back in. Also verify that localhost is in your Firebase authorized domains.'
-      } else if (error.message?.includes('User not authenticated')) {
-        errorMessage = 'Authentication expired. Please sign out and sign back in.'
-      } else if (error.message?.includes('User ID mismatch')) {
-        errorMessage = 'Authentication error. Please sign out and sign back in.'
-      } else if (error.message?.includes('Authentication token expired')) {
-        errorMessage = 'Authentication token expired. Please sign out and sign back in.'
-      } else if (error.message?.includes('storage/unauthorized')) {
-        errorMessage = 'Storage permission denied. Please check Firebase Storage security rules.'
-      } else if (error.message?.includes('storage/quota-exceeded')) {
-        errorMessage = 'Storage quota exceeded. Please contact support.'
-      } else if (error.message?.includes('storage/invalid-format')) {
-        errorMessage = 'Invalid image format. Please select a valid image file.'
-      } else if (error.message?.includes('network')) {
-        errorMessage = 'Network error. Please check your internet connection and try again.'
-      }
-      
-      return { success: false, error: errorMessage }
-    }
-  }
-
   const getUserName = async (userId: string): Promise<string> => {
     try {
       const userDoc = await getDoc(doc(db, 'users', userId))
@@ -711,7 +778,9 @@ export const useGalleryStore = defineStore('gallery', () => {
   return {
     photos,
     loading,
+    searchResults,
     loadPhotos,
+    searchPhotos,
     loadUserPhotos,
     loadSavedPhotos,
     getPhotoById,
