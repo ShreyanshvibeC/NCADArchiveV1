@@ -131,7 +131,8 @@
             <div class="px-4 mt-3 flex justify-between items-center">
               <button 
                 @click.stop="handleLikeClick(photo.id)"
-                class="text-lg text-white hover:text-ncad-green transition-colors"
+                :disabled="likingInProgress[photo.id]"
+                class="text-lg text-white hover:text-ncad-green transition-colors disabled:opacity-50"
               >
                 {{ photo.likes || 0 }} Likes
               </button>
@@ -142,8 +143,8 @@
       </div>
 
       <!-- Floating CTA Button with Rainbow Animation -->
-<button 
-        @click="handleUploadClick"Add commentMore actions
+      <button 
+        @click="handleUploadClick"
         class="fixed bottom-6 left-6 w-20 h-20 bg-black border-2 border-white text-white flex items-center justify-center hover:bg-gray-900 transition-all z-40 shadow-lg"
       >
         <span class="text-4xl font-light">+</span>
@@ -167,6 +168,9 @@ const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
+
+// New reactive variable for like progress tracking
+const likingInProgress = ref<Record<string, boolean>>({})
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
@@ -203,10 +207,22 @@ const handleLikeClick = async (photoId: string) => {
     return
   }
   
+  // Prevent multiple simultaneous like operations for this photo
+  if (likingInProgress.value[photoId]) {
+    return
+  }
+  
+  likingInProgress.value[photoId] = true
+  
   try {
     await galleryStore.toggleLike(photoId)
   } catch (error) {
     console.error('Error toggling like:', error)
+  } finally {
+    // Add a small delay to prevent rapid successive clicks
+    setTimeout(() => {
+      likingInProgress.value[photoId] = false
+    }, 300)
   }
 }
 

@@ -56,7 +56,7 @@
             <span class="text-gray-400 text-sm">{{ formatDate(photo.timestamp) }}</span>
           </div>
 
-          <!-- Main Image - 1:1 aspect ratio with full width and double-click to like -->
+          <!-- Main Image - 1:1 aspect ratio with double-click to like and heart animation -->
           <div class="w-full aspect-square relative">
             <img 
               :src="photo.imageURL" 
@@ -66,11 +66,20 @@
             />
             
             <!-- Temporary Badge -->
+            <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
+              <span class="text-xs font-medium text-white">LEAVING SOON</span>
+            </div>
 
-
-            
-  <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
-                <span class="text-xs font-medium text-white">LEAVING SOON</span>
+            <!-- Heart Animation Overlay -->
+            <div 
+              v-if="showHeartAnimation" 
+              class="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+            >
+              <div class="animate-heart-pop">
+                <svg class="w-20 h-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                </svg>
+              </div>
             </div>
           </div>
 
@@ -87,7 +96,11 @@
               </div>
               
               <!-- Likes count -->
-              <button @click="toggleLike" class="flex items-center space-x-2 transition-colors">
+              <button 
+                @click="toggleLike" 
+                :disabled="likingInProgress"
+                class="flex items-center space-x-2 transition-colors disabled:opacity-50"
+              >
                 <svg class="w-6 h-6" :fill="isLiked ? '#52489C' : 'none'" :stroke="isLiked ? '#52489C' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                 </svg>
@@ -233,6 +246,10 @@ const deleting = ref(false)
 const deleteError = ref('')
 const showLocationDrawer = ref(false)
 
+// New reactive variables for like improvements
+const likingInProgress = ref(false)
+const showHeartAnimation = ref(false)
+
 onMounted(async () => {
   const id = route.params.id as string
   
@@ -315,10 +332,33 @@ const toggleLike = async () => {
     return
   }
   
+  // Prevent multiple simultaneous like operations
+  if (likingInProgress.value) {
+    return
+  }
+  
+  likingInProgress.value = true
+  
   try {
-    isLiked.value = await galleryStore.toggleLike(photo.value.id)
+    const newLikedState = await galleryStore.toggleLike(photo.value.id)
+    isLiked.value = newLikedState
+    
+    // Show heart animation only when liking (not unliking)
+    if (newLikedState) {
+      showHeartAnimation.value = true
+      
+      // Hide heart animation after 1 second
+      setTimeout(() => {
+        showHeartAnimation.value = false
+      }, 1000)
+    }
   } catch (error) {
     console.error('Error toggling like:', error)
+  } finally {
+    // Add a small delay to prevent rapid successive clicks
+    setTimeout(() => {
+      likingInProgress.value = false
+    }, 300)
   }
 }
 
