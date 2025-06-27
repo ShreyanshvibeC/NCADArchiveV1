@@ -213,10 +213,10 @@ export const useGalleryStore = defineStore('gallery', () => {
           likes: increment(-1)
         })
         
-        // Update local state
+        // Update local state - ensure likes never go below 0
         const photo = photos.value.find(p => p.id === photoId)
         if (photo) {
-          photo.likes--
+          photo.likes = Math.max(0, photo.likes - 1)
         }
         
         return false // Not liked anymore
