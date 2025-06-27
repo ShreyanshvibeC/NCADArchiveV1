@@ -58,6 +58,37 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
+  // New function to refresh all likes by reloading photos
+  const refreshAllLikes = async () => {
+    console.log('🔄 Refreshing all likes from database...')
+    loading.value = true
+    
+    try {
+      // Reload all photos from database to get fresh like counts
+      const q = query(collection(db, 'photos'), orderBy('timestamp', 'desc'))
+      const querySnapshot = await getDocs(q)
+      
+      const refreshedPhotos = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        timestamp: doc.data().timestamp?.toDate() || new Date()
+      })) as Photo[]
+      
+      // Update the photos array with fresh data
+      photos.value = refreshedPhotos
+      
+      console.log('✅ All likes refreshed successfully')
+      console.log(`📊 Loaded ${refreshedPhotos.length} photos with updated like counts`)
+      
+      return { success: true, count: refreshedPhotos.length }
+    } catch (error) {
+      console.error('❌ Error refreshing likes:', error)
+      return { success: false, error: error.message }
+    } finally {
+      loading.value = false
+    }
+  }
+
   const loadUserPhotos = async (userId: string) => {
     try {
       // Try the optimized query first (requires composite index)
@@ -692,7 +723,8 @@ export const useGalleryStore = defineStore('gallery', () => {
     unsavePhoto,
     isPhotoSaved,
     toggleLike,
-    isPhotoLiked
+    isPhotoLiked,
+    refreshAllLikes // Export the new refresh function
   }
 })
 

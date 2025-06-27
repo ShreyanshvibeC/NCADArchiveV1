@@ -28,26 +28,47 @@
           </svg>
         </div>
         
-        <!-- Hamburger Button - Vertically centered in header -->
-        <button 
-          @click="hamburgerMenu?.toggleMenu()"
-          class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
-        >
-          <div class="w-6 h-6 flex flex-col justify-center space-y-1">
-            <div 
-              class="w-full h-0.5 bg-white transition-all duration-300"
-              :class="{ 'rotate-45 translate-y-1.5': hamburgerMenu?.isOpen }"
-            ></div>
-            <div 
-              class="w-full h-0.5 bg-white transition-all duration-300"
-              :class="{ 'opacity-0': hamburgerMenu?.isOpen }"
-            ></div>
-            <div 
-              class="w-full h-0.5 bg-white transition-all duration-300"
-              :class="{ '-rotate-45 -translate-y-1.5': hamburgerMenu?.isOpen }"
-            ></div>
-          </div>
-        </button>
+        <!-- Header Actions -->
+        <div class="flex items-center space-x-3">
+          <!-- Refresh Likes Button -->
+          <button 
+            @click="refreshLikes"
+            :disabled="refreshingLikes"
+            class="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
+            title="Refresh all likes"
+          >
+            <svg 
+              class="w-5 h-5" 
+              :class="{ 'animate-spin': refreshingLikes }"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+          </button>
+          
+          <!-- Hamburger Button -->
+          <button 
+            @click="hamburgerMenu?.toggleMenu()"
+            class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
+          >
+            <div class="w-6 h-6 flex flex-col justify-center space-y-1">
+              <div 
+                class="w-full h-0.5 bg-white transition-all duration-300"
+                :class="{ 'rotate-45 translate-y-1.5': hamburgerMenu?.isOpen }"
+              ></div>
+              <div 
+                class="w-full h-0.5 bg-white transition-all duration-300"
+                :class="{ 'opacity-0': hamburgerMenu?.isOpen }"
+              ></div>
+              <div 
+                class="w-full h-0.5 bg-white transition-all duration-300"
+                :class="{ '-rotate-45 -translate-y-1.5': hamburgerMenu?.isOpen }"
+              ></div>
+            </div>
+          </button>
+        </div>
       </header>
 
       <!-- Hamburger Menu Component -->
@@ -72,6 +93,13 @@
             </p>
           </div>
         </section>
+
+        <!-- Refresh Success Message -->
+        <div v-if="refreshMessage" class="px-4 mb-4">
+          <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
+            <p class="text-ncad-green text-sm">{{ refreshMessage }}</p>
+          </div>
+        </div>
 
         <!-- Image Feed -->
         <div class="pb-24">
@@ -169,8 +197,10 @@ const initialImagesLoaded = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
 
-// New reactive variable for like progress tracking
+// New reactive variables for like progress tracking and refresh functionality
 const likingInProgress = ref<Record<string, boolean>>({})
+const refreshingLikes = ref(false)
+const refreshMessage = ref('')
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
@@ -223,6 +253,46 @@ const handleLikeClick = async (photoId: string) => {
     setTimeout(() => {
       likingInProgress.value[photoId] = false
     }, 300)
+  }
+}
+
+const refreshLikes = async () => {
+  if (refreshingLikes.value) return
+  
+  refreshingLikes.value = true
+  refreshMessage.value = ''
+  
+  try {
+    console.log('🔄 User requested likes refresh')
+    const result = await galleryStore.refreshAllLikes()
+    
+    if (result.success) {
+      refreshMessage.value = `✅ Refreshed ${result.count} photos with updated like counts`
+      console.log('✅ Likes refresh completed successfully')
+      
+      // Hide success message after 3 seconds
+      setTimeout(() => {
+        refreshMessage.value = ''
+      }, 3000)
+    } else {
+      refreshMessage.value = '❌ Failed to refresh likes. Please try again.'
+      console.error('❌ Likes refresh failed:', result.error)
+      
+      // Hide error message after 5 seconds
+      setTimeout(() => {
+        refreshMessage.value = ''
+      }, 5000)
+    }
+  } catch (error) {
+    console.error('❌ Error during likes refresh:', error)
+    refreshMessage.value = '❌ An error occurred while refreshing likes'
+    
+    // Hide error message after 5 seconds
+    setTimeout(() => {
+      refreshMessage.value = ''
+    }, 5000)
+  } finally {
+    refreshingLikes.value = false
   }
 }
 
