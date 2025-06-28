@@ -97,18 +97,18 @@
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Dot Indicators -->
-          <div class="flex space-x-2 py-2">
-            <div 
-              class="w-2 h-2 rounded-full transition-colors duration-300"
-              :class="!isFlipped ? 'bg-white' : 'bg-gray-600'"
-            ></div>
-            <div 
-              class="w-2 h-2 rounded-full transition-colors duration-300"
-              :class="isFlipped ? 'bg-white' : 'bg-gray-600'"
-            ></div>
+            <!-- Dot Indicators - Positioned on the image -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
+              <div 
+                class="w-2 h-2 rounded-full transition-colors duration-300"
+                :class="!isFlipped ? 'bg-white' : 'bg-gray-600'"
+              ></div>
+              <div 
+                class="w-2 h-2 rounded-full transition-colors duration-300"
+                :class="isFlipped ? 'bg-white' : 'bg-gray-600'"
+              ></div>
+            </div>
           </div>
 
           <!-- Stats and Actions Row -->
@@ -486,12 +486,12 @@ const handleTouchEnd = (e: TouchEvent) => {
   
   // Check if it's a horizontal swipe (more horizontal than vertical movement)
   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-    // Right swipe - flip to back (description)
-    if (deltaX > 0 && !isFlipped.value) {
+    // Left swipe - flip to back (description)
+    if (deltaX < 0 && !isFlipped.value) {
       isFlipped.value = true
     }
-    // Left swipe - flip to front (image)
-    else if (deltaX < 0 && isFlipped.value) {
+    // Right swipe - flip to front (image)
+    else if (deltaX > 0 && isFlipped.value) {
       isFlipped.value = false
     }
   }
