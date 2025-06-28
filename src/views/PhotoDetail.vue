@@ -26,16 +26,9 @@
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
         <!-- Content Container with 12pt spacing -->
         <div class="flex flex-col items-center space-y-3">
-          <!-- Title and Description Row -->
-          <div v-if="photo.title || photo.description" class="w-full flex px-4">
-            <!-- Left half - Title -->
-            <div class="w-1/2 pr-2">
-              <h1 v-if="photo.title" class="text-2xl font-bold text-white">{{ photo.title }}</h1>
-            </div>
-            <!-- Right half - Description (right aligned) -->
-            <div class="w-1/2 pl-2">
-              <p v-if="photo.description" class="text-sm text-gray-400 text-right">{{ photo.description }}</p>
-            </div>
+          <!-- Title - Full Width -->
+          <div v-if="photo.title" class="w-full px-4">
+            <h1 class="text-2xl font-bold text-white">{{ photo.title }}</h1>
           </div>
 
           <!-- User Info and Date Row -->
@@ -56,31 +49,67 @@
             <span class="text-gray-400 text-sm">{{ formatDate(photo.timestamp) }}</span>
           </div>
 
-          <!-- Main Image - 1:1 aspect ratio with double-click to like and heart animation -->
-          <div class="w-full aspect-square relative">
-            <img 
-              :src="photo.imageURL" 
-              :alt="photo.title || 'NCAD Archive Photo'"
-              class="w-full h-full object-cover cursor-pointer"
-              @dblclick="toggleLike"
-            />
-            
-            <!-- Temporary Badge -->
-            <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
-              <span class="text-xs font-medium text-white">LEAVING SOON</span>
-            </div>
-
-            <!-- Heart Animation Overlay -->
+          <!-- Card Flip Container - 1:1 aspect ratio -->
+          <div class="w-full aspect-square relative perspective-1000">
             <div 
-              v-if="showHeartAnimation" 
-              class="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+              class="card-container w-full h-full relative transform-style-preserve-3d transition-transform duration-700 ease-in-out"
+              :class="{ 'rotate-y-180': isFlipped }"
+              @touchstart="handleTouchStart"
+              @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd"
+              @click="toggleFlip"
             >
-              <div class="animate-heart-pop">
-                <svg class="w-20 h-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                </svg>
+              <!-- Front Side - Image -->
+              <div class="card-face card-front absolute inset-0 backface-hidden">
+                <img 
+                  :src="photo.imageURL" 
+                  :alt="photo.title || 'NCAD Archive Photo'"
+                  class="w-full h-full object-cover cursor-pointer"
+                  @dblclick="toggleLike"
+                />
+                
+                <!-- Temporary Badge -->
+                <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
+                  <span class="text-xs font-medium text-white">LEAVING SOON</span>
+                </div>
+
+                <!-- Heart Animation Overlay -->
+                <div 
+                  v-if="showHeartAnimation" 
+                  class="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+                >
+                  <div class="animate-heart-pop">
+                    <svg class="w-20 h-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Back Side - Description -->
+              <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex items-center justify-center p-8" style="background-color: #1B1B1B;">
+                <div class="text-center">
+                  <p v-if="photo.description" class="text-white text-lg leading-relaxed">
+                    {{ photo.description }}
+                  </p>
+                  <p v-else class="text-gray-400 text-lg italic">
+                    No description available
+                  </p>
+                </div>
               </div>
             </div>
+          </div>
+
+          <!-- Dot Indicators -->
+          <div class="flex space-x-2 py-2">
+            <div 
+              class="w-2 h-2 rounded-full transition-colors duration-300"
+              :class="!isFlipped ? 'bg-white' : 'bg-gray-600'"
+            ></div>
+            <div 
+              class="w-2 h-2 rounded-full transition-colors duration-300"
+              :class="isFlipped ? 'bg-white' : 'bg-gray-600'"
+            ></div>
           </div>
 
           <!-- Stats and Actions Row -->
@@ -249,6 +278,15 @@ const showLocationDrawer = ref(false)
 // New reactive variables for like improvements
 const likingInProgress = ref(false)
 const showHeartAnimation = ref(false)
+
+// Card flip state
+const isFlipped = ref(false)
+
+// Touch handling for swipe detection
+const touchStartX = ref(0)
+const touchStartY = ref(0)
+const touchEndX = ref(0)
+const touchEndY = ref(0)
 
 onMounted(async () => {
   const id = route.params.id as string
@@ -428,4 +466,81 @@ const openInGoogleMaps = async () => {
     window.open(googleMapsWebUrl, '_blank')
   }
 }
+
+// Card flip functionality
+const toggleFlip = () => {
+  isFlipped.value = !isFlipped.value
+}
+
+// Touch event handlers for swipe detection
+const handleTouchStart = (e: TouchEvent) => {
+  touchStartX.value = e.touches[0].clientX
+  touchStartY.value = e.touches[0].clientY
+}
+
+const handleTouchMove = (e: TouchEvent) => {
+  // Prevent default to avoid scrolling while swiping
+  e.preventDefault()
+}
+
+const handleTouchEnd = (e: TouchEvent) => {
+  touchEndX.value = e.changedTouches[0].clientX
+  touchEndY.value = e.changedTouches[0].clientY
+  
+  const deltaX = touchEndX.value - touchStartX.value
+  const deltaY = touchEndY.value - touchStartY.value
+  
+  // Check if it's a horizontal swipe (more horizontal than vertical movement)
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
+    // Right swipe - flip to back (description)
+    if (deltaX > 0 && !isFlipped.value) {
+      isFlipped.value = true
+    }
+    // Left swipe - flip to front (image)
+    else if (deltaX < 0 && isFlipped.value) {
+      isFlipped.value = false
+    }
+  }
+}
 </script>
+
+<style scoped>
+/* 3D perspective and transform styles */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}
+
+.card-face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}
+
+/* Ensure smooth transitions */
+.card-container {
+  transition: transform 0.7s ease-in-out;
+}
+
+/* Prevent text selection during swipe */
+.card-container {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+</style>
