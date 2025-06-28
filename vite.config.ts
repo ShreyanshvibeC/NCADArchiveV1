@@ -69,8 +69,8 @@ export default defineConfig({
     },
     // Enable source maps for better debugging
     sourcemap: true,
-    // Prevent assets from being inlined as data URLs to avoid dynamic import issues
-    assetsInlineLimit: 0,
+    // Optimize assets
+    assetsInlineLimit: 4096,
     // Enable compression
     minify: 'terser',
     terserOptions: {
