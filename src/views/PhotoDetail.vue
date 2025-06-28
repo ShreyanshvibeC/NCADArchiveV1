@@ -26,11 +26,6 @@
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
         <!-- Content Container with 12pt spacing -->
         <div class="flex flex-col items-center space-y-3">
-          <!-- Title - Full Width -->
-          <div v-if="photo.title" class="w-full px-4">
-            <h1 class="text-2xl font-bold text-white">{{ photo.title }}</h1>
-          </div>
-
           <!-- User Info and Date Row -->
           <div class="w-full flex items-center justify-between px-4">
             <!-- User info - Clickable to navigate to user profile -->
@@ -85,13 +80,19 @@
                 </div>
               </div>
 
-              <!-- Back Side - Description -->
-              <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex items-center justify-center p-8" style="background-color: #1B1B1B;">
-                <div class="text-center">
+              <!-- Back Side - Title and Description -->
+              <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8" style="background-color: #1B1B1B;">
+                <div class="text-center space-y-4">
+                  <!-- Title -->
+                  <h1 v-if="photo.title" class="text-2xl font-bold text-white mb-4">
+                    {{ photo.title }}
+                  </h1>
+                  
+                  <!-- Description -->
                   <p v-if="photo.description" class="text-white text-lg leading-relaxed">
                     {{ photo.description }}
                   </p>
-                  <p v-else class="text-gray-400 text-lg italic">
+                  <p v-else-if="!photo.title" class="text-gray-400 text-lg italic">
                     No description available
                   </p>
                 </div>
