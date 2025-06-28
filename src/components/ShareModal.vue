@@ -14,12 +14,35 @@
         <p class="text-sm text-gray-400 mt-1">{{ shareData?.title || 'NCAD Archive Photo' }}</p>
       </div>
       
-      <!-- Debug Info (only in development) -->
-      <div v-if="showDebugInfo" class="bg-gray-800 p-2 text-xs text-gray-400">
-        <div>Native Share: {{ showNativeShare ? 'Yes' : 'No' }}</div>
-        <div>Can Share Files: {{ canShareFiles ? 'Yes' : 'No' }}</div>
-        <div>Mobile Device: {{ isMobileDevice() ? 'Yes' : 'No' }}</div>
+      <!-- CORS Status Info (only in development) -->
+      <div v-if="showDebugInfo" class="bg-gray-800 p-3 text-xs text-gray-400 space-y-1">
+        <div class="font-medium text-white mb-2">Debug Information:</div>
+        <div>Native Share: {{ showNativeShare ? '✅ Yes' : '❌ No' }}</div>
+        <div>Can Share Files: {{ canShareFiles ? '✅ Yes' : '❌ No' }}</div>
+        <div>Mobile Device: {{ isMobileDevice() ? '✅ Yes' : '❌ No' }}</div>
+        <div>CORS Status: {{ corsStatus }}</div>
         <div>Thumbnail Status: {{ thumbnailStatus }}</div>
+        <div v-if="firebaseBucket" class="text-yellow-400">
+          Firebase Bucket: {{ firebaseBucket }}
+        </div>
+        <div v-if="corsStatus.includes('Failed')" class="text-red-400 mt-2">
+          ⚠️ CORS configuration needed for thumbnails
+        </div>
+      </div>
+      
+      <!-- CORS Warning (for users) -->
+      <div v-if="showCorsWarning && !showDebugInfo" class="bg-yellow-900 bg-opacity-20 border border-yellow-500 p-3">
+        <div class="flex items-start space-x-2">
+          <svg class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <div>
+            <p class="text-yellow-400 text-sm font-medium">Image sharing limited</p>
+            <p class="text-yellow-300 text-xs mt-1">
+              Thumbnails may not be included due to server configuration. Link sharing will still work.
+            </p>
+          </div>
+        </div>
       </div>
       
       <!-- Native Share Button (if supported) -->
@@ -138,6 +161,7 @@ import {
   getShareButtonText,
   isMobileDevice,
   testImageCORS,
+  getFirebaseStorageBucket,
   type ShareData 
 } from '../utils/shareUtils'
 
@@ -155,10 +179,17 @@ const emit = defineEmits<{
 const sharing = ref(false)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
+const corsStatus = ref('Not tested')
 const thumbnailStatus = ref('Not tested')
+const firebaseBucket = ref<string | null>(null)
 
 // Show debug info in development
 const showDebugInfo = ref(import.meta.env.DEV)
+
+// Show CORS warning for users when thumbnails might not work
+const showCorsWarning = computed(() => {
+  return !showDebugInfo.value && corsStatus.value.includes('Failed')
+})
 
 const showNativeShare = computed(() => {
   return isNativeShareSupported() && isMobileDevice()
@@ -176,7 +207,7 @@ const handleNativeShare = async () => {
   thumbnailStatus.value = 'Creating...'
   
   try {
-    console.log('Starting native share process...')
+    console.log('🚀 Starting native share process...')
     const success = await sharePhoto(props.shareData, false)
     
     if (success) {
@@ -195,7 +226,7 @@ const handleNativeShare = async () => {
       thumbnailStatus.value = 'Failed'
     }
   } catch (error: any) {
-    console.error('Share error:', error)
+    console.error('❌ Share error:', error)
     message.value = 'Share failed. Use options below:'
     messageType.value = 'error'
     thumbnailStatus.value = 'Error'
@@ -279,21 +310,27 @@ const showMoreOptions = () => {
 
 const closeModal = () => {
   message.value = ''
+  corsStatus.value = 'Not tested'
   thumbnailStatus.value = 'Not tested'
   emit('close')
 }
 
-// Test image CORS when modal opens
+// Test image CORS and get Firebase bucket info when modal opens
 onMounted(async () => {
   message.value = ''
   
-  if (props.shareData && showDebugInfo.value) {
+  if (props.shareData) {
+    // Get Firebase bucket info
+    firebaseBucket.value = getFirebaseStorageBucket(props.shareData.imageUrl)
+    
+    // Test CORS
     try {
-      thumbnailStatus.value = 'Testing CORS...'
+      corsStatus.value = 'Testing...'
       const corsWorking = await testImageCORS(props.shareData.imageUrl)
-      thumbnailStatus.value = corsWorking ? 'CORS OK' : 'CORS Failed'
+      corsStatus.value = corsWorking ? '✅ Working' : '❌ Failed'
     } catch (error) {
-      thumbnailStatus.value = 'CORS Test Error'
+      corsStatus.value = '❌ Error'
+      console.error('CORS test error:', error)
     }
   }
 })

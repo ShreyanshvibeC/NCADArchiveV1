@@ -11,7 +11,7 @@ export interface ShareData {
 }
 
 /**
- * Creates a thumbnail from an image URL with proper CORS handling
+ * Creates a thumbnail from an image URL with enhanced CORS handling
  * @param imageUrl - Original image URL
  * @param maxSize - Maximum width/height for thumbnail (default: 300px)
  * @returns Promise<Blob> - Thumbnail image blob
@@ -22,7 +22,7 @@ export const createThumbnail = async (imageUrl: string, maxSize: number = 300): 
     const ctx = canvas.getContext('2d')
     const img = new Image()
     
-    // Handle CORS for Firebase Storage images
+    // Enhanced CORS handling for Firebase Storage
     img.crossOrigin = 'anonymous'
     
     img.onload = () => {
@@ -52,7 +52,7 @@ export const createThumbnail = async (imageUrl: string, maxSize: number = 300): 
         canvas.toBlob(
           (blob) => {
             if (blob) {
-              console.log('Thumbnail created successfully, size:', blob.size)
+              console.log('✅ Thumbnail created successfully, size:', blob.size)
               resolve(blob)
             } else {
               reject(new Error('Failed to create thumbnail blob'))
@@ -62,42 +62,94 @@ export const createThumbnail = async (imageUrl: string, maxSize: number = 300): 
           0.8 // 80% quality for good balance of size/quality
         )
       } catch (error) {
-        console.error('Error in thumbnail creation:', error)
+        console.error('❌ Error in thumbnail creation:', error)
         reject(error)
       }
     }
     
     img.onerror = (error) => {
-      console.error('Failed to load image for thumbnail:', error)
-      reject(new Error('Failed to load image for thumbnail creation'))
+      console.error('❌ Failed to load image for thumbnail:', error)
+      reject(new Error('Failed to load image for thumbnail creation - likely CORS issue'))
     }
     
-    // Add timestamp to bypass cache issues
-    const separator = imageUrl.includes('?') ? '&' : '?'
-    img.src = `${imageUrl}${separator}t=${Date.now()}`
+    // Try multiple URL variations to bypass cache and CORS issues
+    const urlVariations = [
+      imageUrl, // Original URL
+      `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}alt=media`, // Firebase Storage direct media
+      `${imageUrl}${imageUrl.includes('?') ? '&' : '?'}t=${Date.now()}`, // Cache busting
+    ]
+    
+    let currentVariation = 0
+    
+    const tryNextUrl = () => {
+      if (currentVariation < urlVariations.length) {
+        console.log(`🔄 Trying image URL variation ${currentVariation + 1}:`, urlVariations[currentVariation])
+        img.src = urlVariations[currentVariation]
+        currentVariation++
+      } else {
+        reject(new Error('All URL variations failed'))
+      }
+    }
+    
+    // Override error handler to try next variation
+    img.onerror = () => {
+      console.warn(`⚠️ URL variation ${currentVariation} failed, trying next...`)
+      if (currentVariation < urlVariations.length) {
+        setTimeout(tryNextUrl, 100) // Small delay between attempts
+      } else {
+        reject(new Error('All image URL variations failed - CORS configuration needed'))
+      }
+    }
+    
+    // Start with first variation
+    tryNextUrl()
   })
 }
 
 /**
- * Fetches image as blob and creates thumbnail (fallback for CORS issues)
+ * Enhanced fetch-based thumbnail creation with better error handling
  * @param imageUrl - Original image URL
  * @param maxSize - Maximum width/height for thumbnail
  * @returns Promise<Blob> - Thumbnail image blob
  */
 export const createThumbnailFromFetch = async (imageUrl: string, maxSize: number = 300): Promise<Blob> => {
   try {
-    console.log('Fetching image via fetch API...')
-    const response = await fetch(imageUrl, {
-      mode: 'cors',
-      credentials: 'omit'
-    })
+    console.log('🔄 Attempting fetch-based thumbnail creation...')
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`)
+    // Try different fetch configurations
+    const fetchConfigs = [
+      { mode: 'cors' as RequestMode, credentials: 'omit' as RequestCredentials },
+      { mode: 'no-cors' as RequestMode, credentials: 'omit' as RequestCredentials },
+      { mode: 'cors' as RequestMode, credentials: 'same-origin' as RequestCredentials }
+    ]
+    
+    let response: Response | null = null
+    let lastError: Error | null = null
+    
+    for (const config of fetchConfigs) {
+      try {
+        console.log(`🔄 Trying fetch with mode: ${config.mode}, credentials: ${config.credentials}`)
+        response = await fetch(imageUrl, config)
+        
+        if (response.ok) {
+          console.log('✅ Fetch successful with config:', config)
+          break
+        } else {
+          console.warn(`⚠️ Fetch failed with status ${response.status}`)
+        }
+      } catch (fetchError: any) {
+        console.warn(`⚠️ Fetch config failed:`, fetchError.message)
+        lastError = fetchError
+        continue
+      }
+    }
+    
+    if (!response || !response.ok) {
+      throw lastError || new Error(`Failed to fetch image: ${response?.status || 'unknown error'}`)
     }
     
     const blob = await response.blob()
-    console.log('Image fetched successfully, size:', blob.size)
+    console.log('✅ Image fetched successfully, size:', blob.size)
     
     return new Promise((resolve, reject) => {
       const canvas = document.createElement('canvas')
@@ -130,7 +182,7 @@ export const createThumbnailFromFetch = async (imageUrl: string, maxSize: number
           canvas.toBlob(
             (thumbnailBlob) => {
               if (thumbnailBlob) {
-                console.log('Thumbnail created from fetch, size:', thumbnailBlob.size)
+                console.log('✅ Thumbnail created from fetch, size:', thumbnailBlob.size)
                 resolve(thumbnailBlob)
               } else {
                 reject(new Error('Failed to create thumbnail from fetched image'))
@@ -151,7 +203,95 @@ export const createThumbnailFromFetch = async (imageUrl: string, maxSize: number
       img.src = URL.createObjectURL(blob)
     })
   } catch (error) {
-    console.error('Fetch method failed:', error)
+    console.error('❌ Fetch method failed:', error)
+    throw error
+  }
+}
+
+/**
+ * Proxy-based thumbnail creation (fallback for CORS issues)
+ * @param imageUrl - Original image URL
+ * @param maxSize - Maximum width/height for thumbnail
+ * @returns Promise<Blob> - Thumbnail image blob
+ */
+export const createThumbnailViaProxy = async (imageUrl: string, maxSize: number = 300): Promise<Blob> => {
+  try {
+    console.log('🔄 Attempting proxy-based thumbnail creation...')
+    
+    // Use a CORS proxy service (for development/testing only)
+    const proxyUrls = [
+      `https://api.allorigins.win/raw?url=${encodeURIComponent(imageUrl)}`,
+      `https://cors-anywhere.herokuapp.com/${imageUrl}`,
+      // Add more proxy services as needed
+    ]
+    
+    for (const proxyUrl of proxyUrls) {
+      try {
+        console.log('🔄 Trying proxy:', proxyUrl)
+        const response = await fetch(proxyUrl)
+        
+        if (response.ok) {
+          const blob = await response.blob()
+          console.log('✅ Proxy fetch successful, size:', blob.size)
+          
+          // Create thumbnail from blob
+          return new Promise((resolve, reject) => {
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
+            const img = new Image()
+            
+            img.onload = () => {
+              try {
+                let { width, height } = img
+                
+                if (width > height) {
+                  if (width > maxSize) {
+                    height = (height * maxSize) / width
+                    width = maxSize
+                  }
+                } else {
+                  if (height > maxSize) {
+                    width = (width * maxSize) / height
+                    height = maxSize
+                  }
+                }
+                
+                canvas.width = width
+                canvas.height = height
+                
+                ctx?.clearRect(0, 0, width, height)
+                ctx?.drawImage(img, 0, 0, width, height)
+                
+                canvas.toBlob(
+                  (thumbnailBlob) => {
+                    if (thumbnailBlob) {
+                      console.log('✅ Proxy thumbnail created, size:', thumbnailBlob.size)
+                      resolve(thumbnailBlob)
+                    } else {
+                      reject(new Error('Failed to create proxy thumbnail'))
+                    }
+                  },
+                  'image/jpeg',
+                  0.8
+                )
+              } catch (error) {
+                reject(error)
+              }
+            }
+            
+            img.onerror = () => reject(new Error('Failed to load proxy image'))
+            img.src = URL.createObjectURL(blob)
+          })
+        }
+      } catch (proxyError) {
+        console.warn('⚠️ Proxy failed:', proxyError)
+        continue
+      }
+    }
+    
+    throw new Error('All proxy methods failed')
+  } catch (error) {
+    console.error('❌ Proxy method failed:', error)
     throw error
   }
 }
@@ -198,42 +338,46 @@ export const canShareFiles = (): boolean => {
 }
 
 /**
- * Shares content using native share API with image attachment
+ * Enhanced share function with multiple thumbnail creation methods
  * @param shareData - Data to share
  * @returns Promise<boolean> - Success status
  */
 export const shareWithNativeAPI = async (shareData: ShareData): Promise<boolean> => {
   try {
     const formattedData = prepareShareData(shareData)
-    console.log('Starting native share process...')
+    console.log('🚀 Starting enhanced native share process...')
     
     let thumbnailFile: File | undefined
     
-    // Try to create thumbnail with multiple fallback methods
-    try {
-      console.log('Attempting to create thumbnail...')
-      let thumbnailBlob: Blob
-      
+    // Try multiple thumbnail creation methods in order of preference
+    const thumbnailMethods = [
+      { name: 'Direct CORS', method: () => createThumbnail(formattedData.imageUrl) },
+      { name: 'Fetch API', method: () => createThumbnailFromFetch(formattedData.imageUrl) },
+      { name: 'Proxy Service', method: () => createThumbnailViaProxy(formattedData.imageUrl) }
+    ]
+    
+    for (const { name, method } of thumbnailMethods) {
       try {
-        // Method 1: Direct image loading with CORS
-        thumbnailBlob = await createThumbnail(formattedData.imageUrl)
-      } catch (corsError) {
-        console.warn('Direct thumbnail creation failed, trying fetch method:', corsError)
-        // Method 2: Fetch then create thumbnail
-        thumbnailBlob = await createThumbnailFromFetch(formattedData.imageUrl)
+        console.log(`🔄 Attempting thumbnail creation via ${name}...`)
+        const thumbnailBlob = await method()
+        
+        // Create file from blob
+        thumbnailFile = new File(
+          [thumbnailBlob], 
+          'ncad-archive-photo.jpg', 
+          { type: 'image/jpeg' }
+        )
+        
+        console.log(`✅ Thumbnail created via ${name}:`, thumbnailFile.name, thumbnailFile.size)
+        break // Success, exit loop
+      } catch (methodError) {
+        console.warn(`⚠️ ${name} method failed:`, methodError)
+        continue // Try next method
       }
-      
-      // Create file from blob
-      thumbnailFile = new File(
-        [thumbnailBlob], 
-        'ncad-archive-photo.jpg', 
-        { type: 'image/jpeg' }
-      )
-      
-      console.log('Thumbnail file created:', thumbnailFile.name, thumbnailFile.size)
-    } catch (thumbnailError) {
-      console.warn('All thumbnail creation methods failed:', thumbnailError)
-      console.log('Proceeding with text-only share...')
+    }
+    
+    if (!thumbnailFile) {
+      console.warn('⚠️ All thumbnail creation methods failed, proceeding with text-only share')
     }
     
     // Prepare share payload
@@ -248,12 +392,14 @@ export const shareWithNativeAPI = async (shareData: ShareData): Promise<boolean>
       
       // Check if the payload with files can be shared
       if (navigator.canShare && !navigator.canShare(sharePayload)) {
-        console.warn('Files not supported in share, removing files from payload')
+        console.warn('⚠️ Files not supported in share, removing files from payload')
         delete sharePayload.files
+      } else {
+        console.log('✅ File sharing supported, including thumbnail')
       }
     }
     
-    console.log('Sharing payload:', {
+    console.log('📤 Sharing payload:', {
       title: sharePayload.title,
       text: sharePayload.text,
       hasFiles: !!sharePayload.files,
@@ -261,15 +407,15 @@ export const shareWithNativeAPI = async (shareData: ShareData): Promise<boolean>
     })
     
     await navigator.share(sharePayload)
-    console.log('Share completed successfully')
+    console.log('🎉 Share completed successfully')
     
     return true
   } catch (error: any) {
-    console.error('Native share failed:', error)
+    console.error('❌ Native share failed:', error)
     
     // If user cancelled, don't treat as error
     if (error.name === 'AbortError') {
-      console.log('Share cancelled by user')
+      console.log('👤 Share cancelled by user')
       return false
     }
     
@@ -282,25 +428,36 @@ export const shareWithNativeAPI = async (shareData: ShareData): Promise<boolean>
  */
 export const fallbackShare = {
   /**
-   * Copy link to clipboard
+   * Copy link to clipboard with enhanced error handling
    */
   copyLink: async (url: string): Promise<boolean> => {
     try {
       await navigator.clipboard.writeText(url)
+      console.log('✅ Link copied to clipboard via Clipboard API')
       return true
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error)
+      console.warn('⚠️ Clipboard API failed, trying fallback method:', error)
       // Fallback for older browsers
       try {
         const textArea = document.createElement('textarea')
         textArea.value = url
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
         document.body.appendChild(textArea)
+        textArea.focus()
         textArea.select()
-        document.execCommand('copy')
+        const successful = document.execCommand('copy')
         document.body.removeChild(textArea)
-        return true
+        
+        if (successful) {
+          console.log('✅ Link copied via fallback method')
+          return true
+        } else {
+          throw new Error('execCommand copy failed')
+        }
       } catch (fallbackError) {
-        console.error('Fallback copy method also failed:', fallbackError)
+        console.error('❌ All copy methods failed:', fallbackError)
         return false
       }
     }
@@ -313,6 +470,7 @@ export const fallbackShare = {
     const text = encodeURIComponent(`${title}\n\n${description}\n\n${url}`)
     const whatsappUrl = `https://wa.me/?text=${text}`
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+    console.log('📱 Opened WhatsApp share')
   },
   
   /**
@@ -323,6 +481,7 @@ export const fallbackShare = {
     const shareUrl = encodeURIComponent(url)
     const twitterUrl = `https://twitter.com/intent/tweet?text=${text}&url=${shareUrl}`
     window.open(twitterUrl, '_blank', 'noopener,noreferrer')
+    console.log('🐦 Opened Twitter share')
   },
   
   /**
@@ -332,6 +491,7 @@ export const fallbackShare = {
     const shareUrl = encodeURIComponent(url)
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`
     window.open(facebookUrl, '_blank', 'noopener,noreferrer')
+    console.log('📘 Opened Facebook share')
   },
   
   /**
@@ -342,6 +502,7 @@ export const fallbackShare = {
     const body = encodeURIComponent(`${description}\n\nView photo: ${url}`)
     const emailUrl = `mailto:?subject=${subject}&body=${body}`
     window.location.href = emailUrl
+    console.log('📧 Opened email share')
   }
 }
 
@@ -360,7 +521,7 @@ export const sharePhoto = async (
     try {
       return await shareWithNativeAPI(shareData)
     } catch (error) {
-      console.error('Native sharing failed, showing fallback options:', error)
+      console.error('❌ Native sharing failed, showing fallback options:', error)
       
       if (showFallbackOptions) {
         // Return false to indicate fallback should be shown
@@ -372,6 +533,7 @@ export const sharePhoto = async (
   }
   
   // If native sharing not supported, return false to show fallback options
+  console.log('📱 Native sharing not supported, showing fallback options')
   return false
 }
 
@@ -417,13 +579,40 @@ export const testImageCORS = async (imageUrl: string): Promise<boolean> => {
         canvas.height = 1
         ctx?.drawImage(img, 0, 0, 1, 1)
         // If we can draw to canvas, CORS is working
+        console.log('✅ CORS test passed')
         resolve(true)
       } catch (error) {
+        console.log('❌ CORS test failed:', error)
         resolve(false)
       }
     }
     
-    img.onerror = () => resolve(false)
+    img.onerror = () => {
+      console.log('❌ CORS test failed: image load error')
+      resolve(false)
+    }
+    
     img.src = imageUrl
   })
+}
+
+/**
+ * Gets Firebase Storage bucket name from image URL
+ * @param imageUrl - Firebase Storage image URL
+ * @returns string | null - Bucket name or null if not a Firebase Storage URL
+ */
+export const getFirebaseStorageBucket = (imageUrl: string): string | null => {
+  try {
+    const url = new URL(imageUrl)
+    if (url.hostname.includes('firebasestorage.googleapis.com')) {
+      const pathParts = url.pathname.split('/')
+      const bucketIndex = pathParts.findIndex(part => part === 'b')
+      if (bucketIndex !== -1 && pathParts[bucketIndex + 1]) {
+        return pathParts[bucketIndex + 1]
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
 }
