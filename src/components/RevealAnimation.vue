@@ -1,5 +1,5 @@
 <template>
-  <div class="fixed inset-0 z-50 min-h-screen w-full overflow-hidden bg-black">
+  <div class="fixed inset-0 z-50 min-h-screen w-full overflow-hidden">
     <!-- Animation Container - Vertical bars -->
     <div class="absolute inset-0 flex flex-row">
       <div
@@ -58,7 +58,7 @@ onMounted(() => {
   // Complete the animation and emit event
   setTimeout(() => {
     emit('animation-complete')
-  }, 1500) // Reduced timing since no content fade is needed
+  }, 1500) // Total animation time: 300ms delay + 900ms staggered animation + 300ms buffer
 })
 
 // Support for reduced motion accessibility

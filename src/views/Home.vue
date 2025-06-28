@@ -16,14 +16,8 @@
       </div>
     </div>
 
-    <!-- Reveal Animation - Show after images are loaded but before main content -->
-    <RevealAnimation 
-      v-if="showRevealAnimation" 
-      @animation-complete="onAnimationComplete"
-    />
-
-    <!-- Main Content - Only show when reveal animation is complete -->
-    <div v-if="showMainContent">
+    <!-- Main Content - Show immediately after images are loaded, behind reveal animation -->
+    <div v-if="initialImagesLoaded">
      
       <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
@@ -154,6 +148,12 @@
         <span class="text-4xl font-light">+</span>
       </button> 
     </div>
+
+    <!-- Reveal Animation - Show after images are loaded, on top of main content -->
+    <RevealAnimation 
+      v-if="showRevealAnimation" 
+      @animation-complete="onAnimationComplete"
+    />
   </div>
 </template>
 
@@ -173,7 +173,6 @@ const router = useRouter()
 const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
 const showRevealAnimation = ref(false)
-const showMainContent = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
 
@@ -232,7 +231,6 @@ const navigateToPhoto = (photoId: string) => {
 
 const onAnimationComplete = () => {
   showRevealAnimation.value = false
-  showMainContent.value = true
 }
 
 // Watch for when initial images are loaded to trigger reveal animation
@@ -250,9 +248,8 @@ onMounted(async () => {
     await galleryStore.loadPhotos()
     
     if (galleryStore.photos.length === 0) {
-      // No photos to load, skip reveal animation and show main content
+      // No photos to load, show the page and trigger reveal animation
       initialImagesLoaded.value = true
-      showRevealAnimation.value = true
       return
     }
     
@@ -293,7 +290,6 @@ onMounted(async () => {
     console.error('Error loading initial content:', error)
     // Show the main content even if there's an error
     initialImagesLoaded.value = true
-    showRevealAnimation.value = true
   }
 })
 </script>
