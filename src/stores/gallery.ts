@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { 
   collection, 
   addDoc, 
@@ -12,9 +12,13 @@ import {
   increment,
   getDoc,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  limit,
+  startAfter,
+  DocumentSnapshot,
+  QueryDocumentSnapshot
 } from 'firebase/firestore'
-import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { db, storage } from '../config/firebase'
 import { getAuth, getIdToken } from 'firebase/auth'
 
@@ -28,27 +32,169 @@ export interface Photo {
   likes: number
   timestamp: Date
   userId: string
-  location?: {
-    lat: number
-    lng: number
+}
+
+export interface UserCache {
+  [userId: string]: {
+    name: string
+    timestamp: number
   }
 }
 
 export const useGalleryStore = defineStore('gallery', () => {
-  const photos = ref<Photo[]>([])
+  // Use shallowRef for large arrays to prevent deep reactivity
+  const photos = shallowRef<Photo[]>([])
   const loading = ref(false)
+  const hasMorePhotos = ref(true)
+  const lastPhotoDoc = ref<QueryDocumentSnapshot | null>(null)
+  const photosPerPage = 20
 
-  const loadPhotos = async () => {
+  // User cache with localStorage persistence
+  const userCache = ref<UserCache>({})
+  const CACHE_DURATION = 1000 * 60 * 60 * 24 // 24 hours
+  const CACHE_KEY = 'ncad_user_cache'
+
+  // Initialize user cache from localStorage
+  const initializeUserCache = () => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY)
+      if (cached) {
+        const parsedCache = JSON.parse(cached)
+        // Filter out expired entries
+        const now = Date.now()
+        const validCache: UserCache = {}
+        
+        Object.entries(parsedCache).forEach(([userId, data]: [string, any]) => {
+          if (data.timestamp && (now - data.timestamp) < CACHE_DURATION) {
+            validCache[userId] = data
+          }
+        })
+        
+        userCache.value = validCache
+        localStorage.setItem(CACHE_KEY, JSON.stringify(validCache))
+      }
+    } catch (error) {
+      console.error('Error loading user cache:', error)
+      userCache.value = {}
+    }
+  }
+
+  // Save user cache to localStorage
+  const saveUserCache = () => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(userCache.value))
+    } catch (error) {
+      console.error('Error saving user cache:', error)
+    }
+  }
+
+  // Batch load user names
+  const batchLoadUserNames = async (userIds: string[]): Promise<Record<string, string>> => {
+    const uncachedUserIds = userIds.filter(id => !userCache.value[id])
+    const result: Record<string, string> = {}
+    
+    // Return cached names
+    userIds.forEach(id => {
+      if (userCache.value[id]) {
+        result[id] = userCache.value[id].name
+      }
+    })
+    
+    if (uncachedUserIds.length === 0) {
+      return result
+    }
+    
+    try {
+      // Batch query for uncached users (Firestore 'in' supports up to 10 items)
+      const batches = []
+      for (let i = 0; i < uncachedUserIds.length; i += 10) {
+        const batch = uncachedUserIds.slice(i, i + 10)
+        batches.push(batch)
+      }
+      
+      for (const batch of batches) {
+        const q = query(collection(db, 'users'), where('__name__', 'in', batch))
+        const querySnapshot = await getDocs(q)
+        
+        querySnapshot.docs.forEach(doc => {
+          const userData = doc.data()
+          const userName = userData.name || 'Anonymous'
+          result[doc.id] = userName
+          
+          // Cache the result
+          userCache.value[doc.id] = {
+            name: userName,
+            timestamp: Date.now()
+          }
+        })
+      }
+      
+      // Handle users not found in database
+      uncachedUserIds.forEach(id => {
+        if (!result[id]) {
+          result[id] = 'Anonymous'
+          userCache.value[id] = {
+            name: 'Anonymous',
+            timestamp: Date.now()
+          }
+        }
+      })
+      
+      saveUserCache()
+    } catch (error) {
+      console.error('Error batch loading user names:', error)
+      // Fallback to 'Anonymous' for failed loads
+      uncachedUserIds.forEach(id => {
+        if (!result[id]) {
+          result[id] = 'Anonymous'
+        }
+      })
+    }
+    
+    return result
+  }
+
+  const loadPhotos = async (reset = false) => {
+    if (loading.value || (!hasMorePhotos.value && !reset)) return
+    
     loading.value = true
     try {
-      const q = query(collection(db, 'photos'), orderBy('timestamp', 'desc'))
+      let q = query(
+        collection(db, 'photos'), 
+        orderBy('timestamp', 'desc'), 
+        limit(photosPerPage)
+      )
+      
+      if (!reset && lastPhotoDoc.value) {
+        q = query(q, startAfter(lastPhotoDoc.value))
+      }
+      
       const querySnapshot = await getDocs(q)
       
-      photos.value = querySnapshot.docs.map(doc => ({
+      if (querySnapshot.empty) {
+        hasMorePhotos.value = false
+        return
+      }
+      
+      const newPhotos = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         timestamp: doc.data().timestamp?.toDate() || new Date()
       })) as Photo[]
+      
+      if (reset) {
+        photos.value = newPhotos
+      } else {
+        photos.value = [...photos.value, ...newPhotos]
+      }
+      
+      lastPhotoDoc.value = querySnapshot.docs[querySnapshot.docs.length - 1]
+      hasMorePhotos.value = querySnapshot.docs.length === photosPerPage
+      
+      // Batch load user names for new photos
+      const userIds = [...new Set(newPhotos.map(photo => photo.userId))]
+      await batchLoadUserNames(userIds)
+      
     } catch (error) {
       console.error('Error loading photos:', error)
     } finally {
@@ -102,8 +248,6 @@ export const useGalleryStore = defineStore('gallery', () => {
     try {
       console.log('Loading saved photos for user:', userId)
       
-      // Use a simpler approach: query by userId field instead of document ID pattern
-      // This is more compatible with Firestore security rules
       const q = query(
         collection(db, 'savedPhotos'),
         where('userId', '==', userId)
@@ -139,7 +283,6 @@ export const useGalleryStore = defineStore('gallery', () => {
       console.error('Error loading saved photos:', error)
       console.error('Error details:', error.code, error.message)
       
-      // Provide more specific error information
       if (error.code === 'permission-denied') {
         console.error('Permission denied - check Firebase security rules and authentication status')
       }
@@ -166,7 +309,7 @@ export const useGalleryStore = defineStore('gallery', () => {
         } as Photo
         
         // Add to local state
-        photos.value.unshift(photoData)
+        photos.value = [photoData, ...photos.value]
         return photoData
       }
       
@@ -185,9 +328,11 @@ export const useGalleryStore = defineStore('gallery', () => {
       })
       
       // Update local state
-      const photo = photos.value.find(p => p.id === id)
-      if (photo) {
-        photo.visits++
+      const photoIndex = photos.value.findIndex(p => p.id === id)
+      if (photoIndex !== -1) {
+        const updatedPhotos = [...photos.value]
+        updatedPhotos[photoIndex] = { ...updatedPhotos[photoIndex], visits: updatedPhotos[photoIndex].visits + 1 }
+        photos.value = updatedPhotos
       }
     } catch (error) {
       console.error('Error incrementing visits:', error)
@@ -212,9 +357,14 @@ export const useGalleryStore = defineStore('gallery', () => {
         })
         
         // Update local state - ensure likes never go below 0
-        const photo = photos.value.find(p => p.id === photoId)
-        if (photo) {
-          photo.likes = Math.max(0, photo.likes - 1)
+        const photoIndex = photos.value.findIndex(p => p.id === photoId)
+        if (photoIndex !== -1) {
+          const updatedPhotos = [...photos.value]
+          updatedPhotos[photoIndex] = { 
+            ...updatedPhotos[photoIndex], 
+            likes: Math.max(0, updatedPhotos[photoIndex].likes - 1) 
+          }
+          photos.value = updatedPhotos
         }
         
         return false // Not liked anymore
@@ -230,9 +380,14 @@ export const useGalleryStore = defineStore('gallery', () => {
         })
         
         // Update local state
-        const photo = photos.value.find(p => p.id === photoId)
-        if (photo) {
-          photo.likes++
+        const photoIndex = photos.value.findIndex(p => p.id === photoId)
+        if (photoIndex !== -1) {
+          const updatedPhotos = [...photos.value]
+          updatedPhotos[photoIndex] = { 
+            ...updatedPhotos[photoIndex], 
+            likes: updatedPhotos[photoIndex].likes + 1 
+          }
+          photos.value = updatedPhotos
         }
         
         return true // Now liked
@@ -446,14 +601,11 @@ export const useGalleryStore = defineStore('gallery', () => {
       console.log('🔄 Updating local state...')
       const photoIndex = photos.value.findIndex(p => p.id === photoId)
       if (photoIndex !== -1) {
-        photos.value.splice(photoIndex, 1)
+        const updatedPhotos = [...photos.value]
+        updatedPhotos.splice(photoIndex, 1)
+        photos.value = updatedPhotos
         console.log('✅ Photo removed from main photos array')
       }
-      
-      // Step 6: Force refresh photos from server to ensure consistency
-      console.log('🔄 Refreshing photos from server...')
-      await loadPhotos()
-      console.log('✅ Photos refreshed from server')
       
       console.log('🎉 Enhanced photo deletion completed successfully!')
       console.log('📝 Note: Image will be deleted from Firebase Storage by the cleanup service within 24 hours')
@@ -513,7 +665,7 @@ export const useGalleryStore = defineStore('gallery', () => {
       await new Promise(resolve => setTimeout(resolve, 500))
       
       const timestamp = Date.now()
-      const fileName = `${userId}_${timestamp}.jpg`
+      const fileName = `${userId}_${timestamp}.webp` // Use WebP format
       const imageRef = storageRef(storage, `images/${userId}/${fileName}`)
       
       console.log('Uploading to path:', `images/${userId}/${fileName}`)
@@ -598,12 +750,12 @@ export const useGalleryStore = defineStore('gallery', () => {
       const docRef = await addDoc(collection(db, 'photos'), newPhoto)
       console.log('Photo document created with ID:', docRef.id)
       
-      // Add to local state
+      // Add to local state at the beginning
       const photoWithId = {
         ...newPhoto,
         id: docRef.id
       }
-      photos.value.unshift(photoWithId)
+      photos.value = [photoWithId, ...photos.value]
       
       console.log('Photo added to local state successfully')
       return { success: true, photoId: docRef.id }
@@ -644,21 +796,44 @@ export const useGalleryStore = defineStore('gallery', () => {
   }
 
   const getUserName = async (userId: string): Promise<string> => {
+    // Check cache first
+    if (userCache.value[userId]) {
+      return userCache.value[userId].name
+    }
+    
     try {
       const userDoc = await getDoc(doc(db, 'users', userId))
-      if (userDoc.exists()) {
-        return userDoc.data().name || 'Anonymous'
+      const name = userDoc.exists() ? (userDoc.data().name || 'Anonymous') : 'Anonymous'
+      
+      // Cache the result
+      userCache.value[userId] = {
+        name,
+        timestamp: Date.now()
       }
-      return 'Anonymous'
+      saveUserCache()
+      
+      return name
     } catch (error) {
       console.error('Error getting user name:', error)
       return 'Anonymous'
     }
   }
 
+  // Reset pagination state
+  const resetPagination = () => {
+    photos.value = []
+    lastPhotoDoc.value = null
+    hasMorePhotos.value = true
+  }
+
+  // Initialize cache on store creation
+  initializeUserCache()
+
   return {
     photos,
     loading,
+    hasMorePhotos,
+    photosPerPage,
     loadPhotos,
     loadUserPhotos,
     loadSavedPhotos,
@@ -667,11 +842,13 @@ export const useGalleryStore = defineStore('gallery', () => {
     addPhoto,
     deletePhoto,
     getUserName,
+    batchLoadUserNames,
     savePhoto,
     unsavePhoto,
     isPhotoSaved,
     toggleLike,
-    isPhotoLiked
+    isPhotoLiked,
+    resetPagination
   }
 })
 

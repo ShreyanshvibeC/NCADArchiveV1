@@ -75,7 +75,7 @@
 
         <!-- Image Feed -->
         <div class="pb-24">
-          <div v-if="galleryStore.photos.length === 0" class="text-center py-12 text-gray-400">
+          <div v-if="galleryStore.photos.length === 0 && !galleryStore.loading" class="text-center py-12 text-gray-400">
             <p>No photos uploaded yet</p>
             <button 
               @click="handleUploadClick"
@@ -96,14 +96,23 @@
               <h2 class="text-2xl font-medium text-white text-left">{{ photo.title }}</h2>
             </div>
 
-            <!-- Image Container - 1:1 aspect ratio with lazy loading -->
+            <!-- Image Container - 1:1 aspect ratio with progressive loading -->
             <div class="relative w-full aspect-square overflow-hidden">
               <img 
-                :src="photo.imageURL" 
+                :ref="(el) => setImageRef(el, photo.id)"
+                :data-src="photo.imageURL" 
                 :alt="photo.title || 'NCAD Archive Photo'"
-                class="w-full h-full object-cover"
-                loading="lazy"
+                class="w-full h-full object-cover opacity-0 transition-opacity duration-300"
+                @load="handleImageLoad"
               />
+              
+              <!-- Loading placeholder -->
+              <div 
+                v-if="!loadedImages.has(photo.id)"
+                class="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center"
+              >
+                <div class="w-8 h-8 border-2 border-gray-600 border-t-white rounded-full animate-spin"></div>
+              </div>
               
               <!-- Temporary Badge -->
               <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
@@ -137,6 +146,26 @@
               <span class="text-lg text-gray-400">by {{ userNames[photo.userId] || 'Loading...' }}</span>
             </div>
           </div>
+
+          <!-- Load More Button -->
+          <div v-if="galleryStore.hasMorePhotos && !galleryStore.loading" class="px-4 mb-8">
+            <button 
+              @click="loadMorePhotos"
+              class="w-full bg-gray-900 text-white py-3 font-medium hover:bg-gray-800 transition-all border border-gray-600"
+            >
+              Load More Photos
+            </button>
+          </div>
+
+          <!-- Loading indicator for pagination -->
+          <div v-if="galleryStore.loading" class="text-center py-8 text-gray-400">
+            <div class="flex justify-center space-x-1">
+              <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+              <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+              <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+            </div>
+            <p class="mt-2">Loading more photos...</p>
+          </div>
         </div>
       </div>
 
@@ -152,12 +181,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, onUnmounted } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
+import { createImageObserver } from '../utils/imageUtils'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
@@ -167,21 +197,49 @@ const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
+const loadedImages = ref(new Set<string>())
+const imageRefs = ref(new Map<string, HTMLImageElement>())
 
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
 
-// Function to preload an image
-const preloadImage = (src: string): Promise<void> => {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => resolve()
-    img.onerror = () => {
-      console.warn(`Failed to load image: ${src}`)
-      resolve() // Resolve instead of reject to allow Promise.all to continue
+// Intersection observer for lazy loading
+let imageObserver: IntersectionObserver | null = null
+
+const setImageRef = (el: HTMLImageElement | null, photoId: string) => {
+  if (el) {
+    imageRefs.value.set(photoId, el)
+    // Observe the image for lazy loading
+    if (imageObserver) {
+      imageObserver.observe(el)
     }
-    img.src = src
-  })
+  }
+}
+
+const handleImageLoad = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  img.classList.remove('opacity-0')
+  img.classList.add('opacity-100')
+  
+  // Find the photo ID for this image
+  for (const [photoId, imgRef] of imageRefs.value.entries()) {
+    if (imgRef === img) {
+      loadedImages.value.add(photoId)
+      break
+    }
+  }
+}
+
+const loadImageLazily = (entry: IntersectionObserverEntry) => {
+  if (entry.isIntersecting) {
+    const img = entry.target as HTMLImageElement
+    const src = img.getAttribute('data-src')
+    
+    if (src && !img.src) {
+      img.src = src
+      imageObserver?.unobserve(img)
+    }
+  }
 }
 
 const handleUploadClick = () => {
@@ -221,12 +279,24 @@ const navigateToPhoto = (photoId: string) => {
   router.push(`/photo/${photoId}`)
 }
 
+const loadMorePhotos = async () => {
+  await galleryStore.loadPhotos(false)
+  
+  // Load user names for new photos
+  const newUserIds = [...new Set(galleryStore.photos.map(photo => photo.userId))]
+  const userNamesResult = await galleryStore.batchLoadUserNames(newUserIds)
+  Object.assign(userNames.value, userNamesResult)
+}
+
 onMounted(async () => {
   try {
     loadingProgress.value = 'Fetching photos...'
     
-    // Load all photos first
-    await galleryStore.loadPhotos()
+    // Initialize intersection observer for lazy loading
+    imageObserver = createImageObserver(loadImageLazily)
+    
+    // Load initial photos
+    await galleryStore.loadPhotos(true) // Reset pagination
     
     if (galleryStore.photos.length === 0) {
       // No photos to load, show the page immediately
@@ -234,43 +304,30 @@ onMounted(async () => {
       return
     }
     
-    // Get the top 5 most recent photos
+    // Get the top 5 most recent photos for initial loading
     const topPhotos = galleryStore.photos.slice(0, 5)
-    
-    loadingProgress.value = 'Loading images...'
-    
-    // Preload the top 5 images
-    const imagePromises = topPhotos.map((photo, index) => {
-      return preloadImage(photo.imageURL).then(() => {
-        loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
-      })
-    })
-    
-    // Wait for all top 5 images to load
-    await Promise.all(imagePromises)
     
     loadingProgress.value = 'Loading user data...'
     
-    // Load user names for the top 5 photos
-    const uniqueUserIds = [...new Set(topPhotos.map(photo => photo.userId))]
-    for (const userId of uniqueUserIds) {
-      userNames.value[userId] = await galleryStore.getUserName(userId)
-    }
+    // Batch load user names for all photos
+    const allUserIds = [...new Set(galleryStore.photos.map(photo => photo.userId))]
+    userNames.value = await galleryStore.batchLoadUserNames(allUserIds)
     
-    // Mark initial images as loaded
+    // Mark initial images as loaded (we'll lazy load them)
     initialImagesLoaded.value = true
     
-    // Continue loading remaining user names in the background
-    const allUserIds = [...new Set(galleryStore.photos.map(photo => photo.userId))]
-    const remainingUserIds = allUserIds.filter(id => !userNames.value[id])
-    
-    for (const userId of remainingUserIds) {
-      userNames.value[userId] = await galleryStore.getUserName(userId)
-    }
   } catch (error) {
     console.error('Error loading initial content:', error)
     // Show the page even if there's an error
     initialImagesLoaded.value = true
   }
 })
+
+onUnmounted(() => {
+  // Clean up intersection observer
+  if (imageObserver) {
+    imageObserver.disconnect()
+  }
+})
 </script>
+</template>

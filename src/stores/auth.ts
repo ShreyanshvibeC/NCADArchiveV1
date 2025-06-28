@@ -20,15 +20,58 @@ interface UserProfile {
   createdAt: Date
 }
 
+// Token cache with expiration
+interface TokenCache {
+  token: string
+  expiry: number
+}
+
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<UserProfile | null>(null)
   const isAuthenticated = ref(false)
   const loading = ref(true)
   const authToken = ref<string | null>(null)
+  
+  // Token cache to avoid unnecessary refreshes
+  const tokenCache = ref<TokenCache | null>(null)
+  const TOKEN_REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes before expiry
 
   // Validate NCAD email domain
   const validateNCADEmail = (email: string): boolean => {
     return email.toLowerCase().endsWith('.ncad.ie')
+  }
+
+  // Smart token refresh - only refresh when needed
+  const refreshAuthToken = async (): Promise<string | null> => {
+    if (!auth.currentUser) return null
+    
+    const now = Date.now()
+    
+    // Check if we have a valid cached token
+    if (tokenCache.value && tokenCache.value.expiry > now + TOKEN_REFRESH_THRESHOLD) {
+      console.log('Using cached auth token')
+      authToken.value = tokenCache.value.token
+      return authToken.value
+    }
+    
+    try {
+      console.log('Refreshing auth token...')
+      const token = await getIdToken(auth.currentUser, true)
+      
+      // Cache the token with expiry (tokens typically last 1 hour)
+      tokenCache.value = {
+        token,
+        expiry: now + (55 * 60 * 1000) // 55 minutes from now
+      }
+      
+      authToken.value = token
+      console.log('Auth token refreshed and cached successfully')
+      return authToken.value
+    } catch (error) {
+      console.error('Error refreshing auth token:', error)
+      tokenCache.value = null
+      return null
+    }
   }
 
   // Initialize auth state listener
@@ -40,7 +83,7 @@ export const useAuthStore = defineStore('auth', () => {
         
         // Get fresh auth token
         try {
-          authToken.value = await getIdToken(firebaseUser, true)
+          await refreshAuthToken()
           console.log('Auth token obtained successfully')
         } catch (error) {
           console.error('Error getting auth token:', error)
@@ -52,6 +95,7 @@ export const useAuthStore = defineStore('auth', () => {
         user.value = null
         isAuthenticated.value = false
         authToken.value = null
+        tokenCache.value = null
       }
       loading.value = false
     })
@@ -121,19 +165,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const refreshAuthToken = async (): Promise<string | null> => {
-    if (!auth.currentUser) return null
-    
-    try {
-      authToken.value = await getIdToken(auth.currentUser, true)
-      console.log('Auth token refreshed successfully')
-      return authToken.value
-    } catch (error) {
-      console.error('Error refreshing auth token:', error)
-      return null
-    }
-  }
-
   const login = async (email: string, password: string) => {
     try {
       console.log('Attempting login for:', email)
@@ -149,7 +180,7 @@ export const useAuthStore = defineStore('auth', () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       
       // Get fresh auth token
-      authToken.value = await getIdToken(userCredential.user, true)
+      await refreshAuthToken()
       console.log('Login successful, loading profile...')
       
       await loadUserProfile(userCredential.user.uid, userCredential.user)
@@ -192,7 +223,7 @@ export const useAuthStore = defineStore('auth', () => {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       
       // Get fresh auth token
-      authToken.value = await getIdToken(userCredential.user, true)
+      await refreshAuthToken()
       
       // Create user profile in Firestore
       const userProfile = {
@@ -233,6 +264,7 @@ export const useAuthStore = defineStore('auth', () => {
       user.value = null
       isAuthenticated.value = false
       authToken.value = null
+      tokenCache.value = null
       console.log('Logout successful')
     } catch (error) {
       console.error('Logout error:', error)

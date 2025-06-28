@@ -1,8 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import Upload from '../views/Upload.vue'
-import PhotoDetail from '../views/PhotoDetail.vue'
-import Map from '../views/Map.vue'
 import Profile from '../views/Profile.vue'
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
@@ -23,17 +20,12 @@ const router = createRouter({
     {
       path: '/upload',
       name: 'Upload',
-      component: Upload
+      component: () => import('../views/Upload.vue') // Lazy load
     },
     {
       path: '/photo/:id',
       name: 'PhotoDetail',
-      component: PhotoDetail
-    },
-    {
-      path: '/map',
-      name: 'Map',
-      component: Map
+      component: () => import('../views/PhotoDetail.vue') // Lazy load
     },
     {
       path: '/profile',
@@ -58,7 +50,7 @@ const router = createRouter({
     {
       path: '/about',
       name: 'About',
-      component: About
+      component: () => import('../views/About.vue') // Lazy load
     }
   ]
 })
