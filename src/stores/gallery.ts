@@ -12,7 +12,10 @@ import {
   increment,
   getDoc,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  limit,
+  startAfter,
+  documentId
 } from 'firebase/firestore'
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from '../config/firebase'
@@ -28,6 +31,7 @@ export interface Photo {
   likes: number
   timestamp: Date
   userId: string
+  authorName: string // Added for denormalization
   location?: {
     lat: number
     lng: number
@@ -37,18 +41,54 @@ export interface Photo {
 export const useGalleryStore = defineStore('gallery', () => {
   const photos = ref<Photo[]>([])
   const loading = ref(false)
+  const hasMorePhotos = ref(true)
+  const lastPhotoDoc = ref(null)
+  const PHOTOS_PER_PAGE = 10
 
-  const loadPhotos = async () => {
+  const loadPhotos = async (loadMore = false) => {
+    if (loading.value || (!hasMorePhotos.value && loadMore)) return
+
     loading.value = true
     try {
-      const q = query(collection(db, 'photos'), orderBy('timestamp', 'desc'))
+      let q = query(
+        collection(db, 'photos'), 
+        orderBy('timestamp', 'desc'),
+        limit(PHOTOS_PER_PAGE)
+      )
+
+      // If loading more, start after the last document
+      if (loadMore && lastPhotoDoc.value) {
+        q = query(
+          collection(db, 'photos'), 
+          orderBy('timestamp', 'desc'),
+          startAfter(lastPhotoDoc.value),
+          limit(PHOTOS_PER_PAGE)
+        )
+      }
+
       const querySnapshot = await getDocs(q)
       
-      photos.value = querySnapshot.docs.map(doc => ({
+      const newPhotos = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
         timestamp: doc.data().timestamp?.toDate() || new Date()
       })) as Photo[]
+
+      if (loadMore) {
+        photos.value = [...photos.value, ...newPhotos]
+      } else {
+        photos.value = newPhotos
+      }
+
+      // Update pagination state
+      if (querySnapshot.docs.length < PHOTOS_PER_PAGE) {
+        hasMorePhotos.value = false
+      }
+      
+      if (querySnapshot.docs.length > 0) {
+        lastPhotoDoc.value = querySnapshot.docs[querySnapshot.docs.length - 1]
+      }
+
     } catch (error) {
       console.error('Error loading photos:', error)
     } finally {
@@ -102,8 +142,7 @@ export const useGalleryStore = defineStore('gallery', () => {
     try {
       console.log('Loading saved photos for user:', userId)
       
-      // Use a simpler approach: query by userId field instead of document ID pattern
-      // This is more compatible with Firestore security rules
+      // Step 1: Get all saved photo IDs for the user
       const q = query(
         collection(db, 'savedPhotos'),
         where('userId', '==', userId)
@@ -117,18 +156,33 @@ export const useGalleryStore = defineStore('gallery', () => {
         console.log('Saved photo document:', doc.id, doc.data())
         return doc.data().photoId
       })
+
+      if (savedPhotoIds.length === 0) {
+        console.log('No saved photos found')
+        return []
+      }
       
+      // Step 2: Batch fetch photos using 'in' queries (max 10 per query)
       const savedPhotos: Photo[] = []
+      const batchSize = 10
       
-      // Fetch each saved photo
-      for (const photoId of savedPhotoIds) {
-        console.log('Fetching photo:', photoId)
-        const photo = await getPhotoById(photoId)
-        if (photo) {
-          savedPhotos.push(photo)
-        } else {
-          console.warn('Photo not found:', photoId)
-        }
+      for (let i = 0; i < savedPhotoIds.length; i += batchSize) {
+        const batch = savedPhotoIds.slice(i, i + batchSize)
+        console.log(`Fetching batch ${Math.floor(i / batchSize) + 1}:`, batch)
+        
+        const batchQuery = query(
+          collection(db, 'photos'),
+          where(documentId(), 'in', batch)
+        )
+        
+        const batchSnapshot = await getDocs(batchQuery)
+        const batchPhotos = batchSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().timestamp?.toDate() || new Date()
+        })) as Photo[]
+        
+        savedPhotos.push(...batchPhotos)
       }
       
       console.log('Loaded', savedPhotos.length, 'saved photos')
@@ -546,7 +600,7 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
-  const addPhoto = async (photoData: Omit<Photo, 'id' | 'visits' | 'likes' | 'timestamp'>, imageFile: File) => {
+  const addPhoto = async (photoData: Omit<Photo, 'id' | 'visits' | 'likes' | 'timestamp' | 'authorName'>, imageFile: File) => {
     try {
       console.log('Starting photo upload process...')
       console.log('Photo data:', photoData)
@@ -578,15 +632,25 @@ export const useGalleryStore = defineStore('gallery', () => {
         throw new Error('Authentication token expired. Please sign out and sign back in.')
       }
       
+      // Get user's name for denormalization
+      console.log('Getting user name for denormalization...')
+      const userDoc = await getDoc(doc(db, 'users', photoData.userId))
+      let authorName = 'Anonymous'
+      if (userDoc.exists()) {
+        authorName = userDoc.data().name || 'Anonymous'
+      }
+      console.log('Author name:', authorName)
+      
       // Upload image first
       console.log('Uploading image file...')
       const imageURL = await uploadImage(imageFile, photoData.userId)
       console.log('Image uploaded successfully, URL:', imageURL)
       
-      // Create photo document
+      // Create photo document with denormalized author name
       const newPhoto = {
         ...photoData,
         imageURL,
+        authorName, // Denormalized user name
         visits: 0,
         likes: 0,
         timestamp: new Date()
@@ -656,9 +720,17 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
+  // Reset pagination state
+  const resetPagination = () => {
+    photos.value = []
+    hasMorePhotos.value = true
+    lastPhotoDoc.value = null
+  }
+
   return {
     photos,
     loading,
+    hasMorePhotos,
     loadPhotos,
     loadUserPhotos,
     loadSavedPhotos,
@@ -671,7 +743,8 @@ export const useGalleryStore = defineStore('gallery', () => {
     unsavePhoto,
     isPhotoSaved,
     toggleLike,
-    isPhotoLiked
+    isPhotoLiked,
+    resetPagination
   }
 })
 

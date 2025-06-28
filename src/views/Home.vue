@@ -73,7 +73,7 @@
 
         <!-- Image Feed -->
         <div class="pb-24">
-          <div v-if="galleryStore.photos.length === 0" class="text-center py-12 text-gray-400">
+          <div v-if="galleryStore.photos.length === 0 && !galleryStore.loading" class="text-center py-12 text-gray-400">
             <p>No photos uploaded yet</p>
             <button 
               @click="handleUploadClick"
@@ -132,8 +132,19 @@
               >
                 {{ photo.likes || 0 }} Likes
               </button>
-              <span class="text-lg text-gray-400">by {{ userNames[photo.userId] || 'Loading...' }}</span>
+              <!-- Use denormalized authorName instead of fetching separately -->
+              <span class="text-lg text-gray-400">by {{ photo.authorName || 'Anonymous' }}</span>
             </div>
+          </div>
+
+          <!-- Loading indicator for pagination -->
+          <div v-if="galleryStore.loading" class="text-center py-8">
+            <div class="text-gray-400">Loading more photos...</div>
+          </div>
+
+          <!-- End of photos indicator -->
+          <div v-if="!galleryStore.hasMorePhotos && galleryStore.photos.length > 0" class="text-center py-8">
+            <div class="text-gray-400">You've reached the end of the archive</div>
           </div>
         </div>
       </div>
@@ -156,7 +167,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, onUnmounted } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
@@ -168,7 +179,6 @@ const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
 const router = useRouter()
 
-const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
 const showRevealAnimation = ref(false)
 const loadingProgress = ref('Loading photos...')
@@ -176,6 +186,9 @@ const hamburgerMenu = ref()
 
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
+
+// Infinite scroll state
+const isLoadingMore = ref(false)
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
@@ -240,6 +253,29 @@ watch(initialImagesLoaded, (loaded) => {
   }
 })
 
+// Infinite scroll functionality
+const handleScroll = async () => {
+  if (isLoadingMore.value || !galleryStore.hasMorePhotos || galleryStore.loading) {
+    return
+  }
+
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+  const windowHeight = window.innerHeight
+  const documentHeight = document.documentElement.scrollHeight
+
+  // Load more when user is 200px from bottom
+  if (scrollTop + windowHeight >= documentHeight - 200) {
+    isLoadingMore.value = true
+    try {
+      await galleryStore.loadPhotos(true) // true = load more
+    } catch (error) {
+      console.error('Error loading more photos:', error)
+    } finally {
+      isLoadingMore.value = false
+    }
+  }
+}
+
 // Typewriter animation function
 const startTypewriterAnimation = () => {
   const element = document.getElementById("hero-typewriter")
@@ -287,7 +323,8 @@ onMounted(async () => {
   try {
     loadingProgress.value = 'Fetching photos...'
     
-    // Load all photos first
+    // Reset pagination state and load initial photos
+    galleryStore.resetPagination()
     await galleryStore.loadPhotos()
     
     if (galleryStore.photos.length === 0) {
@@ -311,28 +348,21 @@ onMounted(async () => {
     // Wait for all top 5 images to load
     await Promise.all(imagePromises)
     
-    loadingProgress.value = 'Loading user data...'
-    
-    // Load user names for the top 5 photos
-    const uniqueUserIds = [...new Set(topPhotos.map(photo => photo.userId))]
-    for (const userId of uniqueUserIds) {
-      userNames.value[userId] = await galleryStore.getUserName(userId)
-    }
-    
     // Mark initial images as loaded - this will trigger the reveal animation
     initialImagesLoaded.value = true
     
-    // Continue loading remaining user names in the background
-    const allUserIds = [...new Set(galleryStore.photos.map(photo => photo.userId))]
-    const remainingUserIds = allUserIds.filter(id => !userNames.value[id])
+    // Add scroll listener for infinite scroll
+    window.addEventListener('scroll', handleScroll)
     
-    for (const userId of remainingUserIds) {
-      userNames.value[userId] = await galleryStore.getUserName(userId)
-    }
   } catch (error) {
     console.error('Error loading initial content:', error)
     // Show the main content even if there's an error
     initialImagesLoaded.value = true
   }
+})
+
+onUnmounted(() => {
+  // Clean up scroll listener
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
