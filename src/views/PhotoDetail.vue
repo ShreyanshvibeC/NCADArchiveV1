@@ -140,7 +140,7 @@
             <!-- Right side - Actions -->
             <div class="flex items-center space-x-4">
               <!-- Share button -->
-              <button @click="shareImage" class="text-white hover:text-gray-400 transition-colors">
+              <button @click="openShareModal" class="text-white hover:text-gray-400 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
                 </svg>
@@ -174,6 +174,14 @@
         </button>
       </div>
     </div>
+
+    <!-- Share Modal -->
+    <ShareModal 
+      :is-visible="showShareModal"
+      :share-data="shareData"
+      @close="showShareModal = false"
+      @shared="onPhotoShared"
+    />
 
     <!-- Location Warning Bottom Drawer -->
     <div v-if="showLocationDrawer" class="fixed inset-0 bg-black bg-opacity-75 flex items-end justify-center z-50" @click="showLocationDrawer = false">
@@ -255,10 +263,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
+import ShareModal from '../components/ShareModal.vue'
+import type { ShareData } from '../utils/shareUtils'
 
 const route = useRoute()
 const router = useRouter()
@@ -274,6 +284,7 @@ const showDeleteConfirm = ref(false)
 const deleting = ref(false)
 const deleteError = ref('')
 const showLocationDrawer = ref(false)
+const showShareModal = ref(false)
 
 // New reactive variables for like improvements
 const likingInProgress = ref(false)
@@ -287,6 +298,18 @@ const touchStartX = ref(0)
 const touchStartY = ref(0)
 const touchEndX = ref(0)
 const touchEndY = ref(0)
+
+// Computed share data
+const shareData = computed((): ShareData | null => {
+  if (!photo.value) return null
+  
+  return {
+    title: photo.value.title || 'NCAD Archive Photo',
+    description: photo.value.description || `A photo by ${authorName.value} from NCAD Archive`,
+    imageUrl: photo.value.imageURL,
+    pageUrl: window.location.href
+  }
+})
 
 onMounted(async () => {
   const id = route.params.id as string
@@ -323,25 +346,13 @@ const getUserInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase()
 }
 
-const shareImage = async () => {
-  if (!photo.value) return
-  
-  const shareData = {
-    title: photo.value.title || 'NCAD Archive Photo',
-    text: photo.value.description || 'Check out this photo from NCAD Archive',
-    url: window.location.href
-  }
-  
-  if (navigator.share) {
-    try {
-      await navigator.share(shareData)
-    } catch (error) {
-      console.log('Share cancelled')
-    }
-  } else {
-    // Fallback: copy to clipboard
-    navigator.clipboard.writeText(window.location.href)
-    alert('Link copied to clipboard!')
+const openShareModal = () => {
+  showShareModal.value = true
+}
+
+const onPhotoShared = (success: boolean) => {
+  if (success) {
+    console.log('Photo shared successfully')
   }
 }
 
