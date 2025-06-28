@@ -16,8 +16,14 @@
       </div>
     </div>
 
-    <!-- Main Content - Only show when initial images are loaded -->
-    <div v-else>
+    <!-- Reveal Animation - Show after images are loaded but before main content -->
+    <RevealAnimation 
+      v-if="showRevealAnimation" 
+      @animation-complete="onAnimationComplete"
+    />
+
+    <!-- Main Content - Only show when reveal animation is complete -->
+    <div v-if="showMainContent">
      
       <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
@@ -152,12 +158,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
+import RevealAnimation from '../components/RevealAnimation.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
@@ -165,6 +172,8 @@ const router = useRouter()
 
 const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
+const showRevealAnimation = ref(false)
+const showMainContent = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
 
@@ -221,6 +230,18 @@ const navigateToPhoto = (photoId: string) => {
   router.push(`/photo/${photoId}`)
 }
 
+const onAnimationComplete = () => {
+  showRevealAnimation.value = false
+  showMainContent.value = true
+}
+
+// Watch for when initial images are loaded to trigger reveal animation
+watch(initialImagesLoaded, (loaded) => {
+  if (loaded) {
+    showRevealAnimation.value = true
+  }
+})
+
 onMounted(async () => {
   try {
     loadingProgress.value = 'Fetching photos...'
@@ -229,8 +250,9 @@ onMounted(async () => {
     await galleryStore.loadPhotos()
     
     if (galleryStore.photos.length === 0) {
-      // No photos to load, show the page immediately
+      // No photos to load, skip reveal animation and show main content
       initialImagesLoaded.value = true
+      showRevealAnimation.value = true
       return
     }
     
@@ -257,7 +279,7 @@ onMounted(async () => {
       userNames.value[userId] = await galleryStore.getUserName(userId)
     }
     
-    // Mark initial images as loaded
+    // Mark initial images as loaded - this will trigger the reveal animation
     initialImagesLoaded.value = true
     
     // Continue loading remaining user names in the background
@@ -269,8 +291,9 @@ onMounted(async () => {
     }
   } catch (error) {
     console.error('Error loading initial content:', error)
-    // Show the page even if there's an error
+    // Show the main content even if there's an error
     initialImagesLoaded.value = true
+    showRevealAnimation.value = true
   }
 })
 </script>
