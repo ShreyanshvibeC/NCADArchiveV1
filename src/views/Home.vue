@@ -33,58 +33,26 @@
           </svg>
         </div>
         
-        <!-- Header Actions -->
-        <div class="flex items-center space-x-3">
-          <!-- Search Toggle Button -->
-          <button 
-            @click="showSearch = !showSearch"
-            class="p-2 text-gray-400 hover:text-white transition-colors"
-            title="Search photos"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-            </svg>
-          </button>
-          
-          <!-- Refresh Likes Button -->
-          <button 
-            @click="refreshLikes"
-            :disabled="refreshingLikes"
-            class="p-2 text-gray-400 hover:text-white transition-colors disabled:opacity-50"
-            title="Refresh all likes"
-          >
-            <svg 
-              class="w-5 h-5" 
-              :class="{ 'animate-spin': refreshingLikes }"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-          </button>
-          
-          <!-- Hamburger Button -->
-          <button 
-            @click="hamburgerMenu?.toggleMenu()"
-            class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
-          >
-            <div class="w-6 h-6 flex flex-col justify-center space-y-1">
-              <div 
-                class="w-full h-0.5 bg-white transition-all duration-300"
-                :class="{ 'rotate-45 translate-y-1.5': hamburgerMenu?.isOpen }"
-              ></div>
-              <div 
-                class="w-full h-0.5 bg-white transition-all duration-300"
-                :class="{ 'opacity-0': hamburgerMenu?.isOpen }"
-              ></div>
-              <div 
-                class="w-full h-0.5 bg-white transition-all duration-300"
-                :class="{ '-rotate-45 -translate-y-1.5': hamburgerMenu?.isOpen }"
-              ></div>
-            </div>
-          </button>
-        </div>
+        <!-- Hamburger Button - Vertically centered in header -->
+        <button 
+          @click="hamburgerMenu?.toggleMenu()"
+          class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
+        >
+          <div class="w-6 h-6 flex flex-col justify-center space-y-1">
+            <div 
+              class="w-full h-0.5 bg-white transition-all duration-300"
+              :class="{ 'rotate-45 translate-y-1.5': hamburgerMenu?.isOpen }"
+            ></div>
+            <div 
+              class="w-full h-0.5 bg-white transition-all duration-300"
+              :class="{ 'opacity-0': hamburgerMenu?.isOpen }"
+            ></div>
+            <div 
+              class="w-full h-0.5 bg-white transition-all duration-300"
+              :class="{ '-rotate-45 -translate-y-1.5': hamburgerMenu?.isOpen }"
+            ></div>
+          </div>
+        </button>
       </header>
 
       <!-- Hamburger Menu Component -->
@@ -92,11 +60,6 @@
 
       <!-- Main Content Container with Desktop Margins and top padding for marquee + fixed header -->
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
-        <!-- Search and Filter Section -->
-        <div v-if="showSearch" class="px-4 py-4 bg-gray-900 mb-4">
-          <SearchFilter v-model="searchFilters" />
-        </div>
-
         <!-- Hero Section -->
         <section class="px-4 py-24">
           <h1 class="text-5xl font-bold leading-none mb-6">
@@ -115,19 +78,11 @@
           </div>
         </section>
 
-        <!-- Refresh Success Message -->
-        <div v-if="refreshMessage" class="px-4 mb-4">
-          <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
-            <p class="text-ncad-green text-sm">{{ refreshMessage }}</p>
-          </div>
-        </div>
-
         <!-- Image Feed -->
         <div class="pb-24">
-          <div v-if="displayedPhotos.length === 0" class="text-center py-12 text-gray-400">
-            <p>{{ showSearch && (searchFilters.search || searchFilters.filters.length > 0) ? 'No photos match your search' : 'No photos uploaded yet' }}</p>
+          <div v-if="galleryStore.photos.length === 0" class="text-center py-12 text-gray-400">
+            <p>No photos uploaded yet</p>
             <button 
-              v-if="!showSearch"
               @click="handleUploadClick"
               class="inline-block mt-4 bg-ncad-green text-black px-6 py-2 font-medium hover:bg-opacity-80 transition-all"
             >
@@ -136,7 +91,7 @@
           </div>
 
           <div 
-            v-for="photo in displayedPhotos" 
+            v-for="photo in galleryStore.photos" 
             :key="photo.id"
             class="mb-10 cursor-pointer"
             @click="navigateToPhoto(photo.id)"
@@ -151,7 +106,7 @@
               <LazyImage
                 :src="photo.imageURL"
                 :alt="photo.title || 'NCAD Archive Photo'"
-                :eager="displayedPhotos.indexOf(photo) < 3"
+                :eager="galleryStore.photos.indexOf(photo) < 3"
                 container-class="w-full h-full"
                 image-class="w-full h-full object-cover"
               />
@@ -203,7 +158,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, computed, watch } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
@@ -211,7 +166,6 @@ import { useOffline } from '../composables/useOffline'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import LazyImage from '../components/LazyImage.vue'
-import SearchFilter from '../components/SearchFilter.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
@@ -222,34 +176,9 @@ const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
-const showSearch = ref(false)
 
-// Search and filter state
-const searchFilters = ref({
-  search: '',
-  filters: [],
-  sort: 'newest'
-})
-
-// New reactive variables for like progress tracking and refresh functionality
+// Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
-const refreshingLikes = ref(false)
-const refreshMessage = ref('')
-
-// Computed property for displayed photos (either search results or all photos)
-const displayedPhotos = computed(() => {
-  if (showSearch.value && (searchFilters.value.search || searchFilters.value.filters.length > 0)) {
-    return galleryStore.searchResults
-  }
-  return galleryStore.photos
-})
-
-// Watch for search filter changes
-watch(searchFilters, async (newFilters) => {
-  if (showSearch.value) {
-    await galleryStore.searchPhotos(newFilters.search, newFilters.filters, newFilters.sort)
-  }
-}, { deep: true })
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
@@ -294,46 +223,6 @@ const handleLikeClick = async (photoId: string) => {
     setTimeout(() => {
       likingInProgress.value[photoId] = false
     }, 300)
-  }
-}
-
-const refreshLikes = async () => {
-  if (refreshingLikes.value) return
-  
-  refreshingLikes.value = true
-  refreshMessage.value = ''
-  
-  try {
-    console.log('🔄 User requested likes refresh')
-    const result = await galleryStore.refreshAllLikes()
-    
-    if (result.success) {
-      refreshMessage.value = `✅ Refreshed ${result.count} photos with updated like counts`
-      console.log('✅ Likes refresh completed successfully')
-      
-      // Hide success message after 3 seconds
-      setTimeout(() => {
-        refreshMessage.value = ''
-      }, 3000)
-    } else {
-      refreshMessage.value = '❌ Failed to refresh likes. Please try again.'
-      console.error('❌ Likes refresh failed:', result.error)
-      
-      // Hide error message after 5 seconds
-      setTimeout(() => {
-        refreshMessage.value = ''
-      }, 5000)
-    }
-  } catch (error) {
-    console.error('❌ Error during likes refresh:', error)
-    refreshMessage.value = '❌ An error occurred while refreshing likes'
-    
-    // Hide error message after 5 seconds
-    setTimeout(() => {
-      refreshMessage.value = ''
-    }, 5000)
-  } finally {
-    refreshingLikes.value = false
   }
 }
 
