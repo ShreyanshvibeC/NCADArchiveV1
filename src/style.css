@@ -84,28 +84,3 @@ body {
   color: #ffffff;
   font-family: 'Spenser', sans-serif;
 }
-
-.leaflet-container {
-  background: #000000;
-}
-
-.leaflet-control-container .leaflet-control {
-  background: #1f2937;
-  border: 1px solid #374151;
-}
-
-.leaflet-control-container .leaflet-control a {
-  background: #1f2937;
-  color: #ffffff;
-}
-
-.leaflet-popup-content-wrapper {
-  background: #1f2937;
-  color: #ffffff;
-  border: 1px solid #374151;
-}
-
-.leaflet-popup-tip {
-  background: #1f2937;
-  border: 1px solid #374151;
-}

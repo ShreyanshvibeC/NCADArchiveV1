@@ -69,8 +69,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['vue', 'vue-router', 'pinia'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-          leaflet: ['leaflet']
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
         }
       }
     },

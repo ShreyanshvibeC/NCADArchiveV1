@@ -2,7 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import Upload from '../views/Upload.vue'
 import PhotoDetail from '../views/PhotoDetail.vue'
-import Map from '../views/Map.vue'
 import Profile from '../views/Profile.vue'
 import Login from '../views/Login.vue'
 import Signup from '../views/Signup.vue'
@@ -29,11 +28,6 @@ const router = createRouter({
       path: '/photo/:id',
       name: 'PhotoDetail',
       component: PhotoDetail
-    },
-    {
-      path: '/map',
-      name: 'Map',
-      component: Map
     },
     {
       path: '/profile',
