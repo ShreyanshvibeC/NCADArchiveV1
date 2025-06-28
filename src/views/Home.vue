@@ -1,10 +1,5 @@
 <template>
   <div class="min-h-screen bg-black">
-    <!-- Offline Indicator -->
-    <div v-if="showOfflineMessage" class="fixed top-0 left-0 right-0 bg-red-600 text-white text-center py-2 z-50">
-      <p class="text-sm">You're offline. Some features may not work.</p>
-    </div>
-
     <!-- Marquee Banner at the very top - Always visible -->
     <MarqueeBanner text="made on bolt.new" />
 
@@ -103,12 +98,11 @@
 
             <!-- Image Container - 1:1 aspect ratio with lazy loading -->
             <div class="relative w-full aspect-square overflow-hidden">
-              <LazyImage
-                :src="photo.imageURL"
+              <img 
+                :src="photo.imageURL" 
                 :alt="photo.title || 'NCAD Archive Photo'"
-                :eager="galleryStore.photos.indexOf(photo) < 3"
-                container-class="w-full h-full"
-                image-class="w-full h-full object-cover"
+                class="w-full h-full object-cover"
+                loading="lazy"
               />
               
               <!-- Temporary Badge -->
@@ -162,15 +156,12 @@ import { onMounted, ref } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
-import { useOffline } from '../composables/useOffline'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
-import LazyImage from '../components/LazyImage.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
 const router = useRouter()
-const { isOnline, showOfflineMessage } = useOffline()
 
 const userNames = ref<Record<string, string>>({})
 const initialImagesLoaded = ref(false)
