@@ -57,7 +57,6 @@
               @touchstart="handleTouchStart"
               @touchmove="handleTouchMove"
               @touchend="handleTouchEnd"
-              @click="toggleFlip"
             >
               <!-- Front Side - Image -->
               <div class="card-face card-front absolute inset-0 backface-hidden">
@@ -465,11 +464,6 @@ const openInGoogleMaps = async () => {
     // On desktop, just open the web version
     window.open(googleMapsWebUrl, '_blank')
   }
-}
-
-// Card flip functionality
-const toggleFlip = () => {
-  isFlipped.value = !isFlipped.value
 }
 
 // Touch event handlers for swipe detection
