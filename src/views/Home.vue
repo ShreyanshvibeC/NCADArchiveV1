@@ -57,7 +57,10 @@
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
         <!-- Hero Section -->
         <section class="px-4 py-24">
-          <h1 id="hero-typewriter" class="text-5xl font-bold leading-none mb-6"></h1>
+          <!-- Fixed height container for hero text to prevent vertical shift -->
+          <div class="h-[240px] flex flex-col justify-start">
+            <h1 id="hero-typewriter" class="text-5xl font-bold leading-none mb-6 min-h-[192px]"></h1>
+          </div>
           
           <!-- Hero Paragraph -->
           <div class="space-y-8">
