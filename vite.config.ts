@@ -37,8 +37,8 @@ export default defineConfig({
             options: {
               cacheName: 'firebase-images',
               expiration: {
-                maxEntries: 200, // Increased cache size
-                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
               },
               cacheKeyWillBeUsed: async ({ request }) => {
                 // Remove query parameters for better caching
@@ -70,12 +70,12 @@ export default defineConfig({
         manualChunks: {
           vendor: ['vue', 'vue-router', 'pinia'],
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-          // Removed leaflet chunk since we removed the map
+          leaflet: ['leaflet']
         }
       }
     },
     // Enable source maps for better debugging
-    sourcemap: false, // Disable in production for smaller bundle
+    sourcemap: true,
     // Optimize assets
     assetsInlineLimit: 4096,
     // Enable compression
@@ -83,8 +83,7 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'] // Remove specific console methods
+        drop_debugger: true
       }
     }
   },
