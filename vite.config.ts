@@ -40,7 +40,7 @@ export default defineConfig({
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
               },
-              cacheKeyWillBeUsed: async ({ request }) => {
+              cacheKeyWillBeUsed: ({ request }) => {
                 // Remove query parameters for better caching
                 const url = new URL(request.url)
                 url.search = ''
