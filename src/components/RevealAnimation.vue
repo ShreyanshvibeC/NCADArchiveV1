@@ -18,29 +18,6 @@
         <div class="w-full h-full bg-gradient-to-b from-black/5 to-transparent" />
       </div>
     </div>
-
-    <!-- Content Overlay -->
-    <div class="relative z-10 min-h-screen flex items-center justify-center">
-      <div 
-        :class="[
-          'text-center transform transition-all duration-1000 ease-out',
-          isAnimating ? 'translate-y-0 opacity-100 scale-100' : 'translate-y-8 opacity-0 scale-95'
-        ]"
-        style="transition-delay: 200ms"
-      >
-        <slot>
-          <div class="space-y-4">
-            <img src="/logo -gif.gif" alt="NCAD Logo" class="h-16 mx-auto mb-6" />
-            <h1 class="text-4xl md:text-6xl font-bold text-white mb-4 drop-shadow-2xl">
-              NCAD ARCHIVE
-            </h1>
-            <p class="text-lg md:text-xl text-white/90 drop-shadow-lg">
-              Creative trails across campus
-            </p>
-          </div>
-        </slot>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -81,7 +58,7 @@ onMounted(() => {
   // Complete the animation and emit event
   setTimeout(() => {
     emit('animation-complete')
-  }, 2200) // Total animation time: 300ms delay + 900ms stagger + 1000ms content fade
+  }, 1500) // Reduced timing since no content fade is needed
 })
 
 // Support for reduced motion accessibility
