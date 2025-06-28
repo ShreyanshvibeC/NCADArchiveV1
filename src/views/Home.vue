@@ -57,9 +57,12 @@
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
         <!-- Hero Section -->
         <section class="px-4 py-24">
-          <div class="mb-6">
-            <span class="typewriter-text text-5xl font-bold leading-none">CREATIVE TRAILS ACROSS NCAD</span>
-          </div>
+          <h1 class="text-5xl font-bold leading-none mb-6">
+            CREATIVE<br>
+            TRAILS<br>
+            ACROSS<br>
+            NCAD
+          </h1>
           
           <!-- Hero Paragraph -->
           <div class="space-y-8">
