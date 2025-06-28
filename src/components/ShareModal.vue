@@ -14,6 +14,14 @@
         <p class="text-sm text-gray-400 mt-1">{{ shareData?.title || 'NCAD Archive Photo' }}</p>
       </div>
       
+      <!-- Debug Info (only in development) -->
+      <div v-if="showDebugInfo" class="bg-gray-800 p-2 text-xs text-gray-400">
+        <div>Native Share: {{ showNativeShare ? 'Yes' : 'No' }}</div>
+        <div>Can Share Files: {{ canShareFiles ? 'Yes' : 'No' }}</div>
+        <div>Mobile Device: {{ isMobileDevice() ? 'Yes' : 'No' }}</div>
+        <div>Thumbnail Status: {{ thumbnailStatus }}</div>
+      </div>
+      
       <!-- Native Share Button (if supported) -->
       <button 
         v-if="showNativeShare"
@@ -24,12 +32,14 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
         </svg>
-        <span>{{ sharing ? 'Sharing...' : getShareButtonText() }}</span>
+        <span>{{ sharing ? 'Preparing...' : getShareButtonText() }}</span>
       </button>
       
       <!-- Fallback Share Options -->
       <div v-if="showFallbackOptions" class="space-y-3">
-        <div class="text-sm text-gray-400 text-center">Or share via:</div>
+        <div class="text-sm text-gray-400 text-center">
+          {{ showNativeShare ? 'Or share via:' : 'Share via:' }}
+        </div>
         
         <div class="grid grid-cols-2 gap-3">
           <!-- Copy Link -->
@@ -124,8 +134,10 @@ import {
   sharePhoto, 
   fallbackShare, 
   isNativeShareSupported, 
+  canShareFiles,
   getShareButtonText,
   isMobileDevice,
+  testImageCORS,
   type ShareData 
 } from '../utils/shareUtils'
 
@@ -143,13 +155,17 @@ const emit = defineEmits<{
 const sharing = ref(false)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
+const thumbnailStatus = ref('Not tested')
+
+// Show debug info in development
+const showDebugInfo = ref(import.meta.env.DEV)
 
 const showNativeShare = computed(() => {
   return isNativeShareSupported() && isMobileDevice()
 })
 
 const showFallbackOptions = computed(() => {
-  return !showNativeShare.value || message.value.includes('fallback')
+  return !showNativeShare.value || message.value.includes('fallback') || message.value.includes('failed')
 })
 
 const handleNativeShare = async () => {
@@ -157,13 +173,16 @@ const handleNativeShare = async () => {
   
   sharing.value = true
   message.value = ''
+  thumbnailStatus.value = 'Creating...'
   
   try {
+    console.log('Starting native share process...')
     const success = await sharePhoto(props.shareData, false)
     
     if (success) {
       message.value = 'Shared successfully!'
       messageType.value = 'success'
+      thumbnailStatus.value = 'Success'
       emit('shared', true)
       
       // Close modal after short delay
@@ -171,13 +190,15 @@ const handleNativeShare = async () => {
         closeModal()
       }, 1000)
     } else {
-      message.value = 'Native sharing not available. Use options below:'
+      message.value = 'Native sharing failed. Use options below:'
       messageType.value = 'error'
+      thumbnailStatus.value = 'Failed'
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Share error:', error)
     message.value = 'Share failed. Use options below:'
     messageType.value = 'error'
+    thumbnailStatus.value = 'Error'
   } finally {
     sharing.value = false
   }
@@ -192,6 +213,11 @@ const copyLink = async () => {
       message.value = 'Link copied to clipboard!'
       messageType.value = 'success'
       emit('shared', true)
+      
+      // Close modal after short delay
+      setTimeout(() => {
+        closeModal()
+      }, 1500)
     } else {
       message.value = 'Failed to copy link'
       messageType.value = 'error'
@@ -253,11 +279,22 @@ const showMoreOptions = () => {
 
 const closeModal = () => {
   message.value = ''
+  thumbnailStatus.value = 'Not tested'
   emit('close')
 }
 
-// Clear message when modal opens
-onMounted(() => {
+// Test image CORS when modal opens
+onMounted(async () => {
   message.value = ''
+  
+  if (props.shareData && showDebugInfo.value) {
+    try {
+      thumbnailStatus.value = 'Testing CORS...'
+      const corsWorking = await testImageCORS(props.shareData.imageUrl)
+      thumbnailStatus.value = corsWorking ? 'CORS OK' : 'CORS Failed'
+    } catch (error) {
+      thumbnailStatus.value = 'CORS Test Error'
+    }
+  }
 })
 </script>
