@@ -57,12 +57,7 @@
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
         <!-- Hero Section -->
         <section class="px-4 py-24">
-          <h1 class="text-5xl font-bold leading-none mb-6">
-            CREATIVE<br>
-            TRAILS<br>
-            ACROSS<br>
-            NCAD
-          </h1>
+          <h1 id="hero-typewriter" class="text-5xl font-bold leading-none mb-6"></h1>
           
           <!-- Hero Paragraph -->
           <div class="space-y-8">
@@ -231,6 +226,8 @@ const navigateToPhoto = (photoId: string) => {
 
 const onAnimationComplete = () => {
   showRevealAnimation.value = false
+  // Start typewriter animation after reveal animation completes
+  startTypewriterAnimation()
 }
 
 // Watch for when initial images are loaded to trigger reveal animation
@@ -239,6 +236,49 @@ watch(initialImagesLoaded, (loaded) => {
     showRevealAnimation.value = true
   }
 })
+
+// Typewriter animation function
+const startTypewriterAnimation = () => {
+  const element = document.getElementById("hero-typewriter")
+  if (!element) return
+
+  const lines = ["CREATIVE", "TRAILS", "ACROSS", "NCAD"]
+  let currentLine = 0
+  let currentChar = 0
+  let fullText = ""
+
+  function typeNextChar() {
+    const currentWord = lines[currentLine]
+    if (currentChar <= currentWord.length) {
+      fullText = lines.slice(0, currentLine).join("<br>") +
+                 (currentLine > 0 ? "<br>" : "") +
+                 currentWord.slice(0, currentChar)
+
+      element.innerHTML = fullText + '<span class="text-ncad-green animate-blink">|</span>'
+      currentChar++
+      setTimeout(typeNextChar, 100)
+    } else {
+      currentLine++
+      currentChar = 0
+      if (currentLine < lines.length) {
+        setTimeout(typeNextChar, 400)
+      } else {
+        setTimeout(restartTyping, 4000)
+      }
+    }
+  }
+
+  function restartTyping() {
+    currentLine = 0
+    currentChar = 0
+    fullText = ""
+    element.innerHTML = ""
+    setTimeout(typeNextChar, 400)
+  }
+
+  // Start typing
+  typeNextChar()
+}
 
 onMounted(async () => {
   try {

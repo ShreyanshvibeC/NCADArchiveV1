@@ -49,6 +49,17 @@
   animation: heart-pop 1s ease-out forwards;
 }
 
+/* Typewriter animation for blinking cursor */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.animate-blink {
+  display: inline-block;
+  animation: blink 0.7s infinite;
+}
+
 /* Define Spenser font family using local WOFF files */
 @font-face {
   font-family: 'Spenser';
