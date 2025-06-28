@@ -17,6 +17,37 @@
   animation: rainbow 10s linear infinite;
 }
 
+/* Running border glow animation for upload button */
+@keyframes border-glow {
+  0% {
+    background-position: 0% 50%;
+    box-shadow: 0 0 20px rgba(82, 72, 156, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(82, 72, 156, 0.6);
+  }
+  100% {
+    background-position: 200% 50%;
+    box-shadow: 0 0 20px rgba(82, 72, 156, 0.3);
+  }
+}
+
+.animate-border-glow {
+  position: relative;
+  background: linear-gradient(45deg, #52489C, #ffffff, #52489C, #ffffff);
+  background-size: 400% 400%;
+  animation: border-glow 3s ease-in-out infinite;
+  padding: 2px;
+}
+
+.animate-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  background: #000000;
+  z-index: -1;
+}
+
 /* Heart animation for like feedback */
 @keyframes heart-pop {
   0% {
