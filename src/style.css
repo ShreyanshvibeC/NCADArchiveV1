@@ -2,15 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables for rainbow colors */
-:root {
-  --color-1: #0066FF;
-  --color-2: #00FF88;
-  --color-3: #6B46C1;
-  --color-4: #FF6B6B;
-  --color-5: #FFD700;
-}
-
 /*Floating CTA rainbow effect */
 
 @keyframes rainbow {
@@ -24,23 +15,6 @@
 
 .animate-rainbow {
   animation: rainbow 10s linear infinite;
-}
-
-/* Rainbow glow effect for CTA button - Fixed positioning compatible */
-.cta-rainbow-glow::before {
-  content: '';
-  position: fixed;
-  bottom: calc(1.5rem - 20%); /* Adjust based on button's bottom position */
-  left: calc(1.5rem + 50%); /* Adjust based on button's left position */
-  z-index: 39; /* One less than button's z-index */
-  height: 16px; /* 20% of 80px button height */
-  width: 48px; /* 60% of 80px button width */
-  transform: translateX(-50%);
-  background: linear-gradient(90deg, var(--color-1), var(--color-5), var(--color-3), var(--color-4), var(--color-2));
-  background-size: 200%;
-  filter: blur(0.75rem);
-  animation: rainbow 10s linear infinite;
-  pointer-events: none;
 }
 
 /* Heart animation for like feedback */
