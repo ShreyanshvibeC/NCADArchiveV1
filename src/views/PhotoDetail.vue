@@ -21,11 +21,11 @@
       <div v-else class="w-6"></div>
     </header>
 
-    <!-- Main Content Container with Desktop Margins - Fixed height and scrollable -->
-    <div class="h-full overflow-y-auto pb-24">
-      <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
-        <!-- Unified Photo Container -->
-        <div class="flex flex-col items-center space-y-4 px-4">
+    <!-- Main Content Container - Centered Vertically -->
+    <div class="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+      <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl w-full">
+        <!-- Unified Photo Container - Vertically Centered -->
+        <div class="flex flex-col items-center space-y-4">
           <!-- User Info and Date Row - Above Image -->
           <div class="w-full flex items-center justify-between">
             <!-- User info - Clickable to navigate to user profile -->
@@ -161,7 +161,7 @@
       </div>
     </div>
 
-    <!-- Fixed Take Me There CTA - Reduced distance from bottom -->
+    <!-- Fixed Take Me There CTA - Positioned at bottom -->
     <div v-if="photo.location" class="fixed bottom-0 left-0 right-0 p-4">
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
         <button 
