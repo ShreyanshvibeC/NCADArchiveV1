@@ -28,8 +28,8 @@
           <router-link 
             to="/" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-yellow transition-colors py-3 text-xl font-medium"
-            :class="{ 'text-ncad-yellow': $route.name === 'Home' }"
+            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
+            :class="{ 'text-ncad-green': $route.name === 'Home' }"
           >
             <span>ARCHIVE</span>
           </router-link>
@@ -37,8 +37,8 @@
           <router-link 
             to="/about" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-yellow transition-colors py-3 text-xl font-medium"
-            :class="{ 'text-ncad-yellow': $route.name === 'About' }"
+            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
+            :class="{ 'text-ncad-green': $route.name === 'About' }"
           >
             <span>ABOUT</span>
           </router-link>
@@ -46,8 +46,8 @@
           <router-link 
             to="/profile" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-yellow transition-colors py-3 text-xl font-medium"
-            :class="{ 'text-ncad-yellow': $route.name === 'Profile' }"
+            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
+            :class="{ 'text-ncad-green': $route.name === 'Profile' }"
           >
             <span>PROFILE</span>
           </router-link>
@@ -59,7 +59,7 @@
             <router-link 
               to="/login" 
               @click="isOpen = false"
-              class="block w-full bg-ncad-yellow text-black text-center py-2 px-4 font-medium hover:bg-opacity-80 transition-all"
+              class="block w-full bg-ncad-green text-white text-center py-2 px-4 font-medium hover:bg-opacity-80 transition-all"
             >
               SIGN IN
             </router-link>

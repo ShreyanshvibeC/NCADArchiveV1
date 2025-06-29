@@ -21,7 +21,7 @@
         <div class="space-y-3">
           <router-link 
             to="/login" 
-            class="block bg-ncad-yellow text-black px-6 py-3 font-medium hover:bg-opacity-80 transition-all"
+            class="block bg-ncad-green text-white px-6 py-3 font-medium hover:bg-opacity-80 transition-all"
           >
             Sign In
           </router-link>
@@ -36,14 +36,14 @@
 
       <!-- Upload Limit Check -->
       <div v-else-if="authStore.user && authStore.user.uploadCount >= 25" class="text-center py-12">
-        <div class="bg-ncad-yellow bg-opacity-20 border border-ncad-yellow p-4 mb-4">
-          <p class="text-ncad-yellow">
+        <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-4 mb-4">
+          <p class="text-ncad-green">
             You've reached the upload limit of 25 photos. Delete some photos to upload new ones.
           </p>
         </div>
         <router-link 
           to="/profile" 
-          class="bg-ncad-yellow text-black px-6 py-3 font-medium hover:bg-opacity-80 transition-all"
+          class="bg-ncad-green text-white px-6 py-3 font-medium hover:bg-opacity-80 transition-all"
         >
           Manage Photos
         </router-link>
@@ -71,7 +71,7 @@
             <div>
               <button 
                 @click="fileInput?.click()"
-                class="bg-ncad-yellow text-black px-6 py-3 font-medium hover:bg-opacity-80 transition-all"
+                class="bg-ncad-green text-white px-6 py-3 font-medium hover:bg-opacity-80 transition-all"
               >
                 Take Photo
               </button>
@@ -158,8 +158,8 @@
             </div>
 
             <!-- Success Message -->
-            <div v-if="success" class="bg-ncad-yellow bg-opacity-20 border border-ncad-yellow p-3">
-              <p class="text-ncad-yellow text-sm">{{ success }}</p>
+            <div v-if="success" class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
+              <p class="text-ncad-green text-sm">{{ success }}</p>
             </div>
 
             <!-- Error Message -->
@@ -186,7 +186,7 @@
             <button 
               type="submit"
               :disabled="uploading || !selectedImage || !authStore.isAuthenticated || descriptionError"
-              class="w-full bg-ncad-yellow text-black py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
+              class="w-full bg-ncad-green text-white py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
             >
               {{ uploading ? 'Uploading...' : 'Upload Photo' }}
             </button>

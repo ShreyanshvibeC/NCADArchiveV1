@@ -16,7 +16,7 @@ export default {
         'ncad-light-gray-darker': '#353535',
         'ncad-white': '#ffffff',
         'ncad-text-gray': '#B0B0B0',
-        'ncad-yellow': '#E8BA00',
+        'ncad-green': '#52489C',
         'ncad-error': '#FF4444',
         'ncad-error-darker': '#CC3333',
       },
