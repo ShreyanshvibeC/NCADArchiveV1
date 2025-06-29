@@ -28,7 +28,7 @@
         <!-- Main content -->
         <div class="space-y-4 text-gray-300">
           <p class="leading-relaxed">
-            Hello! Hello! This platform is built exclusively for the <strong class="text-white">NCAD community</strong> — a space to share your work, explore hidden corners of NCAD, and discover what others are creating.
+            Hello! Hello! NCAD Archive is built exclusively for the <strong class="text-white">NCAD community</strong> — a space to share our work, explore hidden corners of our college, and most importantly discover what others are creating!
           </p>
           
           <!-- Visit icon explanation -->
@@ -40,7 +40,7 @@
               </svg>
               <div>
                 <p class="text-sm text-gray-300">
-                  The visit icon indicates how many times a particular project or location has been viewed by others in the community.
+                See this icon? That means you can visit the exact location or artwork captured in the image.
                 </p>
               </div>
             </div>
@@ -53,7 +53,7 @@
             @click="closePopup"
             class="w-full bg-black text-white py-3 px-4 font-medium hover:bg-gray-800 transition-all border border-white"
           >
-            Let's explore
+            LET'S EXPLORE
           </button>
         </div>
       </div>
