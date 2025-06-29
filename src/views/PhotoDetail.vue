@@ -64,9 +64,14 @@
                     @dblclick="toggleLike"
                   />
                   
-                  <!-- Temporary Badge -->
-                  <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-white px-3 py-1 z-20">
-                    <span class="text-xs font-medium text-white">GONE SOON</span>
+                  <!-- Temporary Badge - Clickable -->
+                  <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
+                    <button 
+                      @click="showGoneSoonModal = true"
+                      class="bg-black border border-white px-3 py-1 hover:bg-gray-800 transition-colors"
+                    >
+                      <span class="text-xs font-medium text-white">GONE SOON</span>
+                    </button>
                   </div>
 
                   <!-- Heart Animation Overlay -->
@@ -185,6 +190,42 @@
       @shared="onPhotoShared"
     />
 
+    <!-- Gone Soon Modal -->
+    <div v-if="showGoneSoonModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" @click="showGoneSoonModal = false">
+      <div class="bg-gray-900 w-full max-w-md mx-auto p-6 space-y-4" @click.stop>
+        <!-- Header -->
+        <div class="text-center">
+          <h3 class="text-xl font-semibold text-white mb-2">Gone Soon</h3>
+          <div class="w-12 h-1 bg-ncad-green mx-auto"></div>
+        </div>
+        
+        <!-- Content -->
+        <div class="space-y-4 text-gray-300">
+          <p class="leading-relaxed">
+            This photo features something <strong class="text-white">temporary</strong> that may not be there when you visit the location.
+          </p>
+          
+          <div class="bg-gray-800 p-4 border-l-4 border-yellow-500">
+            <p class="text-sm">
+              <strong class="text-yellow-400">Examples:</strong> Student artwork, temporary installations, exhibitions, events, or objects that are regularly moved or changed.
+            </p>
+          </div>
+          
+          <p class="text-sm">
+            The photographer has marked this to let you know that what you see in the photo might not be there anymore, but the location itself is still worth exploring!
+          </p>
+        </div>
+        
+        <!-- Close Button -->
+        <button 
+          @click="showGoneSoonModal = false"
+          class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
+        >
+          Got it!
+        </button>
+      </div>
+    </div>
+
     <!-- Location Warning Bottom Drawer -->
     <div v-if="showLocationDrawer" class="fixed inset-0 bg-black bg-opacity-75 flex items-end justify-center z-50" @click="showLocationDrawer = false">
       <div class="bg-black w-full max-w-md mx-auto p-4 space-y-4" @click.stop>
@@ -287,6 +328,7 @@ const deleting = ref(false)
 const deleteError = ref('')
 const showLocationDrawer = ref(false)
 const showShareModal = ref(false)
+const showGoneSoonModal = ref(false) // New modal state
 
 // New reactive variables for like improvements
 const likingInProgress = ref(false)
