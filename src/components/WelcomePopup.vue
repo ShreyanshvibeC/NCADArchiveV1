@@ -16,7 +16,7 @@
       <!-- Image at the top -->
       <div class="w-full">
         <img 
-          src="/image copy copy copy copy copy copy copy copy copy.png" 
+          src="/popup image.png" 
           alt="NCAD Archive Welcome" 
           class="w-full h-auto object-cover"
           @error="handleImageError"
@@ -52,7 +52,7 @@
           <!-- Skip Button -->
           <button 
             @click="closePopup"
-            class="w-full bg-black text-white py-3 px-4 font-medium hover:bg-gray-800 transition-all border border-white"
+            class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
           >
             LET'S EXPLORE
           </button>
