@@ -51,6 +51,14 @@
           >
             <span>PROFILE</span>
           </router-link>
+
+          <!-- Tutorial Button -->
+          <button 
+            @click="startTutorial"
+            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium w-full text-left"
+          >
+            <span>TUTORIAL</span>
+          </button>
         </nav>
 
         <!-- Authentication Section -->
@@ -98,6 +106,10 @@ const router = useRouter()
 const route = useRoute()
 const isOpen = ref(false)
 
+const emit = defineEmits<{
+  'start-tutorial': []
+}>()
+
 // Only show hamburger menu on homepage
 const showMenu = computed(() => {
   return route.name === 'Home'
@@ -111,6 +123,11 @@ const handleLogout = async () => {
   } catch (error) {
     console.error('Error during logout:', error)
   }
+}
+
+const startTutorial = () => {
+  isOpen.value = false
+  emit('start-tutorial')
 }
 
 const handleBannerError = (event: Event) => {

@@ -47,8 +47,17 @@
           </div>
         </div>
         
-        <!-- CTA Button -->
-        <div class="pt-4">
+        <!-- CTA Buttons -->
+        <div class="pt-4 space-y-3">
+          <!-- Tutorial Button -->
+          <button 
+            @click="startTutorial"
+            class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
+          >
+            TAKE A QUICK TOUR
+          </button>
+          
+          <!-- Skip Button -->
           <button 
             @click="closePopup"
             class="w-full bg-black text-white py-3 px-4 font-medium hover:bg-gray-800 transition-all border border-white"
@@ -66,6 +75,7 @@ import { ref } from 'vue'
 
 const emit = defineEmits<{
   'close': []
+  'start-tutorial': []
 }>()
 
 const isVisible = ref(false)
@@ -73,6 +83,14 @@ const isVisible = ref(false)
 const closePopup = () => {
   isVisible.value = false
   emit('close')
+  
+  // Store in localStorage that user has seen the welcome popup
+  localStorage.setItem('ncad-archive-welcome-shown', 'true')
+}
+
+const startTutorial = () => {
+  isVisible.value = false
+  emit('start-tutorial')
   
   // Store in localStorage that user has seen the welcome popup
   localStorage.setItem('ncad-archive-welcome-shown', 'true')
@@ -98,7 +116,6 @@ const showPopupForTesting = () => {
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
   console.warn('Popup image failed to load:', img.src)
-  // You could set a fallback or hide the image container
 }
 
 // Expose functions for parent component

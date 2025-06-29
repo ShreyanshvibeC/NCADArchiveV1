@@ -41,7 +41,7 @@
     </header>
 
     <!-- Hamburger Menu Component -->
-    <HamburgerMenu ref="hamburgerMenu" />
+    <HamburgerMenu ref="hamburgerMenu" @start-tutorial="startTutorial" />
 
     <!-- Main Content Container with Desktop Margins and top padding for marquee + fixed header -->
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
@@ -163,6 +163,15 @@
     <WelcomePopup 
       ref="welcomePopup"
       @close="onWelcomePopupClose"
+      @start-tutorial="startTutorial"
+    />
+
+    <!-- Coachmarks Tutorial -->
+    <CoachmarkOverlay 
+      :steps="coachmarks.steps"
+      :is-visible="coachmarks.isVisible.value"
+      @complete="coachmarks.completeTutorial"
+      @skip="coachmarks.skipTutorial"
     />
 
     <!-- Gone Soon Modal - Bottom Drawer Style -->
@@ -212,22 +221,25 @@ import { onMounted, ref, watch, onUnmounted } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
+import { useCoachmarks } from '../composables/useCoachmarks'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import RevealAnimation from '../components/RevealAnimation.vue'
 import WelcomePopup from '../components/WelcomePopup.vue'
+import CoachmarkOverlay from '../components/CoachmarkOverlay.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
 const router = useRouter()
+const coachmarks = useCoachmarks()
 
 const initialImagesLoaded = ref(false)
 const showRevealAnimation = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
 const welcomePopup = ref()
-const showGoneSoonModal = ref(false) // New modal state
-const selectedPhoto = ref(null) // Store selected photo for modal
+const showGoneSoonModal = ref(false)
+const selectedPhoto = ref(null)
 
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
@@ -285,6 +297,10 @@ const navigateToPhoto = (photoId: string) => {
   router.push(`/photo/${photoId}`)
 }
 
+const startTutorial = () => {
+  coachmarks.startTutorial()
+}
+
 const onAnimationComplete = () => {
   showRevealAnimation.value = false
   // Start typewriter animation after reveal animation completes
@@ -317,8 +333,6 @@ watch(initialImagesLoaded, (loaded) => {
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
   console.warn('Image failed to load:', img.src)
-  // You could set a fallback image here if needed
-  // img.src = '/fallback-image.jpg'
 }
 
 // Infinite scroll functionality
@@ -424,6 +438,9 @@ onMounted(async () => {
     
     // Add scroll listener for infinite scroll
     window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    // Check tutorial status
+    coachmarks.checkTutorialStatus()
     
   } catch (error) {
     console.error('Error loading initial content:', error)
