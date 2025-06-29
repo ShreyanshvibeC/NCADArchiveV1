@@ -8,9 +8,9 @@
       <div class="text-center space-y-4">
         <div class="text-2xl font-medium text-white">Loading the archive</div>
         <div class="flex justify-center space-x-1">
-          <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-          <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-          <div class="w-2 h-2 bg-white rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+          <div class="w-2 h-2 bg-white animate-bounce" style="animation-delay: 0ms"></div>
+          <div class="w-2 h-2 bg-white animate-bounce" style="animation-delay: 150ms"></div>
+          <div class="w-2 h-2 bg-white animate-bounce" style="animation-delay: 300ms"></div>
         </div>
         <div class="text-sm text-gray-400 mt-2">{{ loadingProgress }}</div>
       </div>
