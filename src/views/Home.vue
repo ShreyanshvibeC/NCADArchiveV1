@@ -149,12 +149,12 @@
         </div>
       </div>
 
-      <!-- Floating CTA Button with Rainbow Styling -->
+      <!-- Floating CTA Button with Rainbow Styling and Shimmer Effect -->
       <button 
         @click="handleUploadClick"
         class="rainbow-button fixed bottom-6 left-6 w-24 h-24 text-white flex items-center justify-center transition-all z-40 shadow-lg outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50"
       >
-        <span class="text-4xl font-bold relative z-10">+</span>
+        <span class="shimmer text-4xl font-bold relative z-10">+</span>
       </button> 
     </div>
 

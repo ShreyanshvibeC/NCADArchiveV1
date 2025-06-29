@@ -15,10 +15,10 @@
 /* Shimmer animation keyframes */
 @keyframes shimmer {
   0% {
-    transform: translateX(-100%);
+    background-position: -125px 0;
   }
   100% {
-    transform: translateX(100%);
+    background-position: 125px 0;
   }
 }
 
@@ -43,7 +43,6 @@
   background-origin: border-box;
   border: 3px solid transparent;
   animation: rainbow 3s linear infinite;
-  overflow: hidden;
 }
 
 .rainbow-button::before {
@@ -62,32 +61,31 @@
   pointer-events: none;
 }
 
-/* Shimmer effect overlay */
-.rainbow-button::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.2) 20%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0.2) 80%,
-    transparent 100%
-  );
-  transform: translateX(-100%);
-  animation: shimmer 2s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* Ensure the button content stays above the shimmer */
-.rainbow-button > * {
-  position: relative;
-  z-index: 2;
+/* Shimmer effect for the button text */
+.rainbow-button .shimmer {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.1);
+  background: -webkit-gradient(linear, left top, right top, from(#222), to(#222), color-stop(0.5, #fff));
+  background: -moz-gradient(linear, left top, right top, from(#222), to(#222), color-stop(0.5, #fff));
+  background: gradient(linear, left top, right top, from(#222), to(#222), color-stop(0.5, #fff));
+  -webkit-background-size: 125px 100%;
+  -moz-background-size: 125px 100%;
+  background-size: 125px 100%;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  background-clip: text;
+  -webkit-animation-name: shimmer;
+  -moz-animation-name: shimmer;
+  animation-name: shimmer;
+  -webkit-animation-duration: 2s;
+  -moz-animation-duration: 2s;
+  animation-duration: 2s;
+  -webkit-animation-iteration-count: infinite;
+  -moz-animation-iteration-count: infinite;
+  animation-iteration-count: infinite;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-color: #222;
 }
 
 /* Heart animation for like feedback */
