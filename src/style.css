@@ -79,10 +79,11 @@
     transparent 90%
   );
   transform: translateX(-100%);
-  animation: shimmer 4s ease-in-out infinite;
+  animation: shimmer 6s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
 }
+
 
 
 
