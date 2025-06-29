@@ -14,6 +14,12 @@
         <p class="text-sm text-gray-400 mt-1">{{ shareData?.title || 'NCAD Archive Photo' }}</p>
       </div>
       
+      <!-- Share Message Preview -->
+      <div v-if="shareData" class="bg-gray-800 p-3 text-sm text-gray-300 max-h-32 overflow-y-auto">
+        <div class="font-medium text-white mb-2">Share Message Preview:</div>
+        <div class="whitespace-pre-line">{{ shareMessagePreview }}</div>
+      </div>
+      
       <!-- CORS Status Info (only in development) -->
       <div v-if="showDebugInfo" class="bg-gray-800 p-3 text-xs text-gray-400 space-y-1">
         <div class="font-medium text-white mb-2">Debug Information:</div>
@@ -65,15 +71,15 @@
         </div>
         
         <div class="grid grid-cols-2 gap-3">
-          <!-- Copy Link -->
+          <!-- Copy Message -->
           <button 
-            @click="copyLink"
+            @click="copyMessage"
             class="bg-gray-800 text-white py-3 px-4 font-medium hover:bg-gray-700 transition-all flex items-center justify-center space-x-2"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
             </svg>
-            <span class="text-sm">Copy Link</span>
+            <span class="text-sm">Copy Message</span>
           </button>
           
           <!-- WhatsApp -->
@@ -162,6 +168,7 @@ import {
   isMobileDevice,
   testImageCORS,
   getFirebaseStorageBucket,
+  createShareMessage,
   type ShareData 
 } from '../utils/shareUtils'
 
@@ -197,6 +204,12 @@ const showNativeShare = computed(() => {
 
 const showFallbackOptions = computed(() => {
   return !showNativeShare.value || message.value.includes('fallback') || message.value.includes('failed')
+})
+
+// Computed share message preview
+const shareMessagePreview = computed(() => {
+  if (!props.shareData) return ''
+  return createShareMessage(props.shareData)
 })
 
 const handleNativeShare = async () => {
@@ -235,13 +248,13 @@ const handleNativeShare = async () => {
   }
 }
 
-const copyLink = async () => {
+const copyMessage = async () => {
   if (!props.shareData) return
   
   try {
-    const success = await fallbackShare.copyLink(props.shareData.pageUrl)
+    const success = await fallbackShare.copyLink(props.shareData)
     if (success) {
-      message.value = 'Link copied to clipboard!'
+      message.value = 'Share message copied to clipboard!'
       messageType.value = 'success'
       emit('shared', true)
       
@@ -250,11 +263,11 @@ const copyLink = async () => {
         closeModal()
       }, 1500)
     } else {
-      message.value = 'Failed to copy link'
+      message.value = 'Failed to copy message'
       messageType.value = 'error'
     }
   } catch (error) {
-    message.value = 'Failed to copy link'
+    message.value = 'Failed to copy message'
     messageType.value = 'error'
   }
 }
@@ -262,11 +275,7 @@ const copyLink = async () => {
 const shareViaWhatsApp = () => {
   if (!props.shareData) return
   
-  fallbackShare.whatsapp(
-    props.shareData.title,
-    props.shareData.description,
-    props.shareData.pageUrl
-  )
+  fallbackShare.whatsapp(props.shareData)
   emit('shared', true)
   closeModal()
 }
@@ -274,11 +283,7 @@ const shareViaWhatsApp = () => {
 const shareViaTwitter = () => {
   if (!props.shareData) return
   
-  fallbackShare.twitter(
-    props.shareData.title,
-    props.shareData.description,
-    props.shareData.pageUrl
-  )
+  fallbackShare.twitter(props.shareData)
   emit('shared', true)
   closeModal()
 }
@@ -286,7 +291,7 @@ const shareViaTwitter = () => {
 const shareViaFacebook = () => {
   if (!props.shareData) return
   
-  fallbackShare.facebook(props.shareData.pageUrl)
+  fallbackShare.facebook(props.shareData)
   emit('shared', true)
   closeModal()
 }
@@ -294,17 +299,13 @@ const shareViaFacebook = () => {
 const shareViaEmail = () => {
   if (!props.shareData) return
   
-  fallbackShare.email(
-    props.shareData.title,
-    props.shareData.description,
-    props.shareData.pageUrl
-  )
+  fallbackShare.email(props.shareData)
   emit('shared', true)
   closeModal()
 }
 
 const showMoreOptions = () => {
-  message.value = 'Copy the link above and paste it in your preferred app'
+  message.value = 'Copy the message above and paste it in your preferred app'
   messageType.value = 'success'
 }
 

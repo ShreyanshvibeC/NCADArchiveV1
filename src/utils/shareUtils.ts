@@ -11,6 +11,30 @@ export interface ShareData {
 }
 
 /**
+ * Creates the custom share message format
+ * @param shareData - Share data object
+ * @returns Formatted share message
+ */
+export const createShareMessage = (shareData: ShareData): string => {
+  const title = shareData.title || 'NCAD Archive Photo'
+  const description = shareData.description || ''
+  
+  let message = title
+  
+  if (description) {
+    message += `\n\n${description}`
+  }
+  
+  message += `\n\nDiscover creative work from students across our campus! Dive into our vibrant gallery, explore inspiring moments, and support your peers' talent.`
+  
+  message += `\n\nCheck it out here 👉 ${shareData.pageUrl}`
+  
+  message += `\n\n#CampusCreatives #StudentShowcase #SharedWithPride`
+  
+  return message
+}
+
+/**
  * Creates a thumbnail from an image URL with enhanced CORS handling
  * @param imageUrl - Original image URL
  * @param maxSize - Maximum width/height for thumbnail (default: 300px)
@@ -19,7 +43,7 @@ export interface ShareData {
 export const createThumbnail = async (imageUrl: string, maxSize: number = 300): Promise<Blob> => {
   return new Promise((resolve, reject) => {
     const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d')!
     const img = new Image()
     
     // Enhanced CORS handling for Firebase Storage
@@ -380,10 +404,13 @@ export const shareWithNativeAPI = async (shareData: ShareData): Promise<boolean>
       console.warn('⚠️ All thumbnail creation methods failed, proceeding with text-only share')
     }
     
+    // Create the custom share message
+    const shareMessage = createShareMessage(formattedData)
+    
     // Prepare share payload
     const sharePayload: any = {
       title: formattedData.title,
-      text: `${formattedData.description}\n\n${formattedData.pageUrl}`
+      text: shareMessage
     }
     
     // Add file if thumbnail was created successfully
@@ -401,7 +428,7 @@ export const shareWithNativeAPI = async (shareData: ShareData): Promise<boolean>
     
     console.log('📤 Sharing payload:', {
       title: sharePayload.title,
-      text: sharePayload.text,
+      text: sharePayload.text.substring(0, 100) + '...',
       hasFiles: !!sharePayload.files,
       fileCount: sharePayload.files?.length || 0
     })
@@ -430,17 +457,19 @@ export const fallbackShare = {
   /**
    * Copy link to clipboard with enhanced error handling
    */
-  copyLink: async (url: string): Promise<boolean> => {
+  copyLink: async (shareData: ShareData): Promise<boolean> => {
     try {
-      await navigator.clipboard.writeText(url)
-      console.log('✅ Link copied to clipboard via Clipboard API')
+      const shareMessage = createShareMessage(shareData)
+      await navigator.clipboard.writeText(shareMessage)
+      console.log('✅ Share message copied to clipboard via Clipboard API')
       return true
     } catch (error) {
       console.warn('⚠️ Clipboard API failed, trying fallback method:', error)
       // Fallback for older browsers
       try {
+        const shareMessage = createShareMessage(shareData)
         const textArea = document.createElement('textarea')
-        textArea.value = url
+        textArea.value = shareMessage
         textArea.style.position = 'fixed'
         textArea.style.left = '-999999px'
         textArea.style.top = '-999999px'
@@ -451,7 +480,7 @@ export const fallbackShare = {
         document.body.removeChild(textArea)
         
         if (successful) {
-          console.log('✅ Link copied via fallback method')
+          console.log('✅ Share message copied via fallback method')
           return true
         } else {
           throw new Error('execCommand copy failed')
@@ -466,8 +495,9 @@ export const fallbackShare = {
   /**
    * Share via WhatsApp
    */
-  whatsapp: (title: string, description: string, url: string) => {
-    const text = encodeURIComponent(`${title}\n\n${description}\n\n${url}`)
+  whatsapp: (shareData: ShareData) => {
+    const shareMessage = createShareMessage(shareData)
+    const text = encodeURIComponent(shareMessage)
     const whatsappUrl = `https://wa.me/?text=${text}`
     window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
     console.log('📱 Opened WhatsApp share')
@@ -476,10 +506,10 @@ export const fallbackShare = {
   /**
    * Share via Twitter
    */
-  twitter: (title: string, description: string, url: string) => {
-    const text = encodeURIComponent(`${title}\n\n${description}`)
-    const shareUrl = encodeURIComponent(url)
-    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}&url=${shareUrl}`
+  twitter: (shareData: ShareData) => {
+    const shareMessage = createShareMessage(shareData)
+    const text = encodeURIComponent(shareMessage)
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${text}`
     window.open(twitterUrl, '_blank', 'noopener,noreferrer')
     console.log('🐦 Opened Twitter share')
   },
@@ -487,8 +517,8 @@ export const fallbackShare = {
   /**
    * Share via Facebook
    */
-  facebook: (url: string) => {
-    const shareUrl = encodeURIComponent(url)
+  facebook: (shareData: ShareData) => {
+    const shareUrl = encodeURIComponent(shareData.pageUrl)
     const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`
     window.open(facebookUrl, '_blank', 'noopener,noreferrer')
     console.log('📘 Opened Facebook share')
@@ -497,9 +527,10 @@ export const fallbackShare = {
   /**
    * Share via Email
    */
-  email: (title: string, description: string, url: string) => {
-    const subject = encodeURIComponent(title)
-    const body = encodeURIComponent(`${description}\n\nView photo: ${url}`)
+  email: (shareData: ShareData) => {
+    const shareMessage = createShareMessage(shareData)
+    const subject = encodeURIComponent(shareData.title || 'NCAD Archive Photo')
+    const body = encodeURIComponent(shareMessage)
     const emailUrl = `mailto:?subject=${subject}&body=${body}`
     window.location.href = emailUrl
     console.log('📧 Opened email share')
