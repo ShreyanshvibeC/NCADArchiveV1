@@ -23,14 +23,21 @@ const requiredEnvVars = [
   'VITE_FIREBASE_APP_ID'
 ]
 
-for (const envVar of requiredEnvVars) {
-  if (!import.meta.env[envVar]) {
-    console.error(`Missing required environment variable: ${envVar}`)
-  }
+const missingVars = requiredEnvVars.filter(envVar => !import.meta.env[envVar])
+if (missingVars.length > 0) {
+  console.error('Missing required environment variables:', missingVars)
+  console.error('Please check your .env file and ensure all Firebase configuration variables are set')
 }
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig)
+let app
+try {
+  app = initializeApp(firebaseConfig)
+  console.log('Firebase initialized successfully')
+} catch (error) {
+  console.error('Error initializing Firebase:', error)
+  throw error
+}
 
 // Initialize Firebase services
 export const auth = getAuth(app)
@@ -38,6 +45,10 @@ export const db = getFirestore(app)
 export const storage = getStorage(app)
 
 // Enable persistence for better offline support
-auth.useDeviceLanguage()
+try {
+  auth.useDeviceLanguage()
+} catch (error) {
+  console.warn('Could not set device language for Firebase Auth:', error)
+}
 
 export default app

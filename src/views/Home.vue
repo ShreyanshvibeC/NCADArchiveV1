@@ -101,6 +101,7 @@
                 :alt="photo.title || 'NCAD Archive Photo'"
                 class="w-full h-full object-cover"
                 loading="lazy"
+                @error="handleImageError"
               />
               
               <!-- Temporary Badge -->
@@ -203,6 +204,14 @@ const preloadImage = (src: string): Promise<void> => {
   })
 }
 
+// Handle image loading errors
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  console.warn('Image failed to load:', img.src)
+  // You could set a fallback image here if needed
+  // img.src = '/fallback-image.jpg'
+}
+
 const handleUploadClick = () => {
   if (!authStore.user) {
     router.push('/login')
@@ -279,7 +288,10 @@ const handleScroll = async () => {
 // Typewriter animation function
 const startTypewriterAnimation = () => {
   const element = document.getElementById("hero-typewriter")
-  if (!element) return
+  if (!element) {
+    console.warn('Hero typewriter element not found')
+    return
+  }
 
   const lines = ["CREATIVE", "TRAILS", "ACROSS", "NCAD"]
   let currentLine = 0
@@ -352,7 +364,7 @@ onMounted(async () => {
     initialImagesLoaded.value = true
     
     // Add scroll listener for infinite scroll
-    window.addEventListener('scroll', handleScroll)
+    window.addEventListener('scroll', handleScroll, { passive: true })
     
   } catch (error) {
     console.error('Error loading initial content:', error)

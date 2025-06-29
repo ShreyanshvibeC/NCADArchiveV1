@@ -15,7 +15,7 @@
       <div class="p-4 pt-20">
         <!-- Logo/Title -->
         <div class="mb-8">
-          <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mb-2" />
+          <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mb-2" @error="handleLogoError" />
           <h2 class="text-xl font-semibold text-white">NCAD ARCHIVE</h2>
         </div>
 
@@ -69,7 +69,7 @@
           </div>
           <div v-else class="space-y-3">
             <div class="text-sm text-gray-400">
-              Signed in as {{ authStore.user?.name }}
+              Signed in as {{ authStore.user?.name || 'User' }}
             </div>
             <button 
               @click="handleLogout"
@@ -100,9 +100,20 @@ const showMenu = computed(() => {
 })
 
 const handleLogout = async () => {
-  await authStore.logout()
-  isOpen.value = false
-  router.push('/')
+  try {
+    await authStore.logout()
+    isOpen.value = false
+    router.push('/')
+  } catch (error) {
+    console.error('Error during logout:', error)
+  }
+}
+
+const handleLogoError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  console.warn('Logo image failed to load:', img.src)
+  // Hide the image if it fails to load
+  img.style.display = 'none'
 }
 
 // Expose the toggle function and isOpen state for parent component
