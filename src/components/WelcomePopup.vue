@@ -45,11 +45,6 @@
               </div>
             </div>
           </div>
-          
-          <!-- Call to action text -->
-          <div class="text-center pt-4">
-            <p class="text-white font-bold text-lg">Create and Share!</p>
-          </div>
         </div>
         
         <!-- CTA Button -->
