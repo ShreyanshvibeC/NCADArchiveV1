@@ -13,11 +13,11 @@
         <span class="text-xl font-black">X</span>
       </button>
       
-      <!-- Image at the top -->
+      <!-- New Welcome Image -->
       <div class="w-full">
         <img 
-          src="/image copy copy copy copy copy copy copy copy copy.png" 
-          alt="NCAD Archive Welcome" 
+          src="/welcome-popup.png" 
+          alt="NCAD Archive Welcome - Create | Share | Explore" 
           class="w-full h-auto object-cover"
           @error="handleImageError"
         />
@@ -107,3 +107,4 @@ defineExpose({
   showPopupForTesting
 })
 </script>
+</template>
