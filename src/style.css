@@ -81,7 +81,7 @@
   transform: translateX(-100%);
   animation: shimmer 2s ease-in-out infinite;
   animation-delay: 4s;              /* Wait 2s before each loop */
-  animation-iteration-delay: 2s;    /* 2s pause between each run */
+  animation-iteration-delay: 6s;    /* 2s pause between each run */
   pointer-events: none;
   z-index: 1;
 }
