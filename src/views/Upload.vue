@@ -118,7 +118,7 @@
           <form @submit.prevent="uploadPhoto" class="space-y-6">
             <div>
               <label class="block text-sm font-medium mb-2">
-                Title (required) - Max 25 words
+                Add Title*
               </label>
               <input 
                 v-model="title"
@@ -142,14 +142,14 @@
 
             <div>
               <label class="block text-sm font-medium mb-2">
-                Description (optional) - Max 250 words
+                Add Description
               </label>
               <textarea 
                 v-model="description"
                 rows="4"
                 class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none resize-none transition-colors"
                 :class="{ 'border-red-500': descriptionError }"
-                placeholder="Describe your photo (max 250 words)"
+                placeholder="Describe your photo"
               ></textarea>
               
               <!-- Word count and error message for description -->
