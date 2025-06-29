@@ -80,11 +80,13 @@
   );
   transform: translateX(-100%);
   animation: shimmer 2s ease-in-out infinite;
-  animation-delay: 2s;              /* Wait 2s before each loop */
+  animation-delay: 4s;              /* Wait 2s before each loop */
   animation-iteration-delay: 2s;    /* 2s pause between each run */
   pointer-events: none;
   z-index: 1;
 }
+
+
 /* Ensure the button content stays above the shimmer */
 .rainbow-button > * {
   position: relative;
@@ -117,6 +119,9 @@
     transform: scale(0.8) rotate(0deg);
     opacity: 0;
   }
+
+
+  
 }
 
 .animate-heart-pop {
