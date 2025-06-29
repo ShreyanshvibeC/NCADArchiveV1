@@ -62,20 +62,7 @@
   pointer-events: none;
 }
 
-/* Shimmer animation keyframes */
-@keyframes shimmer {
-  0% {
-    transform: translateX(-450%);
-  }
-  50% {
-    transform: translateX(100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
-}
-
-/* Shimmer effect overlay */
+/* Shimmer effect overlay */ 
 .rainbow-button::after {
   content: '';
   position: absolute;
@@ -92,12 +79,12 @@
     transparent 90%
   );
   transform: translateX(-100%);
-  animation: shimmer 4s steps(1, end) infinite;
+  animation: shimmer 2s ease-in-out infinite;
+  animation-delay: 2s;              /* Wait 2s before each loop */
+  animation-iteration-delay: 2s;    /* 2s pause between each run */
   pointer-events: none;
   z-index: 1;
 }
-
-
 /* Ensure the button content stays above the shimmer */
 .rainbow-button > * {
   position: relative;
