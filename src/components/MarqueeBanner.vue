@@ -1,5 +1,5 @@
 <template>
-  <div class="marquee-container">
+  <div class="marquee-container cursor-pointer" @click="redirectToBolt">
     <div class="marquee-content">
       <span class="marquee-text">{{ repeatedText }}</span>
       <span class="marquee-text">{{ repeatedText }}</span> <!-- Duplicate -->
@@ -21,6 +21,10 @@ const repeatedText = computed(() => {
   const fullText = baseText + separator
   return Array(10).fill(fullText).join('') // Not too many needed now
 })
+
+const redirectToBolt = () => {
+  window.open('https://bolt.new/', '_blank', 'noopener,noreferrer')
+}
 </script>
 
 <style scoped>
