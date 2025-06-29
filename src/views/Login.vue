@@ -36,7 +36,7 @@
               v-model="email"
               type="email" 
               required
-              class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
               placeholder="your.name@ncad.ie"
             />
             <p class="text-xs text-gray-500 mt-1">Only NCAD email addresses (.ncad.ie) are allowed</p>
@@ -48,7 +48,7 @@
               v-model="password"
               type="password" 
               required
-              class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
               placeholder="Enter your password"
             />
           </div>

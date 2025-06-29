@@ -27,7 +27,7 @@
           </router-link>
           <router-link 
             to="/signup" 
-            class="block bg-gray-900 text-white px-6 py-3 font-medium hover:bg-gray-800 transition-all border border-gray-600"
+            class="block bg-black text-white px-6 py-3 font-medium hover:bg-gray-800 transition-all border border-gray-600"
           >
             Create Account
           </router-link>
@@ -102,7 +102,7 @@
               <input 
                 v-model="title"
                 type="text" 
-                class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
+                class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
                 placeholder="Enter a title for your photo"
               />
             </div>
@@ -115,7 +115,7 @@
                 v-model="description"
                 rows="3"
                 maxlength="50"
-                class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none resize-none transition-colors"
+                class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none resize-none transition-colors"
                 :class="{ 'border-red-500': descriptionError }"
                 placeholder="Describe your photo (max 50 characters)"
               ></textarea>
@@ -137,7 +137,7 @@
                 id="temporary-checkbox"
                 v-model="isTemporary"
                 type="checkbox"
-                class="w-4 h-4 bg-gray-900 border border-gray-600 focus:border-ncad-green focus:outline-none"
+                class="w-4 h-4 bg-black border border-gray-600 focus:border-white focus:outline-none"
               />
               <label for="temporary-checkbox" class="text-sm font-medium text-white cursor-pointer">
                 Only available for a few days

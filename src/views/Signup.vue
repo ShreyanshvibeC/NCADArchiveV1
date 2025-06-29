@@ -24,20 +24,20 @@
           </p>
           <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
             <p class="text-ncad-green text-sm">
-              Only NCAD email addresses (.ncad.ie) can create accounts
+              Use your NCAD email to sign in
             </p>
           </div>
         </div>
 
         <form @submit.prevent="handleSignup" class="space-y-4">
           <div>
-            <label class="block text-sm font-medium mb-2">Full Name</label>
+            <label class="block text-sm font-medium mb-2">Name</label>
             <input 
               v-model="name"
               type="text" 
               required
-              class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
-              placeholder="Your full name"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
+              placeholder="Enter your name"
             />
           </div>
 
@@ -47,14 +47,14 @@
               v-model="email"
               type="email" 
               required
-              class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
               :class="{ 'border-red-500': emailError }"
-              placeholder="your.name@ncad.ie"
+              placeholder="Enter your NCAD email address"
               @input="validateEmail"
             />
             <div class="mt-1">
               <p v-if="emailError" class="text-red-400 text-xs">{{ emailError }}</p>
-              <p v-else class="text-gray-500 text-xs">Must end with .ncad.ie</p>
+              <p v-else class="text-gray-500 text-xs">Exclusive to NCAD community</p>
             </div>
           </div>
 
@@ -65,7 +65,7 @@
               type="password" 
               required
               minlength="6"
-              class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
               placeholder="Create a password (min 6 characters)"
             />
           </div>
@@ -77,7 +77,7 @@
               type="password" 
               required
               minlength="6"
-              class="w-full bg-gray-900 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
               placeholder="Confirm your password"
             />
           </div>

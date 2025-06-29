@@ -47,7 +47,7 @@
           
           <router-link 
             to="/signup"
-            class="block w-full bg-gray-900 text-white py-3 font-medium hover:bg-gray-800 transition-all text-center border border-gray-600"
+            class="block w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-all text-center border border-gray-600"
           >
             Create Account
           </router-link>
@@ -248,7 +248,7 @@
               v-model="editName"
               type="text" 
               required
-              class="w-full bg-gray-600 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
             />
           </div>
 
@@ -257,7 +257,7 @@
             <textarea 
               v-model="editBio"
               rows="3"
-              class="w-full bg-gray-600 border border-gray-600 p-3 text-white focus:border-ncad-green focus:outline-none resize-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none resize-none transition-colors"
               placeholder="Tell us about yourself..."
             ></textarea>
           </div>

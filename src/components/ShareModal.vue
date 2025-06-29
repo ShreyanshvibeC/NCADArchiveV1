@@ -14,12 +14,6 @@
         <p class="text-sm text-gray-400 mt-1">{{ shareData?.title || 'NCAD Archive Photo' }}</p>
       </div>
       
-      <!-- Share Message Preview -->
-      <div v-if="shareData" class="bg-gray-800 p-3 text-sm text-gray-300 max-h-32 overflow-y-auto">
-        <div class="font-medium text-white mb-2">Share Message Preview:</div>
-        <div class="whitespace-pre-line">{{ shareMessagePreview }}</div>
-      </div>
-      
       <!-- CORS Status Info (only in development) -->
       <div v-if="showDebugInfo" class="bg-gray-800 p-3 text-xs text-gray-400 space-y-1">
         <div class="font-medium text-white mb-2">Debug Information:</div>
@@ -204,12 +198,6 @@ const showNativeShare = computed(() => {
 
 const showFallbackOptions = computed(() => {
   return !showNativeShare.value || message.value.includes('fallback') || message.value.includes('failed')
-})
-
-// Computed share message preview
-const shareMessagePreview = computed(() => {
-  if (!props.shareData) return ''
-  return createShareMessage(props.shareData)
 })
 
 const handleNativeShare = async () => {

@@ -101,14 +101,14 @@
                 </div>
               </div>
 
-              <!-- Dot Indicators - Positioned on the image -->
+              <!-- Square Indicators - Positioned on the image -->
               <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
                 <div 
-                  class="w-2 h-2 rounded-full transition-colors duration-300"
+                  class="w-2 h-2 transition-colors duration-300"
                   :class="!isFlipped ? 'bg-white' : 'bg-gray-600'"
                 ></div>
                 <div 
-                  class="w-2 h-2 rounded-full transition-colors duration-300"
+                  class="w-2 h-2 transition-colors duration-300"
                   :class="isFlipped ? 'bg-white' : 'bg-gray-600'"
                 ></div>
               </div>
