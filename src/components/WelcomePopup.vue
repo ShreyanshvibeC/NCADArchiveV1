@@ -107,4 +107,3 @@ defineExpose({
   showPopupForTesting
 })
 </script>
-</template>
