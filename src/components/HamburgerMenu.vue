@@ -13,18 +13,12 @@
       :class="{ 'translate-x-0': isOpen, 'translate-x-full': !isOpen }"
     >
       <div class="p-4 pt-20">
-        <!-- Logo/Title -->
-        <div class="mb-8">
-          <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mb-2" @error="handleLogoError" />
-          <h2 class="text-xl font-semibold text-white">NCAD ARCHIVE</h2>
-        </div>
-
         <!-- Navigation Links -->
-        <nav class="space-y-2">
+        <nav class="space-y-2 mb-8">
           <router-link 
             to="/" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-lg font-medium"
+            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'Home' }"
           >
             <span>ARCHIVE</span>
@@ -33,7 +27,7 @@
           <router-link 
             to="/about" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-lg font-medium"
+            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'About' }"
           >
             <span>ABOUT</span>
@@ -42,7 +36,7 @@
           <router-link 
             to="/profile" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-lg font-medium"
+            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'Profile' }"
           >
             <span>PROFILE</span>
@@ -73,7 +67,7 @@
             </div>
             <button 
               @click="handleLogout"
-              class="w-full bg-gray-800 text-white text-center py-2 px-4 font-medium hover:bg-gray-700 transition-all border border-gray-600"
+              class="w-full bg-black text-white text-center py-2 px-4 font-medium hover:bg-gray-700 transition-all border border-white"
             >
               SIGN OUT
             </button>

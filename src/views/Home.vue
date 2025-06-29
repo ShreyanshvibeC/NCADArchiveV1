@@ -22,7 +22,7 @@
       <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
         <div class="flex items-center">
-          <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mr-4" />
+          <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mr-4" @error="handleImageError" />
           <svg class="h-6" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <text x="0" y="15" fill="white" font-family="Spenser" font-size="18" font-weight="900">ARCHIVE</text>
           </svg>
@@ -164,6 +164,12 @@
       v-if="showRevealAnimation" 
       @animation-complete="onAnimationComplete"
     />
+
+    <!-- Welcome Popup -->
+    <WelcomePopup 
+      ref="welcomePopup"
+      @close="onWelcomePopupClose"
+    />
   </div>
 </template>
 
@@ -175,6 +181,7 @@ import { useRouter } from 'vue-router'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import RevealAnimation from '../components/RevealAnimation.vue'
+import WelcomePopup from '../components/WelcomePopup.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
@@ -184,6 +191,7 @@ const initialImagesLoaded = ref(false)
 const showRevealAnimation = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
+const welcomePopup = ref()
 
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
@@ -202,14 +210,6 @@ const preloadImage = (src: string): Promise<void> => {
     }
     img.src = src
   })
-}
-
-// Handle image loading errors
-const handleImageError = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  console.warn('Image failed to load:', img.src)
-  // You could set a fallback image here if needed
-  // img.src = '/fallback-image.jpg'
 }
 
 const handleUploadClick = () => {
@@ -253,6 +253,15 @@ const onAnimationComplete = () => {
   showRevealAnimation.value = false
   // Start typewriter animation after reveal animation completes
   startTypewriterAnimation()
+  
+  // Show welcome popup after reveal animation and typewriter animation
+  setTimeout(() => {
+    welcomePopup.value?.showPopup()
+  }, 2000) // Show popup 2 seconds after reveal animation completes
+}
+
+const onWelcomePopupClose = () => {
+  console.log('Welcome popup closed')
 }
 
 // Watch for when initial images are loaded to trigger reveal animation
@@ -261,6 +270,14 @@ watch(initialImagesLoaded, (loaded) => {
     showRevealAnimation.value = true
   }
 })
+
+// Handle image loading errors
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  console.warn('Image failed to load:', img.src)
+  // You could set a fallback image here if needed
+  // img.src = '/fallback-image.jpg'
+}
 
 // Infinite scroll functionality
 const handleScroll = async () => {
