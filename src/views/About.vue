@@ -21,7 +21,7 @@
         <!-- Hero Image -->
         <div class="w-full h-64 relative overflow-hidden">
           <img 
-            src="/image copy copy copy copy copy copy copy copy copy copy copy copy.png" 
+            src="/image copy copy copy copy copy copy copy copy copy copy copy copy copy.png" 
             alt="NCAD Archive - Student Photography Platform" 
             class="w-full h-full object-cover"
             @error="handleImageError"
@@ -30,6 +30,25 @@
       </section>
 
       <div class="px-4 space-y-8 py-8">
+        <!-- What is NCAD Archive Section -->
+        <section class="space-y-6">
+          <div class="text-center space-y-4">
+            <h3 class="text-2xl font-bold text-white">What is NCAD Archive?</h3>
+            <div class="w-16 h-1 bg-ncad-green mx-auto"></div>
+          </div>
+          
+          <div class="space-y-4 text-gray-300 leading-relaxed">
+            <p class="text-lg">
+              <strong class="text-white">NCAD Archive is your window into the creative soul of our campus.</strong> 
+              It's a collaborative photography platform built exclusively for the NCAD community, where students capture and share the hidden gems, artistic moments, and vibrant life that makes our college unique.
+            </p>
+            
+            <p>
+              From spontaneous art installations in forgotten corners to the buzz of studio life, from quiet study nooks to explosive exhibition openings – we're documenting it all. Every photo tells a story, every location holds memories, and every moment captured adds to our collective creative legacy.
+            </p>
+          </div>
+        </section>
+
         <!-- Why It Matters Section with Image -->
         <section class="space-y-6">
           <div class="text-center">
@@ -105,48 +124,6 @@
           </div>
         </section>
 
-        <!-- Special Features Section -->
-        <section class="space-y-6">
-          <div class="text-center">
-            <h3 class="text-2xl font-bold text-white">What Makes Us Special</h3>
-            <div class="w-16 h-1 bg-ncad-green mx-auto mt-2"></div>
-          </div>
-          
-          <div class="grid grid-cols-1 gap-4">
-            <div class="bg-black border border-ncad-green p-4">
-              <div class="flex items-center space-x-3 mb-2">
-                <svg class="w-6 h-6 text-ncad-green" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="currentColor"/>
-                </svg>
-                <h4 class="text-white font-semibold">Location-Based Discovery</h4>
-              </div>
-              <p class="text-gray-300 text-sm">
-                Every photo with location data becomes a treasure map. See something interesting? Get directions and visit it yourself!
-              </p>
-            </div>
-            
-            <div class="bg-gray-900 p-4 border border-yellow-500">
-              <div class="flex items-center space-x-3 mb-2">
-                <span class="text-yellow-500 text-lg">⚡</span>
-                <h4 class="text-white font-semibold">"Gone Soon" Alerts</h4>
-              </div>
-              <p class="text-gray-300 text-sm">
-                Temporary installations, student exhibitions, and pop-up art are marked so you know to visit them before they disappear.
-              </p>
-            </div>
-            
-            <div class="bg-gray-900 p-4 border border-green-500">
-              <div class="flex items-center space-x-3 mb-2">
-                <span class="text-green-500 text-lg">🎓</span>
-                <h4 class="text-white font-semibold">NCAD-Only Community</h4>
-              </div>
-              <p class="text-gray-300 text-sm">
-                Exclusive to NCAD students and staff. Your .ncad.ie email is your key to this creative community.
-              </p>
-            </div>
-          </div>
-        </section>
-
         <!-- Community Guidelines Section -->
         <section class="space-y-6">
           <div class="text-center">
@@ -184,23 +161,23 @@
           </div>
           
           <div class="grid grid-cols-2 gap-4">
-            <div class="bg-black border border-ncad-green p-6 text-center">
-              <div class="text-3xl font-bold text-ncad-green mb-1">{{ totalPhotos }}+</div>
+            <div class="bg-black border border-ncad-green p-6 text-center rounded-lg">
+              <div class="text-3xl font-bold text-white mb-1">{{ totalPhotos }}+</div>
               <div class="text-sm text-white">Creative Moments</div>
               <div class="text-xs text-gray-400 mt-1">Captured & Shared</div>
             </div>
-            <div class="bg-black border border-blue-500 p-6 text-center">
-              <div class="text-3xl font-bold text-blue-500 mb-1">{{ totalStudents }}+</div>
+            <div class="bg-black border border-blue-500 p-6 text-center rounded-lg">
+              <div class="text-3xl font-bold text-white mb-1">{{ totalStudents }}+</div>
               <div class="text-sm text-white">Community Members</div>
               <div class="text-xs text-gray-400 mt-1">Building Our Story</div>
             </div>
-            <div class="bg-black border border-purple-500 p-6 text-center">
-              <div class="text-3xl font-bold text-purple-500 mb-1">{{ totalVisits }}+</div>
+            <div class="bg-black border border-purple-500 p-6 text-center rounded-lg">
+              <div class="text-3xl font-bold text-white mb-1">{{ totalVisits }}+</div>
               <div class="text-sm text-white">Location Visits</div>
               <div class="text-xs text-gray-400 mt-1">Discoveries Made</div>
             </div>
-            <div class="bg-black border border-green-500 p-6 text-center">
-              <div class="text-3xl font-bold text-green-500 mb-1">{{ campusLocations }}+</div>
+            <div class="bg-black border border-green-500 p-6 text-center rounded-lg">
+              <div class="text-3xl font-bold text-white mb-1">{{ campusLocations }}+</div>
               <div class="text-sm text-white">Campus Spots</div>
               <div class="text-xs text-gray-400 mt-1">Documented</div>
             </div>
