@@ -79,12 +79,11 @@
     transparent 90%
   );
   transform: translateX(-100%);
-  animation: shimmer 2s ease-in-out infinite;
-  animation-delay: 4s;              /* Wait 2s before each loop */
-  animation-iteration-delay: 6s;    /* 2s pause between each run */
+  animation: shimmer 4s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
 }
+
 
 
 /* Ensure the button content stays above the shimmer */
