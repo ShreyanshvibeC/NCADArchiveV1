@@ -1,28 +1,13 @@
-<template>
-  <div class="min-h-screen bg-black">
-    <!-- Marquee Banner at the very top - Always visible -->
-    <MarqueeBanner text="made on bolt.new" />
-
-    <!-- Loading Screen - Show until top 5 images are actually loaded -->
-    <div v-if="!initialImagesLoaded" class="fixed inset-0 bg-black flex items-center justify-center z-50">
-      <div class="text-center space-y-4">
-        <div class="text-2xl font-medium text-white">Loading the archive</div>
-        <div class="flex justify-center space-x-1">
-          <div class="w-2 h-2 bg-white animate-bounce" style="animation-delay: 0ms"></div>
-          <div class="w-2 h-2 bg-white animate-bounce" style="animation-delay: 150ms"></div>
-          <div class="w-2 h-2 bg-white animate-bounce" style="animation-delay: 300ms"></div>
-        </div>
-        <div class="text-sm text-gray-400 mt-2">{{ loadingProgress }}</div>
-      </div>
-    </div>
-
-    <!-- Main Content - Show immediately after images are loaded, behind reveal animation -->
-    <div v-if="initialImagesLoaded">
-     
-      <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
+<!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
       <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
         <div class="flex items-center">
-          <img src="/logo -gif.gif" alt="NCAD Logo" class="h-8 mr-4" @error="handleImageError" />
+          <img 
+            src="/logo -gif.gif" 
+            alt="NCAD Logo" 
+            class="h-8 mr-4 cursor-pointer" 
+            @error="handleImageError"
+            @click="testWelcomePopup"
+          />
           <svg class="h-6" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg">
             <text x="0" y="15" fill="white" font-family="Spenser" font-size="18" font-weight="900">ARCHIVE</text>
           </svg>
@@ -262,6 +247,12 @@ const onAnimationComplete = () => {
 
 const onWelcomePopupClose = () => {
   console.log('Welcome popup closed')
+}
+
+// Test function to show welcome popup when logo is clicked
+const testWelcomePopup = () => {
+  console.log('Logo clicked - showing welcome popup for testing')
+  welcomePopup.value?.showPopupForTesting()
 }
 
 // Watch for when initial images are loaded to trigger reveal animation
