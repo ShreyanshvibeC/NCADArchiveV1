@@ -22,8 +22,8 @@
           <p class="text-gray-400">
             Create your account to start sharing and exploring photos
           </p>
-          <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
-            <p class="text-ncad-green text-sm">
+          <div class="bg-ncad-yellow bg-opacity-20 border border-ncad-yellow p-3">
+            <p class="text-ncad-yellow text-sm">
               Use your NCAD email to sign in
             </p>
           </div>
@@ -88,14 +88,14 @@
           </div>
 
           <!-- Success Message Display -->
-          <div v-if="success" class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
-            <p class="text-ncad-green text-sm">{{ success }}</p>
+          <div v-if="success" class="bg-ncad-yellow bg-opacity-20 border border-ncad-yellow p-3">
+            <p class="text-ncad-yellow text-sm">{{ success }}</p>
           </div>
 
           <button 
             type="submit"
             :disabled="loading || emailError || !isValidForm"
-            class="w-full bg-ncad-green text-black py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
+            class="w-full bg-ncad-yellow text-black py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
           >
             {{ loading ? 'Creating Account...' : 'Create Account' }}
           </button>
@@ -105,7 +105,7 @@
           <p class="text-gray-400 text-sm mb-2">Already have an account?</p>
           <router-link 
             to="/login"
-            class="text-ncad-green hover:text-opacity-80 text-sm font-medium transition-colors"
+            class="text-ncad-yellow hover:text-opacity-80 text-sm font-medium transition-colors"
           >
             Sign In
           </router-link>

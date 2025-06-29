@@ -67,7 +67,7 @@
           <p>No photos uploaded yet</p>
           <button 
             @click="handleUploadClick"
-            class="inline-block mt-4 bg-ncad-green text-black px-6 py-2 font-medium hover:bg-opacity-80 transition-all"
+            class="inline-block mt-4 bg-ncad-yellow text-black px-6 py-2 font-medium hover:bg-opacity-80 transition-all"
           >
             Upload the first photo
           </button>
@@ -119,7 +119,7 @@
             <button 
               @click.stop="handleLikeClick(photo.id)"
               :disabled="likingInProgress[photo.id]"
-              class="text-lg text-white hover:text-ncad-green transition-colors disabled:opacity-50"
+              class="text-lg text-white hover:text-ncad-yellow transition-colors disabled:opacity-50"
             >
               {{ photo.likes || 0 }} Likes
             </button>
@@ -317,7 +317,7 @@ const startTypewriterAnimation = () => {
                  (currentLine > 0 ? "<br>" : "") +
                  currentWord.slice(0, currentChar)
 
-      element.innerHTML = fullText + '<span class="text-ncad-green animate-blink">|</span>'
+      element.innerHTML = fullText + '<span class="text-ncad-yellow animate-blink">|</span>'
       currentChar++
       setTimeout(typeNextChar, 100)
     } else {

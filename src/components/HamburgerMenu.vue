@@ -12,14 +12,24 @@
       class="fixed top-0 right-0 h-full w-80 bg-black border-l border-gray-600 z-40 transform transition-transform duration-300"
       :class="{ 'translate-x-0': isOpen, 'translate-x-full': !isOpen }"
     >
-      <div class="p-4 pt-20">
+      <!-- NCAD Archive Banner Image -->
+      <div class="w-full">
+        <img 
+          src="/image copy copy copy copy copy copy.png" 
+          alt="NCAD Archive" 
+          class="w-full h-auto object-cover"
+          @error="handleBannerError"
+        />
+      </div>
+      
+      <div class="p-4">
         <!-- Navigation Links -->
         <nav class="space-y-2 mb-8">
           <router-link 
             to="/" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
-            :class="{ 'text-ncad-green': $route.name === 'Home' }"
+            class="flex items-center text-white hover:text-ncad-yellow transition-colors py-3 text-xl font-medium"
+            :class="{ 'text-ncad-yellow': $route.name === 'Home' }"
           >
             <span>ARCHIVE</span>
           </router-link>
@@ -27,8 +37,8 @@
           <router-link 
             to="/about" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
-            :class="{ 'text-ncad-green': $route.name === 'About' }"
+            class="flex items-center text-white hover:text-ncad-yellow transition-colors py-3 text-xl font-medium"
+            :class="{ 'text-ncad-yellow': $route.name === 'About' }"
           >
             <span>ABOUT</span>
           </router-link>
@@ -36,8 +46,8 @@
           <router-link 
             to="/profile" 
             @click="isOpen = false"
-            class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
-            :class="{ 'text-ncad-green': $route.name === 'Profile' }"
+            class="flex items-center text-white hover:text-ncad-yellow transition-colors py-3 text-xl font-medium"
+            :class="{ 'text-ncad-yellow': $route.name === 'Profile' }"
           >
             <span>PROFILE</span>
           </router-link>
@@ -49,7 +59,7 @@
             <router-link 
               to="/login" 
               @click="isOpen = false"
-              class="block w-full bg-ncad-green text-black text-center py-2 px-4 font-medium hover:bg-opacity-80 transition-all"
+              class="block w-full bg-ncad-yellow text-black text-center py-2 px-4 font-medium hover:bg-opacity-80 transition-all"
             >
               SIGN IN
             </router-link>
@@ -103,9 +113,9 @@ const handleLogout = async () => {
   }
 }
 
-const handleLogoError = (event: Event) => {
+const handleBannerError = (event: Event) => {
   const img = event.target as HTMLImageElement
-  console.warn('Logo image failed to load:', img.src)
+  console.warn('Banner image failed to load:', img.src)
   // Hide the image if it fails to load
   img.style.display = 'none'
 }

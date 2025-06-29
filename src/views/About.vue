@@ -37,15 +37,15 @@
             <h3 class="text-xl font-semibold mb-3">How It Works</h3>
             <div class="space-y-3 text-gray-300">
               <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 bg-ncad-green flex items-center justify-center text-black font-bold text-sm mt-0.5">1</div>
+                <div class="w-6 h-6 bg-ncad-yellow flex items-center justify-center text-black font-bold text-sm mt-0.5">1</div>
                 <p>Students upload photos from around campus with location data</p>
               </div>
               <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 bg-ncad-green flex items-center justify-center text-black font-bold text-sm mt-0.5">2</div>
+                <div class="w-6 h-6 bg-ncad-yellow flex items-center justify-center text-black font-bold text-sm mt-0.5">2</div>
                 <p>Photos are shared with the NCAD community for everyone to explore</p>
               </div>
               <div class="flex items-start space-x-3">
-                <div class="w-6 h-6 bg-ncad-green flex items-center justify-center text-black font-bold text-sm mt-0.5">3</div>
+                <div class="w-6 h-6 bg-ncad-yellow flex items-center justify-center text-black font-bold text-sm mt-0.5">3</div>
                 <p>Interactive map shows where photos were taken around campus</p>
               </div>
             </div>
@@ -63,8 +63,8 @@
 
           <div>
             <h3 class="text-xl font-semibold mb-3">NCAD Community Access</h3>
-            <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-4">
-              <p class="text-ncad-green text-sm">
+            <div class="bg-ncad-yellow bg-opacity-20 border border-ncad-yellow p-4">
+              <p class="text-ncad-yellow text-sm">
                 This platform is exclusively for NCAD students and staff. Only accounts with .ncad.ie email addresses can access the archive.
               </p>
             </div>
@@ -76,19 +76,19 @@
           <h3 class="text-xl font-semibold text-center">Archive Statistics</h3>
           <div class="grid grid-cols-2 gap-4 text-center">
             <div>
-              <div class="text-2xl font-bold text-ncad-green">{{ totalPhotos }}</div>
+              <div class="text-2xl font-bold text-ncad-yellow">{{ totalPhotos }}</div>
               <div class="text-sm text-gray-400">Photos Shared</div>
             </div>
             <div>
-              <div class="text-2xl font-bold text-ncad-green">{{ totalStudents }}</div>
+              <div class="text-2xl font-bold text-ncad-yellow">{{ totalStudents }}</div>
               <div class="text-sm text-gray-400">Contributing Students</div>
             </div>
             <div>
-              <div class="text-2xl font-bold text-ncad-green">{{ totalVisits }}</div>
+              <div class="text-2xl font-bold text-ncad-yellow">{{ totalVisits }}</div>
               <div class="text-sm text-gray-400">Photo Views</div>
             </div>
             <div>
-              <div class="text-2xl font-bold text-ncad-green">{{ campusLocations }}</div>
+              <div class="text-2xl font-bold text-ncad-yellow">{{ campusLocations }}</div>
               <div class="text-sm text-gray-400">Campus Locations</div>
             </div>
           </div>

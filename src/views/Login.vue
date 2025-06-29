@@ -61,7 +61,7 @@
           <button 
             type="submit"
             :disabled="loading"
-            class="w-full bg-ncad-green text-black py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
+            class="w-full bg-ncad-yellow text-black py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
           >
             {{ loading ? 'Signing In...' : 'Sign In' }}
           </button>
@@ -71,7 +71,7 @@
           <p class="text-gray-400 text-sm mb-2">Don't have an account?</p>
           <router-link 
             to="/signup"
-            class="text-ncad-green hover:text-opacity-80 text-sm font-medium transition-colors"
+            class="text-ncad-yellow hover:text-opacity-80 text-sm font-medium transition-colors"
           >
             Create Account
           </router-link>

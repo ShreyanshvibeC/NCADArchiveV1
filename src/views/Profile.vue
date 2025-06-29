@@ -40,7 +40,7 @@
         <div class="space-y-4">
           <router-link 
             to="/login"
-            class="block w-full bg-ncad-green text-black py-3 font-medium hover:bg-opacity-80 transition-all text-center"
+            class="block w-full bg-ncad-yellow text-black py-3 font-medium hover:bg-opacity-80 transition-all text-center"
           >
             Sign In
           </router-link>
@@ -106,8 +106,8 @@
           </div>
 
           <!-- Upload Limit Warning - Only show for own profile -->
-          <div v-if="isOwnProfile && actualPhotoCount >= 25" class="bg-ncad-green bg-opacity-20 border border-ncad-green p-4">
-            <p class="text-ncad-green text-sm">
+          <div v-if="isOwnProfile && actualPhotoCount >= 25" class="bg-ncad-yellow bg-opacity-20 border border-ncad-yellow p-4">
+            <p class="text-ncad-yellow text-sm">
               You've reached the upload limit of 25 photos. Delete some photos to upload new ones.
             </p>
           </div>
@@ -148,7 +148,7 @@
             <router-link 
               v-if="actualPhotoCount < 25"
               to="/upload" 
-              class="inline-block mt-4 bg-ncad-green text-black px-6 py-2 font-medium hover:bg-opacity-80 transition-all"
+              class="inline-block mt-4 bg-ncad-yellow text-black px-6 py-2 font-medium hover:bg-opacity-80 transition-all"
             >
               Upload Your First Photo
             </router-link>
@@ -266,7 +266,7 @@
             <button 
               type="submit"
               :disabled="updatingProfile"
-              class="flex-1 bg-ncad-green text-black py-2 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
+              class="flex-1 bg-ncad-yellow text-black py-2 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
             >
               {{ updatingProfile ? 'Saving...' : 'Save' }}
             </button>
