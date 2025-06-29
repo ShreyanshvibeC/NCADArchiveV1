@@ -19,11 +19,11 @@
 
 /* Rainbow button styling for upload CTA */
 .rainbow-button {
-  --color-1: #0066FF;
-  --color-2: #00FF88;
-  --color-3: #6B46C1;
-  --color-4: #FF6B6B;
-  --color-5: #FFD700;
+  --color-1: #FFFFFF;
+  --color-2: #FFFFFF;
+  --color-3: #FFFFFF;
+  --color-4: #FFFFFF;
+  --color-5: #FFFFFF;
   
   /* Override position to ensure it's fixed */
   position: fixed !important;
