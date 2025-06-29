@@ -1,29 +1,35 @@
 <template>
   <div v-if="isVisible" class="fixed inset-0 z-[100]">
-    <!-- Dark overlay with animated spotlight -->
+    <!-- Dark overlay with proper cutout for interactive elements -->
     <div 
-      class="absolute inset-0 bg-black transition-all duration-700 ease-in-out"
+      class="absolute inset-0 bg-black transition-all duration-700 ease-in-out pointer-events-none"
       :style="overlayStyle"
     ></div>
     
-    <!-- Animated spotlight circle -->
+    <!-- Interactive area - allows clicks through to target element -->
     <div 
-      v-if="showSpotlight"
-      class="absolute border-4 border-white transition-all duration-700 ease-in-out pointer-events-none"
-      :class="spotlightShape"
-      :style="spotlightStyle"
+      v-if="showSpotlight && targetElement"
+      class="absolute pointer-events-none transition-all duration-700 ease-in-out"
+      :style="interactiveAreaStyle"
     >
-      <!-- Pulsing animation -->
+      <!-- Pulsing border animation around interactive area -->
       <div 
-        class="absolute inset-0 border-4 border-white animate-ping opacity-30"
+        class="absolute inset-0 border-4 border-white transition-all duration-700 ease-in-out"
         :class="spotlightShape"
-      ></div>
+        :style="{ opacity: showSpotlight ? 1 : 0 }"
+      >
+        <!-- Pulsing animation -->
+        <div 
+          class="absolute inset-0 border-4 border-white animate-ping opacity-30"
+          :class="spotlightShape"
+        ></div>
+      </div>
     </div>
     
-    <!-- Animated tooltip -->
+    <!-- Animated tooltip positioned to not cover interactive elements -->
     <div 
       v-if="currentStep"
-      class="absolute bg-black text-white p-4 max-w-xs shadow-2xl border border-gray-600 transition-all duration-500 ease-out transform"
+      class="absolute bg-black text-white p-4 max-w-xs shadow-2xl border border-gray-600 transition-all duration-500 ease-out transform z-[101]"
       :style="tooltipStyle"
       :class="tooltipClasses"
     >
@@ -154,29 +160,39 @@ const spotlightShape = computed(() => {
   return shape === 'circle' ? 'rounded-full' : 'rounded-lg'
 })
 
+// Create a proper cutout overlay that doesn't interfere with interactions
 const overlayStyle = computed(() => {
   if (!currentStep.value?.target || !targetElement.value || !showSpotlight.value) {
     return { opacity: '0.8' }
   }
   
   const rect = spotlightRect.value
-  const padding = 15
-  const centerX = rect.x + rect.width / 2
-  const centerY = rect.y + rect.height / 2
-  const radius = Math.max(rect.width, rect.height) / 2 + padding
+  const padding = 20
   
-  const maskImage = `radial-gradient(circle at ${centerX}px ${centerY}px, transparent ${radius}px, black ${radius + 5}px)`
+  // Create a cutout using clip-path instead of mask for better performance
+  const clipPath = `polygon(
+    0% 0%, 
+    0% 100%, 
+    ${rect.x - padding}px 100%, 
+    ${rect.x - padding}px ${rect.y - padding}px, 
+    ${rect.x + rect.width + padding}px ${rect.y - padding}px, 
+    ${rect.x + rect.width + padding}px ${rect.y + rect.height + padding}px, 
+    ${rect.x - padding}px ${rect.y + rect.height + padding}px, 
+    ${rect.x - padding}px 100%, 
+    100% 100%, 
+    100% 0%
+  )`
   
   return {
     opacity: '0.8',
-    maskImage,
-    WebkitMaskImage: maskImage
+    clipPath
   }
 })
 
-const spotlightStyle = computed(() => {
+// Style for the interactive area that allows clicks through
+const interactiveAreaStyle = computed(() => {
   const rect = spotlightRect.value
-  const padding = 15
+  const padding = 20
   
   return {
     left: `${rect.x - padding}px`,
@@ -284,11 +300,12 @@ const updatePositions = async () => {
     height: rect.height
   }
   
-  // Calculate tooltip position
+  // Calculate tooltip position to avoid covering the target element
   const position = currentStep.value.position || 'bottom'
   const offset = currentStep.value.offset || { x: 0, y: 0 }
-  const tooltipWidth = 320 // Approximate tooltip width
-  const tooltipHeight = 200 // Approximate tooltip height
+  const tooltipWidth = 320
+  const tooltipHeight = 250
+  const padding = 30 // Extra padding to ensure no overlap
   
   let tooltipX = 0
   let tooltipY = 0
@@ -296,27 +313,94 @@ const updatePositions = async () => {
   switch (position) {
     case 'top':
       tooltipX = rect.left + rect.width / 2 - tooltipWidth / 2
-      tooltipY = rect.top - tooltipHeight - 20
+      tooltipY = rect.top - tooltipHeight - padding
       break
     case 'bottom':
       tooltipX = rect.left + rect.width / 2 - tooltipWidth / 2
-      tooltipY = rect.bottom + 20
+      tooltipY = rect.bottom + padding
       break
     case 'left':
-      tooltipX = rect.left - tooltipWidth - 20
+      tooltipX = rect.left - tooltipWidth - padding
       tooltipY = rect.top + rect.height / 2 - tooltipHeight / 2
       break
     case 'right':
-      tooltipX = rect.right + 20
+      tooltipX = rect.right + padding
       tooltipY = rect.top + rect.height / 2 - tooltipHeight / 2
       break
   }
   
-  // Keep tooltip within viewport
-  tooltipX = Math.max(16, Math.min(tooltipX + offset.x, window.innerWidth - tooltipWidth - 16))
-  tooltipY = Math.max(16, Math.min(tooltipY + offset.y, window.innerHeight - tooltipHeight - 16))
+  // Ensure tooltip stays within viewport and doesn't cover target
+  const viewportWidth = window.innerWidth
+  const viewportHeight = window.innerHeight
+  const margin = 16
   
-  tooltipRect.value = { x: tooltipX, y: tooltipY }
+  // Horizontal bounds checking
+  if (tooltipX < margin) {
+    tooltipX = margin
+  } else if (tooltipX + tooltipWidth > viewportWidth - margin) {
+    tooltipX = viewportWidth - tooltipWidth - margin
+  }
+  
+  // Vertical bounds checking with special handling to avoid target overlap
+  if (tooltipY < margin) {
+    // If tooltip would go above viewport, try positioning below target
+    if (position === 'top') {
+      tooltipY = rect.bottom + padding
+    } else {
+      tooltipY = margin
+    }
+  } else if (tooltipY + tooltipHeight > viewportHeight - margin) {
+    // If tooltip would go below viewport, try positioning above target
+    if (position === 'bottom') {
+      tooltipY = rect.top - tooltipHeight - padding
+    } else {
+      tooltipY = viewportHeight - tooltipHeight - margin
+    }
+  }
+  
+  // Final check to ensure tooltip doesn't overlap with target element
+  const tooltipRect = {
+    left: tooltipX,
+    top: tooltipY,
+    right: tooltipX + tooltipWidth,
+    bottom: tooltipY + tooltipHeight
+  }
+  
+  const targetRect = {
+    left: rect.left - 20,
+    top: rect.top - 20,
+    right: rect.right + 20,
+    bottom: rect.bottom + 20
+  }
+  
+  // Check for overlap and adjust if necessary
+  if (!(tooltipRect.right < targetRect.left || 
+        tooltipRect.left > targetRect.right || 
+        tooltipRect.bottom < targetRect.top || 
+        tooltipRect.top > targetRect.bottom)) {
+    
+    // There's an overlap, try to reposition
+    if (position === 'top' || position === 'bottom') {
+      // Try positioning to the side
+      if (rect.left > viewportWidth / 2) {
+        tooltipX = rect.left - tooltipWidth - padding
+      } else {
+        tooltipX = rect.right + padding
+      }
+    } else {
+      // Try positioning above or below
+      if (rect.top > viewportHeight / 2) {
+        tooltipY = rect.top - tooltipHeight - padding
+      } else {
+        tooltipY = rect.bottom + padding
+      }
+    }
+  }
+  
+  tooltipRect.value = { 
+    x: tooltipX + offset.x, 
+    y: tooltipY + offset.y 
+  }
   
   // Show spotlight with animation
   setTimeout(() => {
