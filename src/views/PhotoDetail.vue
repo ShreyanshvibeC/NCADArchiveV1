@@ -24,10 +24,10 @@
     <!-- Main Content Container with Desktop Margins - Fixed height and scrollable -->
     <div class="h-full overflow-y-auto pb-24">
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
-        <!-- Content Container with 12pt spacing -->
-        <div class="flex flex-col items-center space-y-3">
-          <!-- User Info and Date Row -->
-          <div class="w-full flex items-center justify-between px-4">
+        <!-- Unified Photo Container -->
+        <div class="flex flex-col items-center space-y-4 px-4">
+          <!-- User Info and Date Row - Above Image -->
+          <div class="w-full flex items-center justify-between">
             <!-- User info - Clickable to navigate to user profile -->
             <router-link 
               :to="`/profile/${photo.userId}`"
@@ -44,114 +44,117 @@
             <span class="text-gray-400 text-sm">{{ formatDate(photo.timestamp) }}</span>
           </div>
 
-          <!-- Card Flip Container - 1:1 aspect ratio -->
-          <div class="w-full aspect-square relative perspective-1000">
-            <div 
-              class="card-container w-full h-full relative transform-style-preserve-3d transition-transform duration-700 ease-in-out"
-              :class="{ 'rotate-y-180': isFlipped }"
-              @touchstart="handleTouchStart"
-              @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd"
-            >
-              <!-- Front Side - Image -->
-              <div class="card-face card-front absolute inset-0 backface-hidden">
-                <img 
-                  :src="photo.imageURL" 
-                  :alt="photo.title || 'NCAD Archive Photo'"
-                  class="w-full h-full object-cover cursor-pointer"
-                  @dblclick="toggleLike"
-                />
-                
-                <!-- Temporary Badge -->
-                <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
-                  <span class="text-xs font-medium text-white">LEAVING SOON</span>
+          <!-- Photo Container with Card Flip - Maintains vertical alignment -->
+          <div class="w-full">
+            <!-- Card Flip Container - 1:1 aspect ratio -->
+            <div class="w-full aspect-square relative perspective-1000">
+              <div 
+                class="card-container w-full h-full relative transform-style-preserve-3d transition-transform duration-700 ease-in-out"
+                :class="{ 'rotate-y-180': isFlipped }"
+                @touchstart="handleTouchStart"
+                @touchmove="handleTouchMove"
+                @touchend="handleTouchEnd"
+              >
+                <!-- Front Side - Image -->
+                <div class="card-face card-front absolute inset-0 backface-hidden">
+                  <img 
+                    :src="photo.imageURL" 
+                    :alt="photo.title || 'NCAD Archive Photo'"
+                    class="w-full h-full object-cover cursor-pointer"
+                    @dblclick="toggleLike"
+                  />
+                  
+                  <!-- Temporary Badge -->
+                  <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-ncad-green px-3 py-1 z-20">
+                    <span class="text-xs font-medium text-white">LEAVING SOON</span>
+                  </div>
+
+                  <!-- Heart Animation Overlay -->
+                  <div 
+                    v-if="showHeartAnimation" 
+                    class="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
+                  >
+                    <div class="animate-heart-pop">
+                      <svg class="w-20 h-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                      </svg>
+                    </div>
+                  </div>
                 </div>
 
-                <!-- Heart Animation Overlay -->
-                <div 
-                  v-if="showHeartAnimation" 
-                  class="absolute inset-0 flex items-center justify-center pointer-events-none z-30"
-                >
-                  <div class="animate-heart-pop">
-                    <svg class="w-20 h-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                    </svg>
+                <!-- Back Side - Title and Description -->
+                <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8" style="background-color: #1B1B1B;">
+                  <div class="text-center space-y-4">
+                    <!-- Title -->
+                    <h1 v-if="photo.title" class="text-2xl font-bold text-white mb-4">
+                      {{ photo.title }}
+                    </h1>
+                    
+                    <!-- Description -->
+                    <p v-if="photo.description" class="text-white text-lg leading-relaxed">
+                      {{ photo.description }}
+                    </p>
+                    <p v-else-if="!photo.title" class="text-gray-400 text-lg italic">
+                      No description available
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <!-- Back Side - Title and Description -->
-              <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8" style="background-color: #1B1B1B;">
-                <div class="text-center space-y-4">
-                  <!-- Title -->
-                  <h1 v-if="photo.title" class="text-2xl font-bold text-white mb-4">
-                    {{ photo.title }}
-                  </h1>
-                  
-                  <!-- Description -->
-                  <p v-if="photo.description" class="text-white text-lg leading-relaxed">
-                    {{ photo.description }}
-                  </p>
-                  <p v-else-if="!photo.title" class="text-gray-400 text-lg italic">
-                    No description available
-                  </p>
+              <!-- Dot Indicators - Positioned on the image -->
+              <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
+                <div 
+                  class="w-2 h-2 rounded-full transition-colors duration-300"
+                  :class="!isFlipped ? 'bg-white' : 'bg-gray-600'"
+                ></div>
+                <div 
+                  class="w-2 h-2 rounded-full transition-colors duration-300"
+                  :class="isFlipped ? 'bg-white' : 'bg-gray-600'"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Stats and Actions Row - Below Image, part of container -->
+            <div class="w-full flex items-center justify-between mt-4">
+              <!-- Left side - Stats with proper alignment -->
+              <div class="flex items-center space-x-6">
+                <!-- Visit count - center aligned content, left aligned container with right padding -->
+                <div class="flex items-center justify-center space-x-2 pr-4">
+                  <svg class="w-7 h-7 text-white" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="currentColor"/>
+                  </svg>
+                  <span class="text-white text-lg font-medium">{{ photo.visits }}</span>
                 </div>
+                
+                <!-- Likes count -->
+                <button 
+                  @click="toggleLike" 
+                  :disabled="likingInProgress"
+                  class="flex items-center space-x-2 transition-colors disabled:opacity-50"
+                >
+                  <svg class="w-6 h-6" :fill="isLiked ? '#52489C' : 'none'" :stroke="isLiked ? '#52489C' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                  </svg>
+                  <span :class="isLiked ? 'text-[#52489C]' : 'text-white'" class="text-lg font-medium">{{ photo.likes || 0 }}</span>
+                </button>
               </div>
-            </div>
 
-            <!-- Dot Indicators - Positioned on the image -->
-            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
-              <div 
-                class="w-2 h-2 rounded-full transition-colors duration-300"
-                :class="!isFlipped ? 'bg-white' : 'bg-gray-600'"
-              ></div>
-              <div 
-                class="w-2 h-2 rounded-full transition-colors duration-300"
-                :class="isFlipped ? 'bg-white' : 'bg-gray-600'"
-              ></div>
-            </div>
-          </div>
-
-          <!-- Stats and Actions Row -->
-          <div class="w-full flex items-center justify-between px-4">
-            <!-- Left side - Stats with proper alignment -->
-            <div class="flex items-center space-x-6">
-              <!-- Visit count - center aligned content, left aligned container with right padding -->
-              <div class="flex items-center justify-center space-x-2 pr-4">
-                <svg class="w-7 h-7 text-white" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="currentColor"/>
-                </svg>
-                <span class="text-white text-lg font-medium">{{ photo.visits }}</span>
+              <!-- Right side - Actions -->
+              <div class="flex items-center space-x-4">
+                <!-- Share button -->
+                <button @click="openShareModal" class="text-white hover:text-gray-400 transition-colors">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                  </svg>
+                </button>
+                
+                <!-- Save button -->
+                <button @click="toggleSave" class="transition-colors" :class="isSaved ? 'text-ncad-green' : 'text-white hover:text-gray-400'">
+                  <svg class="w-6 h-6" :fill="isSaved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
+                  </svg>
+                </button>
               </div>
-              
-              <!-- Likes count -->
-              <button 
-                @click="toggleLike" 
-                :disabled="likingInProgress"
-                class="flex items-center space-x-2 transition-colors disabled:opacity-50"
-              >
-                <svg class="w-6 h-6" :fill="isLiked ? '#52489C' : 'none'" :stroke="isLiked ? '#52489C' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                </svg>
-                <span :class="isLiked ? 'text-[#52489C]' : 'text-white'" class="text-lg font-medium">{{ photo.likes || 0 }}</span>
-              </button>
-            </div>
-
-            <!-- Right side - Actions -->
-            <div class="flex items-center space-x-4">
-              <!-- Share button -->
-              <button @click="openShareModal" class="text-white hover:text-gray-400 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
-                </svg>
-              </button>
-              
-              <!-- Save button -->
-              <button @click="toggleSave" class="transition-colors" :class="isSaved ? 'text-ncad-green' : 'text-white hover:text-gray-400'">
-                <svg class="w-6 h-6" :fill="isSaved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                </svg>
-              </button>
             </div>
           </div>
         </div>
@@ -548,5 +551,24 @@ const handleTouchEnd = (e: TouchEvent) => {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Responsive adjustments */
+@media (min-width: 768px) {
+  .max-w-md {
+    max-width: 28rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .lg\:max-w-lg {
+    max-width: 32rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .xl\:max-w-xl {
+    max-width: 36rem;
+  }
 }
 </style>
