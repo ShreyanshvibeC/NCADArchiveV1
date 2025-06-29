@@ -149,12 +149,12 @@
         </div>
       </div>
 
-      <!-- Floating CTA Button -->
+      <!-- Floating CTA Button with Rainbow Glow -->
       <button 
         @click="handleUploadClick"
-        class="fixed bottom-6 left-6 w-20 h-20 bg-black border-2 border-white text-white flex items-center justify-center hover:bg-gray-900 transition-all z-40 shadow-lg"
+        class="cta-rainbow-glow fixed bottom-6 left-6 w-20 h-20 bg-black border-2 border-white text-white flex items-center justify-center hover:bg-gray-900 transition-all z-40 shadow-lg"
       >
-        <span class="text-4xl font-light">+</span>
+        <span class="text-4xl font-light relative z-10">+</span>
       </button> 
     </div>
 
