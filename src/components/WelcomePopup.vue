@@ -10,7 +10,7 @@
         @click="closePopup"
         class="absolute top-4 right-4 text-white hover:text-gray-400 transition-colors z-10"
       >
-        <span class="text-xl font-bold">✕</span>
+        <span class="text-xl font-900">X</span>
       </button>
       
       <!-- Image at the top -->
