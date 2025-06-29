@@ -25,7 +25,8 @@
   --color-4: #FF6B6B;
   --color-5: #FFD700;
   
-  position: relative;
+  /* Override position to ensure it's fixed */
+  position: fixed !important;
   cursor: pointer;
   transition: all 0.3s ease;
   background: linear-gradient(#121213, #121213), 
