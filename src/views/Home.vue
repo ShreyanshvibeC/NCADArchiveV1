@@ -158,6 +158,12 @@
       @animation-complete="onAnimationComplete"
     />
 
+    <!-- Device Detection Popup -->
+    <DeviceDetectionPopup 
+      ref="devicePopup"
+      @close="onDevicePopupClose"
+    />
+
     <!-- Welcome Popup -->
     <WelcomePopup 
       ref="welcomePopup"
@@ -215,6 +221,8 @@ import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import RevealAnimation from '../components/RevealAnimation.vue'
 import WelcomePopup from '../components/WelcomePopup.vue'
+import DeviceDetectionPopup from '../components/DeviceDetectionPopup.vue'
+import { lockOrientationToPortrait, showRotationWarning } from '../utils/deviceUtils'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
@@ -225,6 +233,7 @@ const showRevealAnimation = ref(false)
 const loadingProgress = ref('Loading photos...')
 const hamburgerMenu = ref()
 const welcomePopup = ref()
+const devicePopup = ref()
 const showGoneSoonModal = ref(false)
 const selectedPhoto = ref(null)
 
@@ -289,10 +298,18 @@ const onAnimationComplete = () => {
   // Start typewriter animation after reveal animation completes
   startTypewriterAnimation()
   
-  // Show welcome popup after reveal animation and typewriter animation
+  // Show device detection popup first, then welcome popup
+  setTimeout(() => {
+    devicePopup.value?.showDevicePopup()
+  }, 1000)
+}
+
+const onDevicePopupClose = () => {
+  console.log('Device popup closed')
+  // Show welcome popup after device popup is closed
   setTimeout(() => {
     welcomePopup.value?.showPopup()
-  }, 2000) // Show popup 2 seconds after reveal animation completes
+  }, 500)
 }
 
 const onWelcomePopupClose = () => {
@@ -383,6 +400,10 @@ const startTypewriterAnimation = () => {
 
 onMounted(async () => {
   try {
+    // Initialize mobile optimizations
+    lockOrientationToPortrait()
+    showRotationWarning()
+    
     loadingProgress.value = 'Fetching photos...'
     
     // Reset pagination state and load initial photos
