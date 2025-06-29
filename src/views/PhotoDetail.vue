@@ -1,7 +1,7 @@
 <template>
-  <div v-if="photo" class="h-screen bg-black overflow-hidden">
-    <!-- Header -->
-    <header class="flex items-center justify-between p-4 bg-black">
+  <div v-if="photo" class="h-screen bg-black overflow-hidden flex flex-col">
+    <!-- Header - Fixed height -->
+    <header class="flex items-center justify-between p-4 bg-black flex-shrink-0">
       <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -21,8 +21,8 @@
       <div v-else class="w-6"></div>
     </header>
 
-    <!-- Main Content Container - Centered Vertically -->
-    <div class="flex items-center justify-center min-h-[calc(100vh-80px)] px-4">
+    <!-- Main Content Container - Flex grow to fill remaining space -->
+    <div class="flex-1 flex items-center justify-center px-4 min-h-0">
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl w-full">
         <!-- Unified Photo Container - Vertically Centered -->
         <div class="flex flex-col items-center space-y-4">
@@ -161,13 +161,12 @@
       </div>
     </div>
 
-    <!-- Fixed Take Me There CTA - Positioned at bottom -->
-    <div v-if="photo.location" class="fixed bottom-0 left-0 right-0 p-4">
+    <!-- Fixed Take Me There CTA - Only show if there's space -->
+    <div v-if="photo.location" class="flex-shrink-0 p-4 pb-6">
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
         <button 
           @click="showLocationDrawer = true"
           class="w-full bg-black text-white py-3 flex items-center justify-center space-x-2 border border-gray-600 hover:bg-gray-800 transition-all"
-          style="margin-bottom: 20px;"
         >
           <!-- Filled pin icon -->
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -551,6 +550,14 @@ const handleTouchEnd = (e: TouchEvent) => {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Ensure no overflow on mobile */
+@media (max-width: 768px) {
+  .h-screen {
+    height: 100vh;
+    height: 100dvh; /* Use dynamic viewport height on mobile */
+  }
 }
 
 /* Responsive adjustments */
