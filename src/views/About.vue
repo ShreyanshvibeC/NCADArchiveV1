@@ -161,22 +161,22 @@
           </div>
           
           <div class="grid grid-cols-2 gap-4">
-            <div class="bg-black border border-ncad-green p-6 text-center rounded-lg">
+            <div class="bg-black border border-white p-6 text-center">
               <div class="text-3xl font-bold text-white mb-1">{{ totalPhotos }}+</div>
               <div class="text-sm text-white">Creative Moments</div>
               <div class="text-xs text-gray-400 mt-1">Captured & Shared</div>
             </div>
-            <div class="bg-black border border-blue-500 p-6 text-center rounded-lg">
+            <div class="bg-black border border-white p-6 text-center">
               <div class="text-3xl font-bold text-white mb-1">{{ totalStudents }}+</div>
               <div class="text-sm text-white">Community Members</div>
               <div class="text-xs text-gray-400 mt-1">Building Our Story</div>
             </div>
-            <div class="bg-black border border-purple-500 p-6 text-center rounded-lg">
+            <div class="bg-black border border-white p-6 text-center">
               <div class="text-3xl font-bold text-white mb-1">{{ totalVisits }}+</div>
               <div class="text-sm text-white">Location Visits</div>
               <div class="text-xs text-gray-400 mt-1">Discoveries Made</div>
             </div>
-            <div class="bg-black border border-green-500 p-6 text-center rounded-lg">
+            <div class="bg-black border border-white p-6 text-center">
               <div class="text-3xl font-bold text-white mb-1">{{ campusLocations }}+</div>
               <div class="text-sm text-white">Campus Spots</div>
               <div class="text-xs text-gray-400 mt-1">Documented</div>
