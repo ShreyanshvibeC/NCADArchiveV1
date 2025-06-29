@@ -41,7 +41,7 @@
     </header>
 
     <!-- Hamburger Menu Component -->
-    <HamburgerMenu ref="hamburgerMenu" @start-tutorial="startTutorial" />
+    <HamburgerMenu ref="hamburgerMenu" />
 
     <!-- Main Content Container with Desktop Margins and top padding for marquee + fixed header -->
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
@@ -112,7 +112,7 @@
               <!-- Icon and Count Container, Centered and Right-Aligned -->
               <div class="absolute right-2 top-1/2 transform -translate-y-1/2 flex flex-col items-center justify-center text-white z-20">
                 <svg class="w-6 h-6 mb-1" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="white"/>
+                  <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="currentColor"/>
                 </svg>
                 <span class="text-sm font-medium">{{ photo.visits || 0 }}</span>
               </div>
@@ -163,15 +163,6 @@
     <WelcomePopup 
       ref="welcomePopup"
       @close="onWelcomePopupClose"
-      @start-tutorial="startTutorial"
-    />
-
-    <!-- Coachmarks Tutorial -->
-    <CoachmarkOverlay 
-      :steps="coachmarks.steps"
-      :is-visible="coachmarks.isVisible.value"
-      @complete="coachmarks.completeTutorial"
-      @skip="coachmarks.skipTutorial"
     />
 
     <!-- Gone Soon Modal - Bottom Drawer Style -->
@@ -221,17 +212,14 @@ import { onMounted, ref, watch, onUnmounted } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
-import { useCoachmarks } from '../composables/useCoachmarks'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import RevealAnimation from '../components/RevealAnimation.vue'
 import WelcomePopup from '../components/WelcomePopup.vue'
-import CoachmarkOverlay from '../components/CoachmarkOverlay.vue'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
 const router = useRouter()
-const coachmarks = useCoachmarks()
 
 const initialImagesLoaded = ref(false)
 const showRevealAnimation = ref(false)
@@ -295,10 +283,6 @@ const handleLikeClick = async (photoId: string) => {
 
 const navigateToPhoto = (photoId: string) => {
   router.push(`/photo/${photoId}`)
-}
-
-const startTutorial = () => {
-  coachmarks.startTutorial()
 }
 
 const onAnimationComplete = () => {
@@ -438,9 +422,6 @@ onMounted(async () => {
     
     // Add scroll listener for infinite scroll
     window.addEventListener('scroll', handleScroll, { passive: true })
-    
-    // Check tutorial status
-    coachmarks.checkTutorialStatus()
     
   } catch (error) {
     console.error('Error loading initial content:', error)

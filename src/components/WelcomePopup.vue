@@ -49,14 +49,6 @@
         
         <!-- CTA Buttons -->
         <div class="pt-4 space-y-3">
-          <!-- Tutorial Button -->
-          <button 
-            @click="startTutorial"
-            class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
-          >
-            TAKE A QUICK TOUR
-          </button>
-          
           <!-- Skip Button -->
           <button 
             @click="closePopup"
@@ -75,7 +67,6 @@ import { ref } from 'vue'
 
 const emit = defineEmits<{
   'close': []
-  'start-tutorial': []
 }>()
 
 const isVisible = ref(false)
@@ -83,14 +74,6 @@ const isVisible = ref(false)
 const closePopup = () => {
   isVisible.value = false
   emit('close')
-  
-  // Store in localStorage that user has seen the welcome popup
-  localStorage.setItem('ncad-archive-welcome-shown', 'true')
-}
-
-const startTutorial = () => {
-  isVisible.value = false
-  emit('start-tutorial')
   
   // Store in localStorage that user has seen the welcome popup
   localStorage.setItem('ncad-archive-welcome-shown', 'true')
