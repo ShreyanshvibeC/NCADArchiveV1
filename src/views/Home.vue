@@ -9,9 +9,8 @@
         <img 
           src="/logo -gif.gif" 
           alt="NCAD Logo" 
-          class="h-8 mr-4 cursor-pointer" 
+          class="h-8 mr-4" 
           @error="handleImageError"
-          @click="testWelcomePopup"
         />
         <svg class="h-6" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <text x="0" y="15" fill="white" font-family="Spenser" font-size="18" font-weight="900">ARCHIVE</text>
@@ -298,12 +297,6 @@ const onAnimationComplete = () => {
 
 const onWelcomePopupClose = () => {
   console.log('Welcome popup closed')
-}
-
-// Test function to show welcome popup when logo is clicked
-const testWelcomePopup = () => {
-  console.log('Logo clicked - showing welcome popup for testing')
-  welcomePopup.value?.showPopupForTesting()
 }
 
 // Watch for when initial images are loaded to trigger reveal animation
