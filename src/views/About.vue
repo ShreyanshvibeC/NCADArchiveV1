@@ -140,7 +140,7 @@
           </div>
         </section>
 
-        <!-- Stats Section with Platform Styling -->
+        <!-- Stats Section with Platform Styling and Animation -->
         <section class="space-y-6">
           <div class="text-center">
             <h3 class="text-2xl font-bold text-white">Our Growing Archive</h3>
@@ -149,57 +149,24 @@
           
           <div class="grid grid-cols-2 gap-4">
             <div class="bg-black border border-white p-6 text-center">
-              <div class="text-3xl font-bold text-white mb-1">{{ totalPhotos }}+</div>
+              <div class="text-3xl font-bold text-white mb-1">{{ animatedPhotos }}+</div>
               <div class="text-sm text-white">Creative Moments</div>
               <div class="text-xs text-gray-400 mt-1">Captured & Shared</div>
             </div>
             <div class="bg-black border border-white p-6 text-center">
-              <div class="text-3xl font-bold text-white mb-1">{{ totalStudents }}+</div>
+              <div class="text-3xl font-bold text-white mb-1">{{ animatedStudents }}+</div>
               <div class="text-sm text-white">Community Members</div>
               <div class="text-xs text-gray-400 mt-1">Building Our Story</div>
             </div>
             <div class="bg-black border border-white p-6 text-center">
-              <div class="text-3xl font-bold text-white mb-1">{{ totalVisits }}+</div>
+              <div class="text-3xl font-bold text-white mb-1">{{ animatedVisits }}+</div>
               <div class="text-sm text-white">Location Visits</div>
               <div class="text-xs text-gray-400 mt-1">Discoveries Made</div>
             </div>
             <div class="bg-black border border-white p-6 text-center">
-              <div class="text-3xl font-bold text-white mb-1">{{ campusLocations }}+</div>
+              <div class="text-3xl font-bold text-white mb-1">{{ animatedLocations }}+</div>
               <div class="text-sm text-white">Campus Spots</div>
               <div class="text-xs text-gray-400 mt-1">Documented</div>
-            </div>
-          </div>
-        </section>
-
-        <!-- Call to Action Section -->
-        <section class="space-y-6">
-          <div class="bg-black border border-ncad-green p-8 text-center">
-            <h3 class="text-2xl font-bold text-white mb-4">Ready to Join the Archive?</h3>
-            <p class="text-gray-300 mb-6">
-              Start exploring NCAD through the eyes of your fellow students and contribute your own perspective to the collection.
-            </p>
-            
-            <div class="space-y-3">
-              <router-link 
-                v-if="!authStore.isAuthenticated"
-                to="/signup"
-                class="block bg-ncad-green text-white py-3 px-6 font-medium hover:bg-opacity-80 transition-all"
-              >
-                Create Your Account
-              </router-link>
-              <router-link 
-                v-else
-                to="/upload"
-                class="block bg-ncad-green text-white py-3 px-6 font-medium hover:bg-opacity-80 transition-all"
-              >
-                Upload Your First Photo
-              </router-link>
-              <router-link 
-                to="/"
-                class="block bg-black border border-white text-white py-3 px-6 font-medium hover:bg-gray-800 transition-all"
-              >
-                Explore the Archive
-              </router-link>
             </div>
           </div>
         </section>
@@ -214,7 +181,16 @@
           <div class="bg-gray-900 p-6 space-y-4 text-center">
             <div class="space-y-2 text-gray-300">
               <p><strong class="text-white">Questions or Feedback?</strong></p>
-  
+              <p>
+                <a 
+                  href="https://docs.google.com/forms/d/e/1FAIpQLSf-MZETVdtnk2iJgHwr-iYh49HxBANgq4aIzxep3CfaefhQwQ/viewform?usp=sharing&ouid=101717117311011543340"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-ncad-green hover:text-opacity-80 transition-colors underline"
+                >
+                  Fill this form → Link
+                </a>
+              </p>
               <p>📍 100 Thomas Street, Dublin 8</p>
               <p>🌐 ncadarchive.me</p>
             </div>
@@ -238,7 +214,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { collection, getDocs, getCountFromServer } from 'firebase/firestore'
@@ -253,11 +229,68 @@ const totalStudents = ref(0)
 const totalVisits = ref(0)
 const campusLocations = ref(0)
 
+// Animated values for the counters
+const animatedPhotos = ref(0)
+const animatedStudents = ref(0)
+const animatedVisits = ref(0)
+const animatedLocations = ref(0)
+
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
   console.warn('Image failed to load:', img.src)
   // Hide the image if it fails to load
   img.style.display = 'none'
+}
+
+// Animation function for counting up numbers
+const animateNumber = (from: number, to: number, duration: number, callback: (value: number) => void) => {
+  const startTime = Date.now()
+  const difference = to - from
+  
+  const step = () => {
+    const elapsed = Date.now() - startTime
+    const progress = Math.min(elapsed / duration, 1)
+    
+    // Easing function for smooth animation
+    const easeOutQuart = 1 - Math.pow(1 - progress, 4)
+    const currentValue = Math.floor(from + (difference * easeOutQuart))
+    
+    callback(currentValue)
+    
+    if (progress < 1) {
+      requestAnimationFrame(step)
+    }
+  }
+  
+  requestAnimationFrame(step)
+}
+
+// Start animations when data is loaded
+const startAnimations = () => {
+  // Stagger the animations for a nice effect
+  setTimeout(() => {
+    animateNumber(0, totalPhotos.value, 2000, (value) => {
+      animatedPhotos.value = value
+    })
+  }, 200)
+  
+  setTimeout(() => {
+    animateNumber(0, totalStudents.value, 2000, (value) => {
+      animatedStudents.value = value
+    })
+  }, 400)
+  
+  setTimeout(() => {
+    animateNumber(0, totalVisits.value, 2000, (value) => {
+      animatedVisits.value = value
+    })
+  }, 600)
+  
+  setTimeout(() => {
+    animateNumber(0, campusLocations.value, 2000, (value) => {
+      animatedLocations.value = value
+    })
+  }, 800)
 }
 
 const fetchRealStatistics = async () => {
@@ -292,6 +325,9 @@ const fetchRealStatistics = async () => {
       visits: totalVisits.value,
       locations: campusLocations.value
     })
+
+    // Start animations after data is loaded
+    startAnimations()
   } catch (error) {
     console.error('Error fetching statistics:', error)
     // Fallback to default values
@@ -299,6 +335,9 @@ const fetchRealStatistics = async () => {
     totalStudents.value = 156
     totalVisits.value = 2840
     campusLocations.value = 89
+    
+    // Start animations with fallback data
+    startAnimations()
   }
 }
 
