@@ -164,8 +164,8 @@
             </div>
 
             <!-- Include Location Checkbox - Default checked -->
-            <div class="flex items-center space-x-3">
-              <div class="relative">
+            <div class="flex items-start space-x-3">
+              <div class="relative flex-shrink-0 mt-0.5">
                 <input 
                   id="location-checkbox"
                   v-model="includeLocation"
@@ -174,7 +174,7 @@
                 />
                 <label 
                   for="location-checkbox" 
-                  class="flex items-center cursor-pointer"
+                  class="cursor-pointer"
                 >
                   <div 
                     class="w-5 h-5 border-2 border-gray-600 bg-black flex items-center justify-center transition-all"
@@ -182,23 +182,25 @@
                   >
                     <svg 
                       v-if="includeLocation"
-                      class="w-3 h-3 text-white" 
+                      class="w-3.5 h-3.5 text-white" 
                       fill="currentColor" 
                       viewBox="0 0 20 20"
+                      stroke="currentColor"
+                      stroke-width="1"
                     >
                       <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                     </svg>
                   </div>
-                  <span class="ml-3 text-sm font-medium text-white">
-                    Include location information
-                  </span>
                 </label>
               </div>
+              <label for="location-checkbox" class="text-sm font-medium text-white cursor-pointer leading-relaxed">
+                Include location information
+              </label>
             </div>
 
             <!-- Temporary Photo Checkbox -->
-            <div class="flex items-center space-x-3">
-              <div class="relative">
+            <div class="flex items-start space-x-3">
+              <div class="relative flex-shrink-0 mt-0.5">
                 <input 
                   id="temporary-checkbox"
                   v-model="isTemporary"
@@ -207,7 +209,7 @@
                 />
                 <label 
                   for="temporary-checkbox" 
-                  class="flex items-center cursor-pointer"
+                  class="cursor-pointer"
                 >
                   <div 
                     class="w-5 h-5 border-2 border-gray-600 bg-black flex items-center justify-center transition-all"
@@ -215,18 +217,20 @@
                   >
                     <svg 
                       v-if="isTemporary"
-                      class="w-3 h-3 text-white" 
+                      class="w-3.5 h-3.5 text-white" 
                       fill="currentColor" 
                       viewBox="0 0 20 20"
+                      stroke="currentColor"
+                      stroke-width="1"
                     >
                       <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                     </svg>
                   </div>
-                  <span class="ml-3 text-sm font-medium text-white">
-                    Check this if the object or artwork in the photo is temporary and may not be there later
-                  </span>
                 </label>
               </div>
+              <label for="temporary-checkbox" class="text-sm font-medium text-white cursor-pointer leading-relaxed">
+                Check this if the object or artwork in the photo is temporary and may not be there later
+              </label>
             </div>
 
             <!-- Success Message -->
