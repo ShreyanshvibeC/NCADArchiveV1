@@ -165,36 +165,46 @@
       @close="onWelcomePopupClose"
     />
 
-    <!-- Gone Soon Modal -->
-    <div v-if="showGoneSoonModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" @click="showGoneSoonModal = false">
-      <div class="bg-gray-900 w-full max-w-md mx-auto p-6 space-y-4" @click.stop>
+    <!-- Gone Soon Modal - Bottom Drawer Style -->
+    <div v-if="showGoneSoonModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-end justify-center z-50" @click="showGoneSoonModal = false">
+      <div class="bg-black w-full max-w-md mx-auto p-4 space-y-4 transform transition-transform duration-300" 
+           :class="{ 'translate-y-0': showGoneSoonModal, 'translate-y-full': !showGoneSoonModal }"
+           @click.stop>
+        
+        <!-- Handle bar -->
+        <div class="w-12 h-1 bg-gray-600 mx-auto mb-4"></div>
+        
         <!-- Header -->
         <div class="text-center">
-          <h3 class="text-xl font-semibold text-white mb-2">Gone Soon</h3>
-          <div class="w-12 h-1 bg-ncad-green mx-auto"></div>
+          <h3 class="text-lg font-semibold text-white">Gone Soon</h3>
+          <p class="text-sm text-gray-400 mt-1">Temporary Content Information</p>
         </div>
         
         <!-- Content -->
-        <div class="space-y-4 text-gray-300">
-          <p class="leading-relaxed">
-            This photo features something <strong class="text-white">temporary</strong> that may not be there when you visit the location.
-          </p>
+        <div class="space-y-4">
+          <div class="bg-black bg-opacity-80 p-4 border-l-4 border-ncad-green">
+            <p class="text-white text-sm">
+              This photo features something <strong>temporary</strong> that may not be there when you visit the location.
+            </p>
+          </div>
           
           <div class="bg-gray-800 p-4 border-l-4 border-yellow-500">
-            <p class="text-sm">
+            <p class="text-white text-sm">
               <strong class="text-yellow-400">Examples:</strong> Student artwork, temporary installations, exhibitions, events, or objects that are regularly moved or changed.
             </p>
           </div>
           
-          <p class="text-sm">
-            The photographer has marked this to let you know that what you see in the photo might not be there anymore, but the location itself is still worth exploring!
-          </p>
+          <div class="bg-gray-800 p-4">
+            <p class="text-gray-300 text-sm">
+              The photographer has marked this to let you know that what you see in the photo might not be there anymore, but the location itself is still worth exploring!
+            </p>
+          </div>
         </div>
         
         <!-- Close Button -->
         <button 
           @click="showGoneSoonModal = false"
-          class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
+          class="w-full bg-black text-white py-3 px-4 font-medium hover:bg-gray-700 transition-all border border-white"
         >
           Got it!
         </button>
