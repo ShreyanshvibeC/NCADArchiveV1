@@ -131,6 +131,19 @@
               </div>
             </div>
 
+            <!-- Include Location Checkbox -->
+            <div class="flex items-center space-x-3">
+              <input 
+                id="location-checkbox"
+                v-model="includeLocation"
+                type="checkbox"
+                class="w-4 h-4 bg-black border border-gray-600 focus:border-white focus:outline-none"
+              />
+              <label for="location-checkbox" class="text-sm font-medium text-white cursor-pointer">
+                Include location information
+              </label>
+            </div>
+
             <!-- Temporary Photo Checkbox -->
             <div class="flex items-center space-x-3">
               <input 
@@ -140,7 +153,7 @@
                 class="w-4 h-4 bg-black border border-gray-600 focus:border-white focus:outline-none"
               />
               <label for="temporary-checkbox" class="text-sm font-medium text-white cursor-pointer">
-                Only available for a few days
+                Check this if the object or artwork in the photo is temporary and may not be there later
               </label>
             </div>
 
@@ -202,6 +215,7 @@ const previewUrl = ref('')
 const title = ref('')
 const description = ref('')
 const isTemporary = ref(false)
+const includeLocation = ref(false) // New checkbox for location
 const uploading = ref(false)
 const error = ref('')
 const success = ref('')
@@ -269,6 +283,7 @@ const clearSelection = () => {
   title.value = ''
   description.value = ''
   isTemporary.value = false
+  includeLocation.value = false // Reset location checkbox
   error.value = ''
   success.value = ''
   
@@ -335,6 +350,7 @@ const uploadPhoto = async () => {
     console.log('User email:', authStore.user.email)
     console.log('Image:', selectedImage.value.name)
     console.log('Is temporary:', isTemporary.value)
+    console.log('Include location:', includeLocation.value)
     
     // Refresh auth token before upload
     console.log('Refreshing authentication token...')
@@ -345,13 +361,18 @@ const uploadPhoto = async () => {
     const compressedFile = await compressImage(selectedImage.value)
     console.log('Image compressed successfully. Original size:', selectedImage.value.size, 'Compressed size:', compressedFile.size)
     
-    // Always get location for all photos
-    console.log('Getting location...')
-    const location = await getCurrentLocation()
-    if (location) {
-      console.log('Location obtained:', location)
+    // Get location only if user wants to include it
+    let location = null
+    if (includeLocation.value) {
+      console.log('Getting location...')
+      location = await getCurrentLocation()
+      if (location) {
+        console.log('Location obtained:', location)
+      } else {
+        console.log('Location not available')
+      }
     } else {
-      console.log('Location not available')
+      console.log('Location not requested by user')
     }
     
     // Prepare photo data - use auth.currentUser.uid directly for userId
@@ -372,8 +393,8 @@ const uploadPhoto = async () => {
       photoData.description = trimmedDescription
     }
     
-    // Always add location if available
-    if (location) {
+    // Only add location if user requested it and it's available
+    if (includeLocation.value && location) {
       photoData.location = location
     }
     

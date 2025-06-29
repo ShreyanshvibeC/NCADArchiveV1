@@ -96,11 +96,11 @@
             
             <!-- Temporary Badge -->
             <div v-if="photo.temporary" class="absolute top-4 left-4 bg-black border border-white px-3 py-1 z-20">
-              <span class="text-xs font-medium text-white">LEAVING SOON</span>
+              <span class="text-xs font-medium text-white">GONE SOON</span>
             </div>
 
-            <!-- Visit Count with Gradient -->
-            <div class="absolute bottom-0 right-0 w-20 h-20 z-10">
+            <!-- Visit Count with Gradient - Only show if location exists -->
+            <div v-if="photo.location" class="absolute bottom-0 right-0 w-20 h-20 z-10">
               <!-- Diagonal gradient background -->
               <div class="absolute inset-0" style="background: linear-gradient(135deg, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.8) 100%);"></div>
 
