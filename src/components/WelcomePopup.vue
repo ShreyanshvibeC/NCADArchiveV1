@@ -13,10 +13,10 @@
         <span class="text-xl font-black">X</span>
       </button>
       
-      <!-- New Welcome Image -->
+      <!-- Welcome Image - Using existing image from project -->
       <div class="w-full">
         <img 
-          src="/welcome-popup.png" 
+          src="/image copy copy copy copy copy copy copy copy copy copy.png" 
           alt="NCAD Archive Welcome - Create | Share | Explore" 
           class="w-full h-auto object-cover"
           @error="handleImageError"
