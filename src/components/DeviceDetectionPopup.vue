@@ -21,28 +21,17 @@
         <!-- Message -->
         <div class="space-y-4 text-gray-300">
           <p class="leading-relaxed">
-            It looks like you're visiting from a <strong class="text-white">{{ deviceType }}</strong>. While our website is accessible on all devices, it's specifically optimized for mobile.
+            You're visiting from a  <strong class="text-white">{{ deviceType }}</strong>. While our website is accessible on all devices, it's specifically optimized for mobile.
           </p>
           
           <p class="leading-relaxed">
             For the best experience—both visually and functionally—we strongly recommend switching to your <strong class="text-ncad-green">smartphone</strong>.
           </p>
           
-          <div class="bg-gray-900 p-4 border-l-4 border-yellow-500">
-            <p class="text-yellow-400 text-sm">
-              <strong>Note:</strong> You can continue on your current device, but please note that the experience may be limited or not display as intended.
-            </p>
-          </div>
         </div>
         
         <!-- Actions -->
         <div class="space-y-3">
-          <button 
-            @click="continueAnyway"
-            class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
-          >
-            Continue on {{ deviceType }}
-          </button>
           
           <button 
             @click="remindLater"
