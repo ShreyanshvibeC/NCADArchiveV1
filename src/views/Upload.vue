@@ -163,30 +163,70 @@
               </div>
             </div>
 
-            <!-- Include Location Checkbox -->
+            <!-- Include Location Checkbox - Default checked -->
             <div class="flex items-center space-x-3">
-              <input 
-                id="location-checkbox"
-                v-model="includeLocation"
-                type="checkbox"
-                class="w-4 h-4 bg-black border border-gray-600 focus:border-white focus:outline-none"
-              />
-              <label for="location-checkbox" class="text-sm font-medium text-white cursor-pointer">
-                Include location information
-              </label>
+              <div class="relative">
+                <input 
+                  id="location-checkbox"
+                  v-model="includeLocation"
+                  type="checkbox"
+                  class="sr-only"
+                />
+                <label 
+                  for="location-checkbox" 
+                  class="flex items-center cursor-pointer"
+                >
+                  <div 
+                    class="w-5 h-5 border-2 border-gray-600 bg-black flex items-center justify-center transition-all"
+                    :class="{ 'bg-ncad-green border-ncad-green': includeLocation }"
+                  >
+                    <svg 
+                      v-if="includeLocation"
+                      class="w-3 h-3 text-white" 
+                      fill="currentColor" 
+                      viewBox="0 0 20 20"
+                    >
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  </div>
+                  <span class="ml-3 text-sm font-medium text-white">
+                    Include location information
+                  </span>
+                </label>
+              </div>
             </div>
 
             <!-- Temporary Photo Checkbox -->
             <div class="flex items-center space-x-3">
-              <input 
-                id="temporary-checkbox"
-                v-model="isTemporary"
-                type="checkbox"
-                class="w-4 h-4 bg-black border border-gray-600 focus:border-white focus:outline-none"
-              />
-              <label for="temporary-checkbox" class="text-sm font-medium text-white cursor-pointer">
-                Check this if the object or artwork in the photo is temporary and may not be there later
-              </label>
+              <div class="relative">
+                <input 
+                  id="temporary-checkbox"
+                  v-model="isTemporary"
+                  type="checkbox"
+                  class="sr-only"
+                />
+                <label 
+                  for="temporary-checkbox" 
+                  class="flex items-center cursor-pointer"
+                >
+                  <div 
+                    class="w-5 h-5 border-2 border-gray-600 bg-black flex items-center justify-center transition-all"
+                    :class="{ 'bg-ncad-green border-ncad-green': isTemporary }"
+                  >
+                    <svg 
+                      v-if="isTemporary"
+                      class="w-3 h-3 text-white" 
+                      fill="currentColor" 
+                      viewBox="0 0 20 20"
+                    >
+                      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                  </div>
+                  <span class="ml-3 text-sm font-medium text-white">
+                    Check this if the object or artwork in the photo is temporary and may not be there later
+                  </span>
+                </label>
+              </div>
             </div>
 
             <!-- Success Message -->
@@ -248,7 +288,7 @@ const previewUrl = ref('')
 const title = ref('')
 const description = ref('')
 const isTemporary = ref(false)
-const includeLocation = ref(false) // New checkbox for location
+const includeLocation = ref(true) // Default to true (enabled by default)
 const uploading = ref(false)
 const error = ref('')
 const success = ref('')
@@ -346,7 +386,7 @@ const clearSelection = () => {
   title.value = ''
   description.value = ''
   isTemporary.value = false
-  includeLocation.value = false // Reset location checkbox
+  includeLocation.value = true // Reset to default (enabled)
   error.value = ''
   success.value = ''
   
