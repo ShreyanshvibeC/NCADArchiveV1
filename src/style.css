@@ -73,9 +73,9 @@
   background: linear-gradient(
     90deg,
     transparent 10%,
-    rgba(255, 255, 255, 0.2) 25%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0.2) 75%,
+    rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0.1) 75%,
     transparent 90%
   );
   transform: translateX(-100%);
@@ -85,7 +85,6 @@
   pointer-events: none;
   z-index: 1;
 }
-
 /* Ensure the button content stays above the shimmer */
 .rainbow-button > * {
   position: relative;
