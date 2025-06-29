@@ -1,7 +1,19 @@
 <template>
-  <div v-if="photo" class="h-screen bg-black overflow-hidden flex flex-col">
-    <!-- Header - Fixed height -->
-    <header class="flex items-center justify-between p-4 bg-black flex-shrink-0">
+  <div v-if="photo" class="h-screen bg-black overflow-hidden flex flex-col relative">
+    <!-- Background Photo with 10% opacity -->
+    <div class="absolute inset-0 z-0">
+      <img 
+        :src="photo.imageURL" 
+        :alt="photo.title || 'NCAD Archive Photo'"
+        class="w-full h-full object-cover opacity-10"
+        style="object-position: center center;"
+      />
+      <!-- Black background overlay to ensure readability -->
+      <div class="absolute inset-0 bg-black bg-opacity-20"></div>
+    </div>
+
+    <!-- Header - Fixed height with higher z-index -->
+    <header class="relative z-40 flex items-center justify-between p-4 bg-black bg-opacity-50 backdrop-blur-sm flex-shrink-0">
       <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -21,8 +33,8 @@
       <div v-else class="w-6"></div>
     </header>
 
-    <!-- Main Content Container - Flex grow to fill remaining space -->
-    <div class="flex-1 flex items-center justify-center px-4 min-h-0">
+    <!-- Main Content Container - Flex grow to fill remaining space with higher z-index -->
+    <div class="relative z-30 flex-1 flex items-center justify-center px-4 min-h-0">
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl w-full">
         <!-- Unified Photo Container - Vertically Centered -->
         <div class="flex flex-col items-center space-y-4">
@@ -34,14 +46,14 @@
               class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
             >
               <!-- User avatar -->
-              <div class="w-8 h-8 bg-gray-600 flex items-center justify-center">
+              <div class="w-8 h-8 bg-gray-600 bg-opacity-80 backdrop-blur-sm flex items-center justify-center">
                 <span class="text-sm font-bold">{{ getUserInitials(authorName) }}</span>
               </div>
               <!-- User name -->
-              <span class="text-white font-medium">{{ authorName }}</span>
+              <span class="text-white font-medium drop-shadow-lg">{{ authorName }}</span>
             </router-link>
             <!-- Date -->
-            <span class="text-gray-400 text-sm">{{ formatDate(photo.timestamp) }}</span>
+            <span class="text-gray-300 text-sm drop-shadow-lg">{{ formatDate(photo.timestamp) }}</span>
           </div>
 
           <!-- Photo Container with Card Flip - Maintains vertical alignment -->
@@ -68,7 +80,7 @@
                   <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
                     <button 
                       @click="showGoneSoonModal = true"
-                      class="bg-black border border-white px-3 py-1 hover:bg-gray-800 transition-colors"
+                      class="bg-black bg-opacity-80 backdrop-blur-sm border border-white px-3 py-1 hover:bg-gray-800 hover:bg-opacity-80 transition-colors"
                     >
                       <span class="text-xs font-medium text-white">GONE SOON</span>
                     </button>
@@ -88,18 +100,18 @@
                 </div>
 
                 <!-- Back Side - Title and Description -->
-                <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8" style="background-color: #1B1B1B;">
+                <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8 bg-black bg-opacity-80 backdrop-blur-sm">
                   <div class="text-center space-y-4">
                     <!-- Title -->
-                    <h1 v-if="photo.title" class="text-2xl font-bold text-white mb-4">
+                    <h1 v-if="photo.title" class="text-2xl font-bold text-white mb-4 drop-shadow-lg">
                       {{ photo.title }}
                     </h1>
                     
                     <!-- Description -->
-                    <p v-if="photo.description" class="text-white text-lg leading-relaxed">
+                    <p v-if="photo.description" class="text-white text-lg leading-relaxed drop-shadow-lg">
                       {{ photo.description }}
                     </p>
-                    <p v-else-if="!photo.title" class="text-gray-400 text-lg italic">
+                    <p v-else-if="!photo.title" class="text-gray-300 text-lg italic drop-shadow-lg">
                       No description available
                     </p>
                   </div>
@@ -109,11 +121,11 @@
               <!-- Square Indicators - Positioned on the image -->
               <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-30">
                 <div 
-                  class="w-2 h-2 transition-colors duration-300"
+                  class="w-2 h-2 transition-colors duration-300 drop-shadow-lg"
                   :class="!isFlipped ? 'bg-white' : 'bg-gray-600'"
                 ></div>
                 <div 
-                  class="w-2 h-2 transition-colors duration-300"
+                  class="w-2 h-2 transition-colors duration-300 drop-shadow-lg"
                   :class="isFlipped ? 'bg-white' : 'bg-gray-600'"
                 ></div>
               </div>
@@ -125,10 +137,10 @@
               <div class="flex items-center space-x-6">
                 <!-- Visit count - center aligned content, left aligned container with right padding - Only show if location exists -->
                 <div v-if="photo.location" class="flex items-center justify-center space-x-2 pr-4">
-                  <svg class="w-7 h-7 text-white" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <svg class="w-7 h-7 text-white drop-shadow-lg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="currentColor"/>
                   </svg>
-                  <span class="text-white text-lg font-medium">{{ photo.visits }}</span>
+                  <span class="text-white text-lg font-medium drop-shadow-lg">{{ photo.visits }}</span>
                 </div>
                 
                 <!-- Likes count -->
@@ -137,10 +149,10 @@
                   :disabled="likingInProgress"
                   class="flex items-center space-x-2 transition-colors disabled:opacity-50"
                 >
-                  <svg class="w-6 h-6" :fill="isLiked ? '#52489C' : 'none'" :stroke="isLiked ? '#52489C' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg class="w-6 h-6 drop-shadow-lg" :fill="isLiked ? '#52489C' : 'none'" :stroke="isLiked ? '#52489C' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                   </svg>
-                  <span :class="isLiked ? 'text-[#52489C]' : 'text-white'" class="text-lg font-medium">{{ photo.likes || 0 }}</span>
+                  <span :class="isLiked ? 'text-[#52489C]' : 'text-white'" class="text-lg font-medium drop-shadow-lg">{{ photo.likes || 0 }}</span>
                 </button>
               </div>
 
@@ -148,14 +160,14 @@
               <div class="flex items-center space-x-4">
                 <!-- Share button -->
                 <button @click="openShareModal" class="text-white hover:text-gray-400 transition-colors">
-                  <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg class="w-6 h-6 drop-shadow-lg" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
                   </svg>
                 </button>
                 
                 <!-- Save button -->
                 <button @click="toggleSave" class="transition-colors" :class="isSaved ? 'text-ncad-green' : 'text-white hover:text-gray-400'">
-                  <svg class="w-6 h-6" :fill="isSaved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg class="w-6 h-6 drop-shadow-lg" :fill="isSaved ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
                   </svg>
                 </button>
@@ -166,12 +178,12 @@
       </div>
     </div>
 
-    <!-- Fixed Take Me There CTA - Only show if there's location data -->
-    <div v-if="photo.location" class="flex-shrink-0 p-4 pb-6">
+    <!-- Fixed Take Me There CTA - Only show if there's location data with higher z-index -->
+    <div v-if="photo.location" class="relative z-30 flex-shrink-0 p-4 pb-6">
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
         <button 
           @click="showLocationDrawer = true"
-          class="w-full bg-black text-white py-3 flex items-center justify-center space-x-2 border border-gray-600 hover:bg-gray-800 transition-all"
+          class="w-full bg-black bg-opacity-80 backdrop-blur-sm text-white py-3 flex items-center justify-center space-x-2 border border-gray-600 hover:bg-gray-800 hover:bg-opacity-80 transition-all"
         >
           <!-- Filled pin icon -->
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
