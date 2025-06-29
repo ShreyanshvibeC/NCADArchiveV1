@@ -1,7 +1,7 @@
 <template>
-  <!-- Share Modal -->
+  <!-- Share Modal - Bottom Drawer Style -->
   <div v-if="isVisible" class="fixed inset-0 bg-black bg-opacity-75 flex items-end justify-center z-50" @click="closeModal">
-    <div class="bg-gray-900 w-full max-w-md mx-auto p-4 space-y-4 transform transition-transform duration-300" 
+    <div class="bg-black w-full max-w-md mx-auto p-4 space-y-4 transform transition-transform duration-300" 
          :class="{ 'translate-y-0': isVisible, 'translate-y-full': !isVisible }"
          @click.stop>
       
@@ -31,7 +31,7 @@
       </div>
       
       <!-- CORS Warning (for users) -->
-      <div v-if="showCorsWarning && !showDebugInfo" class="bg-yellow-900 bg-opacity-20 border border-yellow-500 p-3">
+      <div v-if="showCorsWarning && !showDebugInfo" class="bg-black bg-opacity-80 p-4 border-l-4 border-yellow-500">
         <div class="flex items-start space-x-2">
           <svg class="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
@@ -50,7 +50,7 @@
         v-if="showNativeShare"
         @click="handleNativeShare"
         :disabled="sharing"
-        class="w-full bg-ncad-green text-black py-3 px-4 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+        class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
@@ -143,7 +143,7 @@
       <!-- Cancel Button -->
       <button 
         @click="closeModal"
-        class="w-full bg-gray-700 text-white py-3 px-4 font-medium hover:bg-gray-600 transition-all"
+        class="w-full bg-black text-white py-3 px-4 font-medium hover:bg-gray-700 transition-all border border-white"
       >
         Cancel
       </button>

@@ -213,15 +213,9 @@
             </p>
           </div>
           
-          <div class="bg-gray-800 p-4 border-l-4 border-yellow-500">
+          <div class="bg-black p-4 border-l-4 border-yellow-500">
             <p class="text-white text-sm">
               <strong class="text-yellow-400">Examples:</strong> Student artwork, temporary installations, exhibitions, events, or objects that are regularly moved or changed.
-            </p>
-          </div>
-          
-          <div class="bg-gray-800 p-4">
-            <p class="text-gray-300 text-sm">
-              The photographer has marked this to let you know that what you see in the photo might not be there anymore, but the location itself is still worth exploring!
             </p>
           </div>
         </div>
