@@ -73,9 +73,9 @@
   background: linear-gradient(
     90deg,
     transparent 10%,
-    rgba(255, 255, 255, 0.1) 25%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.1) 75%,
+    rgba(255, 255, 255, 0.05) 25%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 75%,
     transparent 90%
   );
   transform: translateX(-100%);
