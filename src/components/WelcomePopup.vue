@@ -1,8 +1,9 @@
 <template>
   <!-- Welcome Popup Overlay -->
-  <div v-if="isVisible" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+  <div v-if="isVisible" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" @click="closePopup">
     <div class="bg-black border border-gray-600 w-full max-w-md mx-auto transform transition-transform duration-300 relative" 
-         :class="{ 'scale-100': isVisible, 'scale-95': !isVisible }">
+         :class="{ 'scale-100': isVisible, 'scale-95': !isVisible }"
+         @click.stop>
       
       <!-- Close Button -->
       <button 
@@ -24,16 +25,10 @@
       
       <!-- Content below image -->
       <div class="p-6 space-y-6">
-        <!-- Header with emoji -->
-        <div class="text-center">
-          <div class="text-4xl mb-4">🎉</div>
-          <h2 class="text-2xl font-bold text-white mb-4">Welcome to the NCAD Archive!</h2>
-        </div>
-        
         <!-- Main content -->
         <div class="space-y-4 text-gray-300">
           <p class="leading-relaxed">
-            This platform is built exclusively for the <strong class="text-white">NCAD community</strong> — a space to share your work, explore hidden corners of NCAD, and discover what others are creating.
+            Hello Hello This platform is built exclusively for the <strong class="text-white">NCAD community</strong> — a space to share your work, explore hidden corners of NCAD, and discover what others are creating.
           </p>
           
           <!-- Visit icon explanation -->
@@ -61,7 +56,7 @@
         <div class="pt-4">
           <button 
             @click="closePopup"
-            class="w-full bg-ncad-green text-black py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
+            class="w-full bg-black text-white py-3 px-4 font-medium hover:bg-gray-800 transition-all border border-white"
           >
             Let's explore
           </button>
