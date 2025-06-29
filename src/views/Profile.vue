@@ -33,7 +33,7 @@
         <div class="text-center space-y-4">
           <h2 class="text-2xl font-bold">Welcome to NCAD Archive</h2>
           <p class="text-gray-400">
-            Sign in to your account or create a new one to start sharing photos
+            Sign in to your account or create a new one to start sharing
           </p>
         </div>
 
@@ -55,7 +55,7 @@
 
         <div class="text-center">
           <p class="text-gray-400 text-sm">
-            Join the NCAD community and start exploring campus through photos
+            Join the NCAD community and start exploring the campus
           </p>
         </div>
       </div>
