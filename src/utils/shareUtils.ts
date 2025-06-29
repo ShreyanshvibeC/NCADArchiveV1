@@ -25,11 +25,11 @@ export const createShareMessage = (shareData: ShareData): string => {
     message += `\n\n${description}`
   }
   
-  message += `\n\nDiscover creative work from students across our campus! Dive into our vibrant gallery, explore inspiring moments, and support your peers' talent.`
+  message += `\n\nExplore creative trails from across NCAD — a window you may have overlooked.`
   
-  message += `\n\nCheck it out here 👉 ${shareData.pageUrl}`
+  message += `\n\nlink link 👉 ${shareData.pageUrl}`
   
-  message += `\n\n#CampusCreatives #StudentShowcase #SharedWithPride`
+  message += `\n\n#NCADArchive #MadeAtNCAD`
   
   return message
 }
