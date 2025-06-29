@@ -39,12 +39,12 @@
           
           <div class="space-y-4 text-gray-300 leading-relaxed">
             <p class="text-lg">
-              <strong class="text-white">NCAD Archive is your window into the creative soul of our campus.</strong> 
+              <strong class="text-white">NCAD Archive is a window into the creative soul of our campus.</strong> 
               It's a collaborative photography platform built exclusively for the NCAD community, where students capture and share the hidden gems, artistic moments, and vibrant life that makes our college unique.
             </p>
             
             <p>
-              From spontaneous art installations in forgotten corners to the buzz of studio life, from quiet study nooks to explosive exhibition openings – we're documenting it all. Every photo tells a story, every location holds memories, and every moment captured adds to our collective creative legacy.
+              From spontaneous art installations in forgotten corners to the buzz of studio life, from quiet study nooks to explosive exhibition openings – let's document it all. Every photo tells a story, every location holds memories, and every moment captured adds to the creative legacy.
             </p>
           </div>
         </section>
@@ -54,16 +54,6 @@
           <div class="text-center">
             <h3 class="text-2xl font-bold text-white">Why It Matters</h3>
             <div class="w-16 h-1 bg-ncad-green mx-auto mt-2"></div>
-          </div>
-          
-          <!-- Inline Image -->
-          <div class="w-full h-48 relative overflow-hidden">
-            <img 
-              src="/image copy copy copy copy copy copy copy.png" 
-              alt="NCAD Campus Life" 
-              class="w-full h-full object-cover"
-              @error="handleImageError"
-            />
           </div>
           
           <div class="grid grid-cols-1 gap-6">
@@ -118,7 +108,7 @@
               <div class="w-8 h-8 bg-ncad-green flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-1">3</div>
               <div>
                 <h4 class="text-white font-semibold mb-1">Build Community</h4>
-                <p class="text-gray-300 text-sm">Like, save, and share photos that inspire you. Help build a living archive of NCAD's creative culture.</p>
+                <p class="text-gray-300 text-sm">Like, save, and share photos that inspire you or are proud of. Let's build a living archive of NCAD's creative culture!</p>
               </div>
             </div>
           </div>
@@ -141,10 +131,7 @@
                 <span class="text-green-500 text-lg">✓</span>
                 <p class="text-gray-300"><strong class="text-white">Stay Relevant:</strong> Keep content appropriate and related to campus life</p>
               </div>
-              <div class="flex items-start space-x-3">
-                <span class="text-green-500 text-lg">✓</span>
-                <p class="text-gray-300"><strong class="text-white">Quality Focus:</strong> 25 photo limit per student to maintain high standards</p>
-              </div>
+            
               <div class="flex items-start space-x-3">
                 <span class="text-green-500 text-lg">✓</span>
                 <p class="text-gray-300"><strong class="text-white">Be Creative:</strong> Capture the unique spirit and energy of NCAD</p>
@@ -189,7 +176,7 @@
           <div class="bg-black border border-ncad-green p-8 text-center">
             <h3 class="text-2xl font-bold text-white mb-4">Ready to Join the Archive?</h3>
             <p class="text-gray-300 mb-6">
-              Start exploring NCAD through the eyes of your fellow students, or contribute your own perspective to our growing collection.
+              Start exploring NCAD through the eyes of your fellow students and contribute your own perspective to the collection.
             </p>
             
             <div class="space-y-3">
@@ -227,9 +214,9 @@
           <div class="bg-gray-900 p-6 space-y-4 text-center">
             <div class="space-y-2 text-gray-300">
               <p><strong class="text-white">Questions or Feedback?</strong></p>
-              <p>📧 archive@ncad.ie</p>
+  
               <p>📍 100 Thomas Street, Dublin 8</p>
-              <p>🌐 ncad.ie</p>
+              <p>🌐 ncadarchive.me</p>
             </div>
             
             <div class="pt-4 border-t border-gray-700">
