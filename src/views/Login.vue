@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-black p-4">
     <!-- Header -->
-    <header class="flex items-center justify-between bg-black py-4">
+    <header class="flex items-center justify-between bg-black py-4 px-4">
       <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -39,7 +39,7 @@
               class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
               placeholder="your.name@ncad.ie"
             />
-            <p class="text-xs text-gray-500 mt-1">Only NCAD email addresses (.ncad.ie) are allowed</p>
+            <p class="text-xs text-gray-500 mt-1">Use your NCAD email address</p>
           </div>
 
           <div>

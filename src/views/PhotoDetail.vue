@@ -1,7 +1,7 @@
 <template>
   <div v-if="photo" class="h-screen bg-black overflow-hidden flex flex-col">
     <!-- Header - Fixed height -->
-    <header class="flex items-center justify-between p-4 bg-black flex-shrink-0">
+    <header class="flex items-center justify-between p-4 px-4 bg-black flex-shrink-0">
       <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>

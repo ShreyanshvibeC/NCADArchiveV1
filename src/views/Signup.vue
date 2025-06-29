@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-black p-4">
     <!-- Header -->
-    <header class="flex items-center justify-between bg-black py-4">
+    <header class="flex items-center justify-between bg-black py-4 px-4">
       <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -24,7 +24,7 @@
           </p>
           <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
             <p class="text-ncad-green text-sm">
-              Use your NCAD email to sign in
+              Use your NCAD email address
             </p>
           </div>
         </div>
@@ -143,7 +143,7 @@ const isValidForm = computed(() => {
 
 const validateEmail = () => {
   if (email.value && !authStore.validateNCADEmail(email.value)) {
-    emailError.value = 'Email must end with .ncad.ie'
+    emailError.value = 'Please use your NCAD email address'
   } else {
     emailError.value = ''
   }
@@ -168,7 +168,7 @@ const handleSignup = async () => {
   
   // Validate NCAD email
   if (!authStore.validateNCADEmail(email.value)) {
-    error.value = 'Only NCAD email addresses ending with .ncad.ie are allowed'
+    error.value = 'Please use your NCAD email address'
     return
   }
   

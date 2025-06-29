@@ -21,46 +21,15 @@
         <!-- Hero Image -->
         <div class="w-full h-64 relative overflow-hidden">
           <img 
-            src="/about-hero.png" 
+            src="/image copy copy copy copy copy copy copy copy copy copy copy copy.png" 
             alt="NCAD Archive - Student Photography Platform" 
             class="w-full h-full object-cover"
             @error="handleImageError"
           />
-          <!-- Overlay for better text readability -->
-          <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-          
-          <!-- Hero Text Overlay -->
-          <div class="absolute inset-0 flex items-center justify-center text-center px-6">
-            <div class="space-y-2">
-              <h2 class="text-3xl font-bold text-white drop-shadow-lg">NCAD Archive</h2>
-              <p class="text-lg text-white drop-shadow-md font-medium">
-                Where NCAD's Creative Stories Come Alive
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
       <div class="px-4 space-y-8 py-8">
-        <!-- What is NCAD Archive Section -->
-        <section class="space-y-6">
-          <div class="text-center space-y-4">
-            <h3 class="text-2xl font-bold text-white">What is NCAD Archive?</h3>
-            <div class="w-16 h-1 bg-ncad-green mx-auto"></div>
-          </div>
-          
-          <div class="space-y-4 text-gray-300 leading-relaxed">
-            <p class="text-lg">
-              <strong class="text-white">NCAD Archive is your window into the creative soul of our campus.</strong> 
-              It's a collaborative photography platform built exclusively for the NCAD community, where students capture and share the hidden gems, artistic moments, and vibrant life that makes our college unique.
-            </p>
-            
-            <p>
-              From spontaneous art installations in forgotten corners to the buzz of studio life, from quiet study nooks to explosive exhibition openings – we're documenting it all. Every photo tells a story, every location holds memories, and every moment captured adds to our collective creative legacy.
-            </p>
-          </div>
-        </section>
-
         <!-- Why It Matters Section with Image -->
         <section class="space-y-6">
           <div class="text-center">

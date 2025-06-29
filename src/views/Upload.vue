@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-black p-4">
     <!-- Header -->
-    <header class="flex items-center justify-between bg-black py-4">
+    <header class="flex items-center justify-between bg-black py-4 px-4">
       <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
