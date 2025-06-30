@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-black overflow-x-hidden">
-    <!-- Header with Desktop Margins -->
-    <header class="flex items-center justify-between bg-black py-4 px-4 xl:px-[200px]">
+    <!-- Header -->
+    <header class="flex items-center justify-between bg-black py-4 px-4">
       <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -14,7 +14,7 @@
     </header>
 
     <!-- Main Content Container with Desktop Margins -->
-    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl xl:px-[200px]">
+    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
       
       <!-- Hero Section with Main Image -->
       <section class="relative">
