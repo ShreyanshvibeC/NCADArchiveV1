@@ -3,13 +3,13 @@
     <!-- Menu Overlay -->
     <div 
       v-if="isOpen"
-      class="fixed inset-0 bg-black bg-opacity-75 z-40"
+      class="fixed inset-0 bg-black bg-opacity-75 z-50"
       @click="isOpen = false"
     ></div>
 
     <!-- Menu Panel - Slides from Right -->
     <div 
-      class="fixed top-0 right-0 h-full w-80 bg-black border-l border-gray-600 z-40 transform transition-transform duration-300"
+      class="fixed top-0 right-0 h-full w-80 bg-black border-l border-gray-600 z-50 transform transition-transform duration-300"
       :class="{ 'translate-x-0': isOpen, 'translate-x-full': !isOpen }"
     >
       <!-- NCAD Archive Banner Image -->
