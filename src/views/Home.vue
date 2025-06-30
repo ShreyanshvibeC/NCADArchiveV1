@@ -19,21 +19,21 @@
       
       <!-- Hamburger Button - Vertically centered in header -->
       <button 
-        @click="hamburgerMenu?.toggleMenu()"
+        @click="toggleHamburgerMenu"
         class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
       >
         <div class="w-6 h-6 flex flex-col justify-center space-y-1">
           <div 
             class="w-full h-0.5 bg-white transition-all duration-300"
-            :class="{ 'rotate-45 translate-y-1.5': hamburgerMenu?.isOpen }"
+            :class="{ 'rotate-45 translate-y-1.5': isMenuOpen }"
           ></div>
           <div 
             class="w-full h-0.5 bg-white transition-all duration-300"
-            :class="{ 'opacity-0': hamburgerMenu?.isOpen }"
+            :class="{ 'opacity-0': isMenuOpen }"
           ></div>
           <div 
             class="w-full h-0.5 bg-white transition-all duration-300"
-            :class="{ '-rotate-45 -translate-y-1.5': hamburgerMenu?.isOpen }"
+            :class="{ '-rotate-45 -translate-y-1.5': isMenuOpen }"
           ></div>
         </div>
       </button>
@@ -278,6 +278,9 @@ const showGoneSoonModal = ref(false)
 const selectedPhoto = ref(null)
 const scrollContainer = ref<HTMLElement>()
 
+// Hamburger menu state - ensure it starts closed
+const isMenuOpen = ref(false)
+
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
 
@@ -322,6 +325,19 @@ watch(() => galleryStore.photos, (newPhotos) => {
     updateVisiblePhotos()
   })
 }, { immediate: true })
+
+// Function to toggle hamburger menu
+const toggleHamburgerMenu = () => {
+  if (hamburgerMenu.value) {
+    hamburgerMenu.value.toggleMenu()
+    isMenuOpen.value = hamburgerMenu.value.isOpen
+  }
+}
+
+// Watch for hamburger menu state changes
+watch(() => hamburgerMenu.value?.isOpen, (newValue) => {
+  isMenuOpen.value = newValue || false
+})
 
 // Function to update which photos should be loaded based on viewport
 const updateVisiblePhotos = () => {
@@ -552,6 +568,9 @@ const startTypewriterAnimation = () => {
 
 onMounted(async () => {
   try {
+    // Ensure hamburger menu starts closed
+    isMenuOpen.value = false
+    
     // Initialize mobile optimizations
     lockOrientationToPortrait()
     showRotationWarning()

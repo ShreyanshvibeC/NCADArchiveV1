@@ -27,7 +27,7 @@
         <nav class="space-y-2 mb-8">
           <router-link 
             to="/" 
-            @click="isOpen = false"
+            @click="closeMenu"
             class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'Home' }"
           >
@@ -36,7 +36,7 @@
 
           <router-link 
             to="/about" 
-            @click="isOpen = false"
+            @click="closeMenu"
             class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'About' }"
           >
@@ -45,7 +45,7 @@
 
           <router-link 
             to="/profile" 
-            @click="isOpen = false"
+            @click="closeMenu"
             class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'Profile' }"
           >
@@ -58,14 +58,14 @@
           <div v-if="!authStore.isAuthenticated" class="space-y-3">
             <router-link 
               to="/login" 
-              @click="isOpen = false"
+              @click="closeMenu"
               class="block w-full bg-ncad-green text-white text-center py-2 px-4 font-medium hover:bg-opacity-80 transition-all"
             >
               SIGN IN
             </router-link>
             <router-link 
               to="/signup" 
-              @click="isOpen = false"
+              @click="closeMenu"
               class="block w-full bg-black text-white text-center py-2 px-4 font-medium hover:bg-gray-800 transition-all border border-white"
             >
               CREATE ACCOUNT
@@ -89,13 +89,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter, useRoute } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+
+// Ensure menu starts closed
 const isOpen = ref(false)
 
 // Only show hamburger menu on homepage
@@ -103,10 +105,23 @@ const showMenu = computed(() => {
   return route.name === 'Home'
 })
 
+// Ensure menu is closed when component mounts
+onMounted(() => {
+  isOpen.value = false
+})
+
+const closeMenu = () => {
+  isOpen.value = false
+}
+
+const toggleMenu = () => {
+  isOpen.value = !isOpen.value
+}
+
 const handleLogout = async () => {
   try {
     await authStore.logout()
-    isOpen.value = false
+    closeMenu()
     router.push('/')
   } catch (error) {
     console.error('Error during logout:', error)
@@ -122,9 +137,8 @@ const handleBannerError = (event: Event) => {
 
 // Expose the toggle function and isOpen state for parent component
 defineExpose({
-  toggleMenu: () => {
-    isOpen.value = !isOpen.value
-  },
+  toggleMenu,
+  closeMenu,
   isOpen
 })
 </script>
