@@ -147,16 +147,22 @@
                   <span class="text-white text-lg font-medium">{{ photo.visits }}</span>
                 </div>
                 
-                <!-- Likes count with filled/unfilled heart based on like status -->
+                <!-- Likes count with properly filled/unfilled heart based on like status -->
                 <button 
                   @click="toggleLike" 
                   :disabled="likingInProgress"
                   class="flex items-center space-x-2 transition-colors disabled:opacity-50"
                 >
-                  <svg class="w-6 h-6" :fill="isLiked ? '#52489C' : 'none'" :stroke="isLiked ? '#52489C' : 'white'" stroke-width="1.5" viewBox="0 0 24 24">
+                  <svg 
+                    class="w-6 h-6" 
+                    :fill="isLiked ? '#EF4444' : 'none'" 
+                    :stroke="isLiked ? '#EF4444' : 'white'" 
+                    stroke-width="1.5" 
+                    viewBox="0 0 24 24"
+                  >
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
                   </svg>
-                  <span :class="isLiked ? 'text-[#52489C]' : 'text-white'" class="text-lg font-medium">{{ photo.likes || 0 }}</span>
+                  <span :class="isLiked ? 'text-red-500' : 'text-white'" class="text-lg font-medium">{{ photo.likes || 0 }}</span>
                 </button>
               </div>
 
@@ -226,8 +232,8 @@
           <div class="bg-black bg-opacity-80 p-4 border-l-4 border-ncad-green">
             <div class="flex items-start space-x-3">
               <div>
-                <p class="text-white text-sm font-medium">Swipe right on the image or click the dots</p>
-                <p class="text-gray-400 text-xs mt-1">to view title and description details</p>
+                <p class="text-white text-sm font-medium">Swipe left/right on the image or click the dots</p>
+                <p class="text-gray-400 text-xs mt-1">to switch between photo and description</p>
               </div>
             </div>
           </div>
@@ -395,7 +401,7 @@ const deleteError = ref('')
 const showLocationDrawer = ref(false)
 const showShareModal = ref(false)
 const showGoneSoonModal = ref(false)
-const showInfoModal = ref(false) // New modal state for instructions
+const showInfoModal = ref(false)
 
 // New reactive variables for like improvements
 const likingInProgress = ref(false)
@@ -404,12 +410,13 @@ const showHeartAnimation = ref(false)
 // Card flip state
 const isFlipped = ref(false)
 
-// Touch handling for swipe detection - Fixed for bidirectional swiping
+// Touch handling for swipe detection - Enhanced for better mobile support
 const touchStartX = ref(0)
 const touchStartY = ref(0)
 const touchEndX = ref(0)
 const touchEndY = ref(0)
-const minSwipeDistance = 50 // Minimum distance for a swipe
+const minSwipeDistance = 30 // Reduced for better mobile sensitivity
+const isSwiping = ref(false)
 
 // Computed share data
 const shareData = computed((): ShareData | null => {
@@ -437,6 +444,7 @@ onMounted(async () => {
       if (authStore.isAuthenticated) {
         isSaved.value = await galleryStore.isPhotoSaved(photo.value.id)
         isLiked.value = await galleryStore.isPhotoLiked(photo.value.id)
+        console.log('Initial like state:', isLiked.value)
       }
     }
   } catch (error) {
@@ -503,6 +511,7 @@ const toggleLike = async () => {
   try {
     const newLikedState = await galleryStore.toggleLike(photo.value.id)
     isLiked.value = newLikedState
+    console.log('Like toggled, new state:', newLikedState)
     
     // Show heart animation only when liking (not unliking)
     if (newLikedState) {
@@ -601,19 +610,32 @@ const flipToBack = () => {
   isFlipped.value = true
 }
 
-// Fixed Touch event handlers for proper bidirectional swipe detection
+// Enhanced Touch event handlers for proper bidirectional swipe detection
 const handleTouchStart = (e: TouchEvent) => {
   touchStartX.value = e.touches[0].clientX
   touchStartY.value = e.touches[0].clientY
+  isSwiping.value = true
   console.log('Touch start:', { x: touchStartX.value, y: touchStartY.value })
 }
 
 const handleTouchMove = (e: TouchEvent) => {
-  // Prevent default to avoid scrolling while swiping
-  e.preventDefault()
+  if (!isSwiping.value) return
+  
+  // Calculate current delta to determine if we should prevent scrolling
+  const currentX = e.touches[0].clientX
+  const currentY = e.touches[0].clientY
+  const deltaX = Math.abs(currentX - touchStartX.value)
+  const deltaY = Math.abs(currentY - touchStartY.value)
+  
+  // If horizontal movement is greater than vertical, prevent default scrolling
+  if (deltaX > deltaY && deltaX > 10) {
+    e.preventDefault()
+  }
 }
 
 const handleTouchEnd = (e: TouchEvent) => {
+  if (!isSwiping.value) return
+  
   touchEndX.value = e.changedTouches[0].clientX
   touchEndY.value = e.changedTouches[0].clientY
   
@@ -633,23 +655,20 @@ const handleTouchEnd = (e: TouchEvent) => {
   // and meets minimum distance requirement
   if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
     if (deltaX < 0) {
-      // Left swipe - flip to back (description) only if currently on front
-      console.log('Left swipe detected')
-      if (!isFlipped.value) {
-        console.log('Flipping to back')
-        isFlipped.value = true
-      }
+      // Left swipe - flip to back (description)
+      console.log('Left swipe detected - showing details')
+      isFlipped.value = true
     } else if (deltaX > 0) {
-      // Right swipe - flip to front (image) only if currently on back
-      console.log('Right swipe detected')
-      if (isFlipped.value) {
-        console.log('Flipping to front')
-        isFlipped.value = false
-      }
+      // Right swipe - flip to front (image)
+      console.log('Right swipe detected - showing photo')
+      isFlipped.value = false
     }
   } else {
-    console.log('Swipe not detected - insufficient distance or not horizontal')
+    console.log('Swipe not detected - insufficient distance or not horizontal enough')
   }
+  
+  // Reset swipe state
+  isSwiping.value = false
 }
 </script>
 
@@ -691,6 +710,11 @@ const handleTouchEnd = (e: TouchEvent) => {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+/* Enhanced touch handling for mobile */
+.card-container {
+  touch-action: pan-y; /* Allow vertical scrolling but handle horizontal gestures */
 }
 
 /* Ensure no overflow on mobile */
