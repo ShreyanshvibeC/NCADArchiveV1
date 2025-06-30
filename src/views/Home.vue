@@ -4,7 +4,7 @@
     <MarqueeBanner />
 
     <!-- Fixed Header with Logo on Left and Hamburger on Right - positioned below marquee -->
-    <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black">
+    <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black xl:px-[200px]">
       <div class="flex items-center">
         <img 
           src="/logo -gif.gif" 
@@ -163,10 +163,10 @@
       </div>
     </div>
 
-    <!-- Floating CTA Button with Rainbow Styling -->
+    <!-- Floating CTA Button with Rainbow Styling and Desktop Margin -->
     <button 
       @click="handleUploadClick"
-      class="rainbow-button fixed bottom-6 left-6 w-24 h-24 text-white flex items-center justify-center transition-all z-40 shadow-lg outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50"
+      class="rainbow-button fixed bottom-6 left-6 xl:left-[200px] w-24 h-24 text-white flex items-center justify-center transition-all z-40 shadow-lg outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50"
     >
       <span class="text-4xl font-bold relative z-10">+</span>
     </button> 
