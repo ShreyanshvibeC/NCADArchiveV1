@@ -100,7 +100,7 @@
                 Select from Device
               </button>
               
-              <p class="text-gray-400 text-sm">Choose an option to get started</p>
+              <p class="text-gray-400 text-sm">{{ mobileUploadMessage }}</p>
             </div>
           </div>
         </div>
@@ -109,7 +109,7 @@
         <div v-if="selectedImage" class="space-y-6">
           <!-- Image Preview - 1:1 aspect ratio -->
           <div class="relative">
-            <img :src="previewUrl" alt="Preview" class="w-full aspect-square object-cover" />
+            <img :src="previewUrl" alt="Preview" class="w-full aspect-square object-cover mobile-optimized-image" />
             <button 
               @click="clearSelection"
               class="absolute top-4 right-4 bg-ncad-dark-gray bg-opacity-75 p-2 hover:bg-opacity-100 transition-all"
@@ -267,7 +267,7 @@
               :disabled="uploading || !selectedImage || !authStore.isAuthenticated || descriptionError || titleError || !title.trim()"
               class="w-full bg-ncad-green text-white py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
             >
-              {{ uploading ? 'Uploading...' : 'Upload Photo' }}
+              {{ uploading ? uploadingMessage : 'Upload Photo' }}
             </button>
           </form>
         </div>
@@ -277,11 +277,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { compressImage, getCurrentLocation } from '../utils/imageUtils'
+import { isMobileDevice, isMobileDataSaver } from '../utils/mobileUtils'
+import { MobilePerformanceTracker } from '../utils/mobilePerformance'
 import { getAuth } from 'firebase/auth'
 import UploadToast from '../components/UploadToast.vue'
 
@@ -300,6 +302,10 @@ const includeLocation = ref(true) // Default to true (enabled by default)
 const uploading = ref(false)
 const error = ref('')
 const showUploadToast = ref(false)
+
+// Mobile-specific messages
+const mobileUploadMessage = ref('Choose an option to get started')
+const uploadingMessage = ref('Uploading...')
 
 // Character counting functions
 const countCharacters = (text: string): number => {
@@ -341,6 +347,22 @@ const showTroubleshooting = computed(() => {
   )
 })
 
+// Update mobile messages based on device and connection
+const updateMobileMessages = () => {
+  if (isMobileDevice()) {
+    if (isMobileDataSaver()) {
+      mobileUploadMessage.value = 'Optimized for your connection'
+      uploadingMessage.value = 'Optimizing and uploading...'
+    } else {
+      mobileUploadMessage.value = 'Mobile optimized upload'
+      uploadingMessage.value = 'Uploading...'
+    }
+  } else {
+    mobileUploadMessage.value = 'Choose an option to get started'
+    uploadingMessage.value = 'Uploading...'
+  }
+}
+
 // Watch title for character limit validation
 watch(title, (newValue) => {
   if (newValue.length > 25) {
@@ -371,15 +393,22 @@ const handleFileSelect = (event: Event) => {
       return
     }
     
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      error.value = 'Image file is too large. Please select an image smaller than 10MB'
+    // Mobile-specific file size validation (smaller limit on mobile)
+    const maxSize = isMobileDevice() ? 8 * 1024 * 1024 : 10 * 1024 * 1024 // 8MB on mobile, 10MB on desktop
+    if (file.size > maxSize) {
+      const sizeMB = Math.round(maxSize / 1024 / 1024)
+      error.value = `Image file is too large. Please select an image smaller than ${sizeMB}MB`
       return
     }
     
     selectedImage.value = file
     previewUrl.value = URL.createObjectURL(file)
     console.log('Image selected successfully:', file.name, 'Size:', file.size)
+    
+    // Track mobile performance
+    if (isMobileDevice()) {
+      MobilePerformanceTracker.trackImageLoad(previewUrl.value)
+    }
   }
 }
 
@@ -473,13 +502,15 @@ const uploadPhoto = async () => {
     console.log('Image:', selectedImage.value.name)
     console.log('Is temporary:', isTemporary.value)
     console.log('Include location:', includeLocation.value)
+    console.log('Mobile device:', isMobileDevice())
+    console.log('Mobile data saver:', isMobileDataSaver())
     
     // Refresh auth token before upload
     console.log('Refreshing authentication token...')
     await authStore.refreshAuthToken()
     
-    // Compress image to 1:1 aspect ratio
-    console.log('Compressing image to 1:1 aspect ratio...')
+    // Compress image with mobile-optimized settings
+    console.log('Compressing image with mobile optimization...')
     const compressedFile = await compressImage(selectedImage.value)
     console.log('Image compressed successfully. Original size:', selectedImage.value.size, 'Compressed size:', compressedFile.size)
     
@@ -567,4 +598,18 @@ const uploadPhoto = async () => {
     uploading.value = false
   }
 }
+
+onMounted(() => {
+  updateMobileMessages()
+})
 </script>
+
+<style scoped>
+/* Mobile-specific optimizations */
+@media (max-width: 768px) {
+  .mobile-optimized-image {
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+}
+</style>

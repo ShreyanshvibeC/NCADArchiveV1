@@ -20,6 +20,8 @@ import {
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import { db, storage } from '../config/firebase'
 import { getAuth, getIdToken } from 'firebase/auth'
+import { isMobileDevice, getMobileLoadingStrategy, isMobileDataSaver } from '../utils/mobileUtils'
+import { MobilePerformanceTracker } from '../utils/mobilePerformance'
 
 export interface Photo {
   id: string
@@ -43,17 +45,29 @@ export const useGalleryStore = defineStore('gallery', () => {
   const loading = ref(false)
   const hasMorePhotos = ref(true)
   const lastPhotoDoc = ref(null)
-  const PHOTOS_PER_PAGE = 10
+  const loadingPaused = ref(false)
+  
+  // Mobile-specific constants
+  const MOBILE_MAX_CACHED_IMAGES = 20
+  const MOBILE_PHOTOS_PER_PAGE = 6
+  const DESKTOP_PHOTOS_PER_PAGE = 10
+
+  const getPhotosPerPage = () => {
+    if (isMobileDataSaver()) return 3
+    return isMobileDevice() ? MOBILE_PHOTOS_PER_PAGE : DESKTOP_PHOTOS_PER_PAGE
+  }
 
   const loadPhotos = async (loadMore = false) => {
-    if (loading.value || (!hasMorePhotos.value && loadMore)) return
+    if (loading.value || (!hasMorePhotos.value && loadMore) || loadingPaused.value) return
 
     loading.value = true
     try {
+      const photosPerPage = getPhotosPerPage()
+      
       let q = query(
         collection(db, 'photos'), 
         orderBy('timestamp', 'desc'),
-        limit(PHOTOS_PER_PAGE)
+        limit(photosPerPage)
       )
 
       // If loading more, start after the last document
@@ -62,7 +76,7 @@ export const useGalleryStore = defineStore('gallery', () => {
           collection(db, 'photos'), 
           orderBy('timestamp', 'desc'),
           startAfter(lastPhotoDoc.value),
-          limit(PHOTOS_PER_PAGE)
+          limit(photosPerPage)
         )
       }
 
@@ -81,7 +95,7 @@ export const useGalleryStore = defineStore('gallery', () => {
       }
 
       // Update pagination state
-      if (querySnapshot.docs.length < PHOTOS_PER_PAGE) {
+      if (querySnapshot.docs.length < photosPerPage) {
         hasMorePhotos.value = false
       }
       
@@ -89,10 +103,28 @@ export const useGalleryStore = defineStore('gallery', () => {
         lastPhotoDoc.value = querySnapshot.docs[querySnapshot.docs.length - 1]
       }
 
+      // Mobile memory management
+      cleanupMobileMemory()
+
     } catch (error) {
       console.error('Error loading photos:', error)
     } finally {
       loading.value = false
+    }
+  }
+
+  const cleanupMobileMemory = () => {
+    if (isMobileDevice() && photos.value.length > MOBILE_MAX_CACHED_IMAGES) {
+      // Keep only recent photos in memory
+      const keptPhotos = photos.value.slice(0, MOBILE_MAX_CACHED_IMAGES)
+      photos.value = keptPhotos
+      
+      // Force garbage collection hint
+      if ((window as any).gc) {
+        (window as any).gc()
+      }
+      
+      console.log(`Mobile memory cleanup: kept ${keptPhotos.length} photos`)
     }
   }
 
@@ -646,6 +678,11 @@ export const useGalleryStore = defineStore('gallery', () => {
       const imageURL = await uploadImage(imageFile, photoData.userId)
       console.log('Image uploaded successfully, URL:', imageURL)
       
+      // Track mobile performance
+      if (isMobileDevice()) {
+        MobilePerformanceTracker.trackImageLoad(imageURL)
+      }
+      
       // Create photo document with denormalized author name
       const newPhoto = {
         ...photoData,
@@ -727,6 +764,17 @@ export const useGalleryStore = defineStore('gallery', () => {
     lastPhotoDoc.value = null
   }
 
+  // Mobile-specific functions
+  const pauseLoading = () => {
+    loadingPaused.value = true
+    console.log('Gallery loading paused (mobile background optimization)')
+  }
+
+  const resumeLoading = () => {
+    loadingPaused.value = false
+    console.log('Gallery loading resumed (mobile foreground)')
+  }
+
   return {
     photos,
     loading,
@@ -744,7 +792,9 @@ export const useGalleryStore = defineStore('gallery', () => {
     isPhotoSaved,
     toggleLike,
     isPhotoLiked,
-    resetPagination
+    resetPagination,
+    pauseLoading,
+    resumeLoading
   }
 })
 

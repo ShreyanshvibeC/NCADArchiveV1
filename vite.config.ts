@@ -29,16 +29,25 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Cache strategy for images
+        // Mobile-optimized cache strategy for images
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'firebase-images',
+              cacheName: 'mobile-firebase-images',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+                maxEntries: 50, // Fewer cached images for mobile
+                maxAgeSeconds: 60 * 60 * 24 * 3 // 3 days on mobile vs 7 days desktop
+              },
+              cacheKeyWillBeUsed: async ({ request }) => {
+                // Add mobile-specific cache keys
+                const url = new URL(request.url)
+                const isMobile = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                if (isMobile) {
+                  url.searchParams.set('mobile', 'true')
+                }
+                return url.toString()
               }
             }
           },
@@ -48,8 +57,8 @@ export default defineConfig({
             options: {
               cacheName: 'google-apis',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day
+                maxEntries: 30, // Reduced for mobile
+                maxAgeSeconds: 60 * 60 * 12 // 12 hours on mobile
               }
             }
           }
@@ -58,27 +67,47 @@ export default defineConfig({
     })
   ],
   build: {
-    // Optimize bundle
+    // Mobile-optimized bundle
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['vue', 'vue-router', 'pinia'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
+        manualChunks: (id) => {
+          // Create mobile-specific chunks
+          if (id.includes('mobile') || id.includes('touch')) {
+            return 'mobile'
+          }
+          if (id.includes('firebase')) {
+            return 'firebase'
+          }
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
         }
       }
     },
     // Enable source maps for better debugging
     sourcemap: true,
     // Optimize assets
-    assetsInlineLimit: 4096,
-    // Enable compression
+    assetsInlineLimit: 2048, // Smaller inline limit for mobile
+    // Enable compression with mobile optimization
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log'], // Remove console.logs in production
+        passes: 2 // Multiple passes for better compression
+      },
+      mangle: {
+        safari10: true // Better mobile Safari support
       }
     }
+  },
+  // Mobile-specific esbuild optimizations
+  esbuild: {
+    target: 'es2018', // Better mobile browser support
+    minifyIdentifiers: true,
+    minifySyntax: true,
+    minifyWhitespace: true
   },
   // Development server optimizations
   server: {

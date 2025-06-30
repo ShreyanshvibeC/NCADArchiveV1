@@ -4,6 +4,9 @@ import './style.css'
 import App from './App.vue'
 import router from './router'
 import { useAuthStore } from './stores/auth'
+import { useGalleryStore } from './stores/gallery'
+import { optimizeMobilePerformance, optimizeMobileBattery, addMobileBackgroundOptimization } from './utils/mobileUtils'
+import { MobilePerformanceTracker } from './utils/mobilePerformance'
 
 // Global error handler
 window.addEventListener('error', (event) => {
@@ -27,10 +30,21 @@ app.config.errorHandler = (err, instance, info) => {
   console.error('Error info:', info)
 }
 
+// Initialize mobile optimizations
+optimizeMobilePerformance()
+optimizeMobileBattery()
+
+// Start mobile performance monitoring
+MobilePerformanceTracker.startPerformanceMonitoring()
+
 // Initialize auth state
 try {
   const authStore = useAuthStore()
   authStore.initializeAuth()
+  
+  // Add mobile background optimization after stores are initialized
+  const galleryStore = useGalleryStore()
+  addMobileBackgroundOptimization(galleryStore)
 } catch (error) {
   console.error('Error initializing auth store:', error)
 }
