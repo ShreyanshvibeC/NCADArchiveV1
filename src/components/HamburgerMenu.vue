@@ -1,5 +1,5 @@
 <template>
-  <div v-show="showMenu">
+  <div v-if="showMenu">
     <!-- Menu Overlay -->
     <div 
       v-if="isOpen"
@@ -100,7 +100,7 @@ const isOpen = ref(false)
 
 // Only show hamburger menu on homepage
 const showMenu = computed(() => {
-  return route && route.name === 'Home'
+  return route.name === 'Home'
 })
 
 const handleLogout = async () => {
