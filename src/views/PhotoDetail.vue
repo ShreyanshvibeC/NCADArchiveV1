@@ -74,7 +74,7 @@
                     </button>
                   </div>
 
-                  <!-- Info Icon - Top right of image with square design -->
+                  <!-- Info Icon - Top right of image with square design - ONLY on front side -->
                   <div class="absolute top-4 right-4 z-20">
                     <button 
                       @click="showInfoModal = true"
@@ -400,11 +400,12 @@ const showHeartAnimation = ref(false)
 // Card flip state
 const isFlipped = ref(false)
 
-// Touch handling for swipe detection
+// Touch handling for swipe detection - IMPROVED
 const touchStartX = ref(0)
 const touchStartY = ref(0)
 const touchEndX = ref(0)
 const touchEndY = ref(0)
+const minSwipeDistance = 50 // Minimum distance for a swipe
 
 // Computed share data
 const shareData = computed((): ShareData | null => {
@@ -585,7 +586,7 @@ const openInGoogleMaps = async () => {
   }
 }
 
-// Touch event handlers for swipe detection
+// IMPROVED Touch event handlers for bidirectional swipe detection
 const handleTouchStart = (e: TouchEvent) => {
   touchStartX.value = e.touches[0].clientX
   touchStartY.value = e.touches[0].clientY
@@ -604,14 +605,18 @@ const handleTouchEnd = (e: TouchEvent) => {
   const deltaY = touchEndY.value - touchStartY.value
   
   // Check if it's a horizontal swipe (more horizontal than vertical movement)
-  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 50) {
-    // Left swipe - flip to back (description)
-    if (deltaX < 0 && !isFlipped.value) {
-      isFlipped.value = true
-    }
-    // Right swipe - flip to front (image)
-    else if (deltaX > 0 && isFlipped.value) {
-      isFlipped.value = false
+  // and meets minimum distance requirement
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipeDistance) {
+    if (deltaX < 0) {
+      // Left swipe - flip to back (description) only if currently on front
+      if (!isFlipped.value) {
+        isFlipped.value = true
+      }
+    } else if (deltaX > 0) {
+      // Right swipe - flip to front (image) only if currently on back
+      if (isFlipped.value) {
+        isFlipped.value = false
+      }
     }
   }
 }
