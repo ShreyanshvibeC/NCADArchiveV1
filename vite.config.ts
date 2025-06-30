@@ -7,7 +7,7 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['ncad-archive-favicon.png', 'favicon.ico'],
+      includeAssets: ['favicon.png', 'favicon.ico'],
       manifest: {
         name: 'NCAD Archive',
         short_name: 'NCAD Archive',
@@ -17,12 +17,12 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'ncad-archive-favicon.png',
+            src: 'favicon.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'ncad-archive-favicon.png',
+            src: 'favicon.png',
             sizes: '512x512',
             type: 'image/png'
           }
