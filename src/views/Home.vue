@@ -58,7 +58,7 @@
           <div class="w-3 h-3 bg-white loading-dot"></div>
         </div>
         
-        <p class="text-gray-400 text-sm">Preparing your creative journey...</p>
+        <p class="text-gray-400 text-sm">{{ getLoadingSubtext() }}</p>
       </div>
     </div>
 
@@ -273,6 +273,10 @@ const isLoadingMore = ref(false)
 // Check if we're coming from upload (to trigger reveal animation)
 const isFromUpload = ref(false)
 
+// Check if we're coming from login/signup (to trigger reveal animation)
+const isFromLogin = ref(false)
+const isFromSignup = ref(false)
+
 // Check if page was refreshed
 const isPageRefresh = ref(false)
 
@@ -300,6 +304,19 @@ const getImageDecodingStrategy = (photoId: string): 'sync' | 'async' => {
 const onImageLoad = (event: Event) => {
   const img = event.target as HTMLImageElement
   loadedImages.value.add(img.src)
+}
+
+// Get appropriate loading subtext based on entry point
+const getLoadingSubtext = (): string => {
+  if (isFromLogin.value) {
+    return 'Welcome back! Preparing your creative journey...'
+  } else if (isFromSignup.value) {
+    return 'Welcome to NCAD Archive! Setting up your experience...'
+  } else if (isFromUpload.value) {
+    return 'Your photo has been added! Refreshing the archive...'
+  } else {
+    return 'Preparing your creative journey...'
+  }
 }
 
 // Function to preload an image with better error handling
@@ -368,18 +385,22 @@ const onAnimationComplete = () => {
     startTypewriterAnimation()
   })
   
-  // Show device detection popup first, then welcome popup
-  setTimeout(() => {
-    devicePopup.value?.showDevicePopup()
-  }, 1000)
+  // Show device detection popup first, then welcome popup (only for new signups)
+  if (isFromSignup.value) {
+    setTimeout(() => {
+      devicePopup.value?.showDevicePopup()
+    }, 1000)
+  }
 }
 
 const onDevicePopupClose = () => {
   console.log('Device popup closed')
-  // Show welcome popup after device popup is closed
-  setTimeout(() => {
-    welcomePopup.value?.showPopup()
-  }, 500)
+  // Show welcome popup after device popup is closed (only for new signups)
+  if (isFromSignup.value) {
+    setTimeout(() => {
+      welcomePopup.value?.showPopup()
+    }, 500)
+  }
 }
 
 const onWelcomePopupClose = () => {
@@ -451,9 +472,13 @@ const detectPageRefresh = (): boolean => {
 const shouldShowRevealAnimation = (): boolean => {
   // Show reveal animation if:
   // 1. Coming from upload (isFromUpload is true)
-  // 2. Page was refreshed (isPageRefresh is true)
-  // 3. First time visiting homepage (no session storage)
+  // 2. Coming from login (isFromLogin is true)
+  // 3. Coming from signup (isFromSignup is true)
+  // 4. Page was refreshed (isPageRefresh is true)
+  // 5. First time visiting homepage (no session storage)
   return isFromUpload.value || 
+         isFromLogin.value ||
+         isFromSignup.value ||
          isPageRefresh.value || 
          !sessionStorage.getItem('ncad-archive-homepage-visited')
 }
@@ -536,14 +561,24 @@ onMounted(async () => {
     // Check if coming from upload
     isFromUpload.value = sessionStorage.getItem('ncad-archive-from-upload') === 'true'
     
-    // Clear the upload flag
+    // Check if coming from login
+    isFromLogin.value = sessionStorage.getItem('ncad-archive-from-login') === 'true'
+    
+    // Check if coming from signup
+    isFromSignup.value = sessionStorage.getItem('ncad-archive-from-signup') === 'true'
+    
+    // Clear the flags
     sessionStorage.removeItem('ncad-archive-from-upload')
+    sessionStorage.removeItem('ncad-archive-from-login')
+    sessionStorage.removeItem('ncad-archive-from-signup')
     
     // Determine if we should show animations
     const shouldShowAnimations = shouldShowRevealAnimation()
     
     console.log('Animation triggers:', {
       isFromUpload: isFromUpload.value,
+      isFromLogin: isFromLogin.value,
+      isFromSignup: isFromSignup.value,
       isPageRefresh: isPageRefresh.value,
       shouldShowAnimations
     })

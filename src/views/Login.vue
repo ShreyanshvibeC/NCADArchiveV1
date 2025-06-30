@@ -114,6 +114,10 @@ const handleLogin = async () => {
       // Clear form
       email.value = ''
       password.value = ''
+      
+      // Set flag to trigger animations on homepage
+      sessionStorage.setItem('ncad-archive-from-login', 'true')
+      
       // Redirect to home page
       router.push('/')
     } else {

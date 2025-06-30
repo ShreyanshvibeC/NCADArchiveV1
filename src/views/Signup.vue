@@ -215,6 +215,9 @@ const handleSignup = async () => {
       password.value = ''
       confirmPassword.value = ''
       
+      // Set flag to trigger animations on homepage
+      sessionStorage.setItem('ncad-archive-from-signup', 'true')
+      
       // Redirect to home page after a short delay
       setTimeout(() => {
         router.push('/')
