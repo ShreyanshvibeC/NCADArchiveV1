@@ -38,12 +38,19 @@ export interface Photo {
   }
 }
 
+// Cache for user names to avoid repeated fetches
+const userNameCache = new Map<string, string>()
+
+// Cache for photo data with TTL
+const photoCache = new Map<string, { photo: Photo; timestamp: number }>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 export const useGalleryStore = defineStore('gallery', () => {
   const photos = ref<Photo[]>([])
   const loading = ref(false)
   const hasMorePhotos = ref(true)
   const lastPhotoDoc = ref(null)
-  const PHOTOS_PER_PAGE = 10
+  const PHOTOS_PER_PAGE = 15 // Increased from 10 for better performance
 
   const loadPhotos = async (loadMore = false) => {
     if (loading.value || (!hasMorePhotos.value && loadMore)) return
@@ -68,11 +75,19 @@ export const useGalleryStore = defineStore('gallery', () => {
 
       const querySnapshot = await getDocs(q)
       
-      const newPhotos = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || new Date()
-      })) as Photo[]
+      const newPhotos = querySnapshot.docs.map(doc => {
+        const data = doc.data()
+        const photo = {
+          id: doc.id,
+          ...data,
+          timestamp: data.timestamp?.toDate() || new Date()
+        } as Photo
+        
+        // Cache the photo
+        photoCache.set(photo.id, { photo, timestamp: Date.now() })
+        
+        return photo
+      })
 
       if (loadMore) {
         photos.value = [...photos.value, ...newPhotos]
@@ -107,11 +122,19 @@ export const useGalleryStore = defineStore('gallery', () => {
         )
         const querySnapshot = await getDocs(q)
         
-        return querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate() || new Date()
-        })) as Photo[]
+        return querySnapshot.docs.map(doc => {
+          const data = doc.data()
+          const photo = {
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp?.toDate() || new Date()
+          } as Photo
+          
+          // Cache the photo
+          photoCache.set(photo.id, { photo, timestamp: Date.now() })
+          
+          return photo
+        })
       } catch (indexError) {
         // If composite index doesn't exist, fall back to simpler query
         console.warn('Composite index not available, using fallback query. Please create the required index in Firebase Console.')
@@ -123,11 +146,19 @@ export const useGalleryStore = defineStore('gallery', () => {
         const querySnapshot = await getDocs(q)
         
         // Sort manually on the client side
-        const userPhotos = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate() || new Date()
-        })) as Photo[]
+        const userPhotos = querySnapshot.docs.map(doc => {
+          const data = doc.data()
+          const photo = {
+            id: doc.id,
+            ...data,
+            timestamp: data.timestamp?.toDate() || new Date()
+          } as Photo
+          
+          // Cache the photo
+          photoCache.set(photo.id, { photo, timestamp: Date.now() })
+          
+          return photo
+        })
         
         // Sort by timestamp descending
         return userPhotos.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
@@ -170,19 +201,45 @@ export const useGalleryStore = defineStore('gallery', () => {
         const batch = savedPhotoIds.slice(i, i + batchSize)
         console.log(`Fetching batch ${Math.floor(i / batchSize) + 1}:`, batch)
         
-        const batchQuery = query(
-          collection(db, 'photos'),
-          where(documentId(), 'in', batch)
-        )
+        // Check cache first
+        const cachedPhotos: Photo[] = []
+        const uncachedIds: string[] = []
         
-        const batchSnapshot = await getDocs(batchQuery)
-        const batchPhotos = batchSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-          timestamp: doc.data().timestamp?.toDate() || new Date()
-        })) as Photo[]
+        batch.forEach(photoId => {
+          const cached = photoCache.get(photoId)
+          if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+            cachedPhotos.push(cached.photo)
+          } else {
+            uncachedIds.push(photoId)
+          }
+        })
         
-        savedPhotos.push(...batchPhotos)
+        savedPhotos.push(...cachedPhotos)
+        
+        // Fetch uncached photos
+        if (uncachedIds.length > 0) {
+          const batchQuery = query(
+            collection(db, 'photos'),
+            where(documentId(), 'in', uncachedIds)
+          )
+          
+          const batchSnapshot = await getDocs(batchQuery)
+          const batchPhotos = batchSnapshot.docs.map(doc => {
+            const data = doc.data()
+            const photo = {
+              id: doc.id,
+              ...data,
+              timestamp: data.timestamp?.toDate() || new Date()
+            } as Photo
+            
+            // Cache the photo
+            photoCache.set(photo.id, { photo, timestamp: Date.now() })
+            
+            return photo
+          })
+          
+          savedPhotos.push(...batchPhotos)
+        }
       }
       
       console.log('Loaded', savedPhotos.length, 'saved photos')
@@ -204,20 +261,34 @@ export const useGalleryStore = defineStore('gallery', () => {
 
   const getPhotoById = async (id: string): Promise<Photo | null> => {
     try {
-      // First check if photo is already in local state
+      // Check cache first
+      const cached = photoCache.get(id)
+      if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+        return cached.photo
+      }
+      
+      // Check if photo is already in local state
       const localPhoto = photos.value.find(photo => photo.id === id)
-      if (localPhoto) return localPhoto
+      if (localPhoto) {
+        // Update cache
+        photoCache.set(id, { photo: localPhoto, timestamp: Date.now() })
+        return localPhoto
+      }
 
       // If not found locally, fetch from Firestore
       const docRef = doc(db, 'photos', id)
       const docSnap = await getDoc(docRef)
       
       if (docSnap.exists()) {
+        const data = docSnap.data()
         const photoData = {
           id: docSnap.id,
-          ...docSnap.data(),
-          timestamp: docSnap.data().timestamp?.toDate() || new Date()
+          ...data,
+          timestamp: data.timestamp?.toDate() || new Date()
         } as Photo
+        
+        // Cache the photo
+        photoCache.set(id, { photo: photoData, timestamp: Date.now() })
         
         // Add to local state
         photos.value.unshift(photoData)
@@ -238,10 +309,12 @@ export const useGalleryStore = defineStore('gallery', () => {
         visits: increment(1)
       })
       
-      // Update local state
+      // Update local state and cache
       const photo = photos.value.find(p => p.id === id)
       if (photo) {
         photo.visits++
+        // Update cache
+        photoCache.set(id, { photo, timestamp: Date.now() })
       }
     } catch (error) {
       console.error('Error incrementing visits:', error)
@@ -265,10 +338,12 @@ export const useGalleryStore = defineStore('gallery', () => {
           likes: increment(-1)
         })
         
-        // Update local state - ensure likes never go below 0
+        // Update local state and cache - ensure likes never go below 0
         const photo = photos.value.find(p => p.id === photoId)
         if (photo) {
           photo.likes = Math.max(0, photo.likes - 1)
+          // Update cache
+          photoCache.set(photoId, { photo, timestamp: Date.now() })
         }
         
         return false // Not liked anymore
@@ -283,10 +358,12 @@ export const useGalleryStore = defineStore('gallery', () => {
           likes: increment(1)
         })
         
-        // Update local state
+        // Update local state and cache
         const photo = photos.value.find(p => p.id === photoId)
         if (photo) {
           photo.likes++
+          // Update cache
+          photoCache.set(photoId, { photo, timestamp: Date.now() })
         }
         
         return true // Now liked
@@ -496,13 +573,17 @@ export const useGalleryStore = defineStore('gallery', () => {
       await deleteDoc(doc(db, 'photos', photoId))
       console.log('✅ Photo document deleted')
       
-      // Step 5: Update local state immediately
-      console.log('🔄 Updating local state...')
+      // Step 5: Update local state and cache immediately
+      console.log('🔄 Updating local state and cache...')
       const photoIndex = photos.value.findIndex(p => p.id === photoId)
       if (photoIndex !== -1) {
         photos.value.splice(photoIndex, 1)
         console.log('✅ Photo removed from main photos array')
       }
+      
+      // Remove from cache
+      photoCache.delete(photoId)
+      console.log('✅ Photo removed from cache')
       
       // Step 6: Force refresh photos from server to ensure consistency
       console.log('🔄 Refreshing photos from server...')
@@ -632,13 +713,21 @@ export const useGalleryStore = defineStore('gallery', () => {
         throw new Error('Authentication token expired. Please sign out and sign back in.')
       }
       
-      // Get user's name for denormalization
+      // Get user's name for denormalization (with caching)
       console.log('Getting user name for denormalization...')
-      const userDoc = await getDoc(doc(db, 'users', photoData.userId))
-      let authorName = 'Anonymous'
-      if (userDoc.exists()) {
-        authorName = userDoc.data().name || 'Anonymous'
+      let authorName = userNameCache.get(photoData.userId)
+      
+      if (!authorName) {
+        const userDoc = await getDoc(doc(db, 'users', photoData.userId))
+        if (userDoc.exists()) {
+          authorName = userDoc.data().name || 'Anonymous'
+          // Cache the user name
+          userNameCache.set(photoData.userId, authorName)
+        } else {
+          authorName = 'Anonymous'
+        }
       }
+      
       console.log('Author name:', authorName)
       
       // Upload image first
@@ -662,14 +751,17 @@ export const useGalleryStore = defineStore('gallery', () => {
       const docRef = await addDoc(collection(db, 'photos'), newPhoto)
       console.log('Photo document created with ID:', docRef.id)
       
-      // Add to local state
+      // Add to local state and cache
       const photoWithId = {
         ...newPhoto,
         id: docRef.id
       }
       photos.value.unshift(photoWithId)
       
-      console.log('Photo added to local state successfully')
+      // Cache the new photo
+      photoCache.set(docRef.id, { photo: photoWithId, timestamp: Date.now() })
+      
+      console.log('Photo added to local state and cache successfully')
       return { success: true, photoId: docRef.id }
     } catch (error: any) {
       console.error('Error adding photo:', error)
@@ -709,9 +801,18 @@ export const useGalleryStore = defineStore('gallery', () => {
 
   const getUserName = async (userId: string): Promise<string> => {
     try {
+      // Check cache first
+      const cached = userNameCache.get(userId)
+      if (cached) {
+        return cached
+      }
+      
       const userDoc = await getDoc(doc(db, 'users', userId))
       if (userDoc.exists()) {
-        return userDoc.data().name || 'Anonymous'
+        const name = userDoc.data().name || 'Anonymous'
+        // Cache the result
+        userNameCache.set(userId, name)
+        return name
       }
       return 'Anonymous'
     } catch (error) {
@@ -725,6 +826,12 @@ export const useGalleryStore = defineStore('gallery', () => {
     photos.value = []
     hasMorePhotos.value = true
     lastPhotoDoc.value = null
+  }
+
+  // Clear caches (useful for logout or data refresh)
+  const clearCaches = () => {
+    userNameCache.clear()
+    photoCache.clear()
   }
 
   return {
@@ -744,7 +851,8 @@ export const useGalleryStore = defineStore('gallery', () => {
     isPhotoSaved,
     toggleLike,
     isPhotoLiked,
-    resetPagination
+    resetPagination,
+    clearCaches
   }
 })
 

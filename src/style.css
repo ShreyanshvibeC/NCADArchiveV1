@@ -215,3 +215,76 @@ body {
   color: #ffffff;
   font-family: 'Spenser', sans-serif;
 }
+
+/* Performance optimizations */
+
+/* GPU acceleration for frequently animated elements */
+.rainbow-button,
+.animate-heart-pop,
+.animate-blink,
+.loading-dot,
+.transition-opacity,
+.transition-transform {
+  will-change: transform;
+  transform: translateZ(0); /* Force GPU layer */
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  /* Prevent layout shift during loading */
+  height: auto;
+  max-width: 100%;
+}
+
+/* Smooth scrolling with better performance */
+.virtual-scroll-container {
+  scroll-behavior: smooth;
+  /* Enable hardware acceleration for scrolling */
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0);
+}
+
+/* Optimize animations for better performance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Optimize for mobile devices */
+@media (max-width: 768px) {
+  /* Reduce animation complexity on mobile */
+  .rainbow-button::before,
+  .rainbow-button::after {
+    display: none;
+  }
+  
+  /* Optimize touch interactions */
+  button, a, [role="button"] {
+    touch-action: manipulation;
+  }
+}
+
+/* Optimize font loading */
+.font-spenser {
+  font-display: swap;
+}
+
+/* Reduce paint complexity */
+.aspect-square {
+  contain: layout style paint;
+}
+
+/* Optimize for high DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}

@@ -29,7 +29,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Cache strategy for images
+        // Enhanced cache strategy for images
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
@@ -37,8 +37,14 @@ export default defineConfig({
             options: {
               cacheName: 'firebase-images',
               expiration: {
-                maxEntries: 100,
-                maxAgeSeconds: 60 * 60 * 24 * 7 // 7 days
+                maxEntries: 200, // Increased from 100
+                maxAgeSeconds: 60 * 60 * 24 * 14 // 14 days instead of 7
+              },
+              cacheKeyWillBeUsed: async ({ request }) => {
+                // Remove query parameters for better cache hits
+                const url = new URL(request.url)
+                url.search = ''
+                return url.href
               }
             }
           },
@@ -48,8 +54,20 @@ export default defineConfig({
             options: {
               cacheName: 'google-apis',
               expiration: {
-                maxEntries: 50,
-                maxAgeSeconds: 60 * 60 * 24 // 1 day
+                maxEntries: 100, // Increased from 50
+                maxAgeSeconds: 60 * 60 * 24 * 3 // 3 days instead of 1
+              }
+            }
+          },
+          // Cache for fonts
+          {
+            urlPattern: /\.(?:woff|woff2|ttf|otf)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'fonts',
+              expiration: {
+                maxEntries: 20,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
               }
             }
           }
@@ -58,32 +76,40 @@ export default defineConfig({
     })
   ],
   build: {
-    // Optimize bundle
+    // Enhanced bundle optimization
     rollupOptions: {
       output: {
         manualChunks: {
           vendor: ['vue', 'vue-router', 'pinia'],
-          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+          utils: ['./src/utils/imageUtils', './src/utils/shareUtils', './src/utils/deviceUtils']
         }
       }
     },
     // Enable source maps for better debugging
-    sourcemap: true,
+    sourcemap: false, // Disable in production for smaller bundle
     // Optimize assets
-    assetsInlineLimit: 4096,
+    assetsInlineLimit: 8192, // Increased from 4096
     // Enable compression
     minify: 'terser',
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug'] // Remove specific console methods
       }
-    }
+    },
+    // Increase chunk size warning limit
+    chunkSizeWarningLimit: 1000
   },
   // Development server optimizations
   server: {
     hmr: {
       overlay: false
     }
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['vue', 'vue-router', 'pinia', 'firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
   }
 })

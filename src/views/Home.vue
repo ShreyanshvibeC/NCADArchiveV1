@@ -91,63 +91,83 @@
           </button>
         </div>
 
+        <!-- Virtual scrolling container -->
         <div 
-          v-for="photo in galleryStore.photos" 
-          :key="photo.id"
-          class="mb-10 cursor-pointer"
-          @click="navigateToPhoto(photo.id)"
+          ref="scrollContainer"
+          class="virtual-scroll-container"
+          @scroll="handleVirtualScroll"
         >
-          <!-- Title (if exists) - Left aligned -->
-          <div v-if="photo.title" class="px-4 mb-2">
-            <h2 class="text-2xl font-medium text-white text-left">{{ photo.title }}</h2>
-          </div>
-
-          <!-- Image Container - 1:1 aspect ratio with lazy loading -->
-          <div class="relative w-full aspect-square overflow-hidden">
-            <img 
-              :src="photo.imageURL" 
-              :alt="photo.title || 'NCAD Archive Photo'"
-              class="w-full h-full object-cover"
-              loading="lazy"
-              @error="handleImageError"
-            />
-            
-            <!-- Temporary Badge - Clickable -->
-            <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
-              <button 
-                @click.stop="showGoneSoonModal = true; selectedPhoto = photo"
-                class="bg-black border border-white px-3 py-1 hover:bg-gray-800 transition-colors"
-              >
-                <span class="text-xs font-medium text-white">GONE SOON</span>
-              </button>
+          <div 
+            v-for="photo in visiblePhotos" 
+            :key="photo.id"
+            class="mb-10 cursor-pointer"
+            @click="navigateToPhoto(photo.id)"
+          >
+            <!-- Title (if exists) - Left aligned -->
+            <div v-if="photo.title" class="px-4 mb-2">
+              <h2 class="text-2xl font-medium text-white text-left">{{ photo.title }}</h2>
             </div>
 
-            <!-- Visit Count with Gradient - Only show if location exists -->
-            <div v-if="photo.location" class="absolute bottom-0 right-0 w-20 h-20 z-10">
-              <!-- Diagonal gradient background -->
-              <div class="absolute inset-0" style="background: linear-gradient(135deg, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.8) 100%);"></div>
-
-              <!-- Icon and Count Container, Centered and Right-Aligned -->
-              <div class="absolute right-2 top-1/2 transform -translate-y-1/2 flex flex-col items-center justify-center text-white z-20">
-                <svg class="w-6 h-6 mb-1" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="currentColor"/>
+            <!-- Image Container - 1:1 aspect ratio with optimized lazy loading -->
+            <div class="relative w-full aspect-square overflow-hidden">
+              <img 
+                v-if="photo.shouldLoad"
+                :src="photo.imageURL" 
+                :alt="photo.title || 'NCAD Archive Photo'"
+                class="w-full h-full object-cover transition-opacity duration-300"
+                :class="{ 'opacity-0': !photo.loaded, 'opacity-100': photo.loaded }"
+                loading="lazy"
+                @load="onImageLoad(photo.id)"
+                @error="handleImageError"
+              />
+              
+              <!-- Loading placeholder -->
+              <div 
+                v-if="!photo.loaded && photo.shouldLoad"
+                class="absolute inset-0 bg-gray-800 animate-pulse flex items-center justify-center"
+              >
+                <svg class="w-12 h-12 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
                 </svg>
-                <span class="text-sm font-medium">{{ photo.visits || 0 }}</span>
+              </div>
+              
+              <!-- Temporary Badge - Clickable -->
+              <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
+                <button 
+                  @click.stop="showGoneSoonModal = true; selectedPhoto = photo"
+                  class="bg-black border border-white px-3 py-1 hover:bg-gray-800 transition-colors"
+                >
+                  <span class="text-xs font-medium text-white">GONE SOON</span>
+                </button>
+              </div>
+
+              <!-- Visit Count with Gradient - Only show if location exists -->
+              <div v-if="photo.location" class="absolute bottom-0 right-0 w-20 h-20 z-10">
+                <!-- Diagonal gradient background -->
+                <div class="absolute inset-0" style="background: linear-gradient(135deg, transparent 0%, transparent 50%, rgba(0, 0, 0, 0.8) 100%);"></div>
+
+                <!-- Icon and Count Container, Centered and Right-Aligned -->
+                <div class="absolute right-2 top-1/2 transform -translate-y-1/2 flex flex-col items-center justify-center text-white z-20">
+                  <svg class="w-6 h-6 mb-1" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M17.7499 7.33333C19.2166 7.33333 20.4166 6.13333 20.4166 4.66667C20.4166 3.2 19.2166 2 17.7499 2C16.2833 2 15.0833 3.2 15.0833 4.66667C15.0833 6.13333 16.2833 7.33333 17.7499 7.33333ZM12.8166 11.8667L9.40327 29.08C9.22994 29.8933 9.86994 30.6667 10.7099 30.6667H10.8166C11.4433 30.6667 11.9766 30.24 12.1233 29.6267L14.2833 20L17.0833 22.6667V29.3333C17.0833 30.0667 17.6833 30.6667 18.4166 30.6667C19.1499 30.6667 19.7499 30.0667 19.7499 29.3333V21.8133C19.7499 21.08 19.4566 20.3867 18.9233 19.88L16.9499 18L17.7499 14C19.1766 15.6533 21.2433 16.84 23.5633 17.2133C24.3633 17.3333 25.0833 16.6933 25.0833 15.88C25.0833 15.2267 24.6033 14.68 23.9499 14.5733C21.9233 14.24 20.2433 13.04 19.3499 11.4667L18.0166 9.33333C17.2699 8.14667 15.7766 7.66667 14.4833 8.21333L9.37661 10.3733C8.38994 10.8 7.74994 11.76 7.74994 12.84V16C7.74994 16.7333 8.34994 17.3333 9.08327 17.3333C9.81661 17.3333 10.4166 16.7333 10.4166 16V12.8L12.8166 11.8667Z" fill="currentColor"/>
+                  </svg>
+                  <span class="text-sm font-medium">{{ photo.visits || 0 }}</span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <!-- Bottom Info - Likes left, Author right -->
-          <div class="px-4 mt-3 flex justify-between items-center">
-            <button 
-              @click.stop="handleLikeClick(photo.id)"
-              :disabled="likingInProgress[photo.id]"
-              class="text-lg text-white hover:text-ncad-green transition-colors disabled:opacity-50"
-            >
-              {{ photo.likes || 0 }} Likes
-            </button>
-            <!-- Use denormalized authorName instead of fetching separately -->
-            <span class="text-lg text-gray-400">by {{ photo.authorName || 'Anonymous' }}</span>
+            <!-- Bottom Info - Likes left, Author right -->
+            <div class="px-4 mt-3 flex justify-between items-center">
+              <button 
+                @click.stop="handleLikeClick(photo.id)"
+                :disabled="likingInProgress[photo.id]"
+                class="text-lg text-white hover:text-ncad-green transition-colors disabled:opacity-50"
+              >
+                {{ photo.likes || 0 }} Likes
+              </button>
+              <!-- Use denormalized authorName instead of fetching separately -->
+              <span class="text-lg text-gray-400">by {{ photo.authorName || 'Anonymous' }}</span>
+            </div>
           </div>
         </div>
 
@@ -232,7 +252,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, onUnmounted } from 'vue'
+import { onMounted, ref, watch, onUnmounted, computed, nextTick } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter, useRoute } from 'vue-router'
@@ -256,6 +276,7 @@ const welcomePopup = ref()
 const devicePopup = ref()
 const showGoneSoonModal = ref(false)
 const selectedPhoto = ref(null)
+const scrollContainer = ref<HTMLElement>()
 
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
@@ -269,7 +290,106 @@ const isFromUpload = ref(false)
 // Check if page was refreshed
 const isPageRefresh = ref(false)
 
-// Function to preload an image
+// Virtual scrolling state
+const visibleRange = ref({ start: 0, end: 20 })
+const BUFFER_SIZE = 10
+const ITEM_HEIGHT = 400 // Approximate height of each photo item
+
+// Enhanced photo state with loading tracking
+const photosWithState = ref<Array<any>>([])
+
+// Computed property for visible photos with virtual scrolling
+const visiblePhotos = computed(() => {
+  return photosWithState.value.slice(
+    Math.max(0, visibleRange.value.start - BUFFER_SIZE),
+    Math.min(photosWithState.value.length, visibleRange.value.end + BUFFER_SIZE)
+  )
+})
+
+// Watch for changes in gallery photos and update local state
+watch(() => galleryStore.photos, (newPhotos) => {
+  // Add loading state to new photos
+  const newPhotosWithState = newPhotos.map(photo => ({
+    ...photo,
+    loaded: false,
+    shouldLoad: false
+  }))
+  
+  photosWithState.value = newPhotosWithState
+  
+  // Trigger visibility check
+  nextTick(() => {
+    updateVisiblePhotos()
+  })
+}, { immediate: true })
+
+// Function to update which photos should be loaded based on viewport
+const updateVisiblePhotos = () => {
+  if (!scrollContainer.value) return
+  
+  const containerTop = scrollContainer.value.scrollTop
+  const containerHeight = scrollContainer.value.clientHeight
+  const viewportBottom = containerTop + containerHeight
+  
+  // Add buffer for preloading
+  const bufferHeight = containerHeight * 0.5
+  const loadTop = containerTop - bufferHeight
+  const loadBottom = viewportBottom + bufferHeight
+  
+  photosWithState.value.forEach((photo, index) => {
+    const itemTop = index * ITEM_HEIGHT
+    const itemBottom = itemTop + ITEM_HEIGHT
+    
+    // Check if item is in or near viewport
+    if (itemBottom >= loadTop && itemTop <= loadBottom) {
+      photo.shouldLoad = true
+    }
+  })
+}
+
+// Optimized scroll handler with throttling
+let scrollTimeout: number | null = null
+const handleVirtualScroll = () => {
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout)
+  }
+  
+  scrollTimeout = setTimeout(() => {
+    updateVisiblePhotos()
+    handleInfiniteScroll()
+  }, 16) // ~60fps
+}
+
+// Separate infinite scroll logic
+const handleInfiniteScroll = async () => {
+  if (!scrollContainer.value || isLoadingMore.value || !galleryStore.hasMorePhotos || galleryStore.loading) {
+    return
+  }
+
+  const { scrollTop, scrollHeight, clientHeight } = scrollContainer.value
+  
+  // Load more when user is 200px from bottom
+  if (scrollTop + clientHeight >= scrollHeight - 200) {
+    isLoadingMore.value = true
+    try {
+      await galleryStore.loadPhotos(true) // true = load more
+    } catch (error) {
+      console.error('Error loading more photos:', error)
+    } finally {
+      isLoadingMore.value = false
+    }
+  }
+}
+
+// Image load handler
+const onImageLoad = (photoId: string) => {
+  const photo = photosWithState.value.find(p => p.id === photoId)
+  if (photo) {
+    photo.loaded = true
+  }
+}
+
+// Function to preload an image with better error handling
 const preloadImage = (src: string): Promise<void> => {
   return new Promise((resolve) => {
     const img = new Image()
@@ -346,29 +466,6 @@ const onWelcomePopupClose = () => {
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
   console.warn('Image failed to load:', img.src)
-}
-
-// Infinite scroll functionality
-const handleScroll = async () => {
-  if (isLoadingMore.value || !galleryStore.hasMorePhotos || galleryStore.loading) {
-    return
-  }
-
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-  const windowHeight = window.innerHeight
-  const documentHeight = document.documentElement.scrollHeight
-
-  // Load more when user is 200px from bottom
-  if (scrollTop + windowHeight >= documentHeight - 200) {
-    isLoadingMore.value = true
-    try {
-      await galleryStore.loadPhotos(true) // true = load more
-    } catch (error) {
-      console.error('Error loading more photos:', error)
-    } finally {
-      isLoadingMore.value = false
-    }
-  }
 }
 
 // Detect if page was refreshed
@@ -498,12 +595,12 @@ onMounted(async () => {
         return
       }
       
-      // Get the top 5 most recent photos
+      // Get the top 5 most recent photos for preloading
       const topPhotos = galleryStore.photos.slice(0, 5)
       
       loadingProgress.value = 'Loading images...'
       
-      // Preload the top 5 images
+      // Preload the top 5 images with progress tracking
       const imagePromises = topPhotos.map((photo, index) => {
         return preloadImage(photo.imageURL).then(() => {
           loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
@@ -533,8 +630,9 @@ onMounted(async () => {
       }, 100)
     }
     
-    // Add scroll listener for infinite scroll
-    window.addEventListener('scroll', handleScroll, { passive: true })
+    // Initialize virtual scrolling after photos are loaded
+    await nextTick()
+    updateVisiblePhotos()
     
   } catch (error) {
     console.error('Error loading initial content:', error)
@@ -545,8 +643,10 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // Clean up scroll listener
-  window.removeEventListener('scroll', handleScroll)
+  // Clean up scroll timeout
+  if (scrollTimeout) {
+    clearTimeout(scrollTimeout)
+  }
   
   // Clean up beforeunload listener
   window.removeEventListener('beforeunload', () => {
@@ -554,3 +654,30 @@ onUnmounted(() => {
   })
 })
 </script>
+
+<style scoped>
+.virtual-scroll-container {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* Smooth scrolling for better UX */
+.virtual-scroll-container {
+  scroll-behavior: smooth;
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* GPU acceleration for animations */
+.transition-opacity {
+  will-change: opacity;
+}
+
+.animate-pulse {
+  will-change: opacity;
+}
+</style>
