@@ -11,7 +11,7 @@ export default {
       },
       colors: {
         'ncad-black': '#1A1A1A',
-        'ncad-dark-gray': '#2C2C2C',
+        'ncad-dark-gray': '#1F2022',
         'ncad-light-gray': '#404040',
         'ncad-light-gray-darker': '#353535',
         'ncad-white': '#ffffff',

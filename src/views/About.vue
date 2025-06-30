@@ -57,21 +57,21 @@
           </div>
           
           <div class="grid grid-cols-1 gap-6">
-            <div class="bg-gray-900 p-6 border-l-4 border-ncad-green">
+            <div class="bg-ncad-dark-gray p-6 border-l-4 border-ncad-green">
               <h4 class="text-lg font-semibold text-white mb-3">🎨 Discover Hidden Creativity</h4>
               <p class="text-gray-300">
                 Uncover student artwork, installations, and creative projects happening across campus that you might never have known existed.
               </p>
             </div>
             
-            <div class="bg-gray-900 p-6 border-l-4 border-blue-500">
+            <div class="bg-ncad-dark-gray p-6 border-l-4 border-blue-500">
               <h4 class="text-lg font-semibold text-white mb-3">📍 Explore Your Campus</h4>
               <p class="text-gray-300">
                 Find new study spots, art installations, and interesting corners of NCAD with location-tagged photos that guide you there.
               </p>
             </div>
             
-            <div class="bg-gray-900 p-6 border-l-4 border-purple-500">
+            <div class="bg-ncad-dark-gray p-6 border-l-4 border-purple-500">
               <h4 class="text-lg font-semibold text-white mb-3">🤝 Connect with Community</h4>
               <p class="text-gray-300">
                 See what your fellow students are creating, get inspired by their work, and contribute to our shared visual story.
@@ -88,7 +88,7 @@
           </div>
           
           <div class="space-y-4">
-            <div class="flex items-start space-x-4 bg-gray-900 p-4">
+            <div class="flex items-start space-x-4 bg-ncad-dark-gray p-4">
               <div class="w-8 h-8 bg-ncad-green flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-1">1</div>
               <div>
                 <h4 class="text-white font-semibold mb-1">Capture & Share</h4>
@@ -96,7 +96,7 @@
               </div>
             </div>
             
-            <div class="flex items-start space-x-4 bg-gray-900 p-4">
+            <div class="flex items-start space-x-4 bg-ncad-dark-gray p-4">
               <div class="w-8 h-8 bg-ncad-green flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-1">2</div>
               <div>
                 <h4 class="text-white font-semibold mb-1">Explore & Discover</h4>
@@ -104,7 +104,7 @@
               </div>
             </div>
             
-            <div class="flex items-start space-x-4 bg-gray-900 p-4">
+            <div class="flex items-start space-x-4 bg-ncad-dark-gray p-4">
               <div class="w-8 h-8 bg-ncad-green flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-1">3</div>
               <div>
                 <h4 class="text-white font-semibold mb-1">Build Community</h4>
@@ -121,7 +121,7 @@
             <div class="w-16 h-1 bg-ncad-green mx-auto mt-2"></div>
           </div>
           
-          <div class="bg-gray-900 p-6 space-y-4">
+          <div class="bg-ncad-dark-gray p-6 space-y-4">
             <div class="grid grid-cols-1 gap-4 text-sm">
               <div class="flex items-start space-x-3">
                 <span class="text-green-500 text-lg">✓</span>
@@ -178,7 +178,7 @@
             <div class="w-16 h-1 bg-ncad-green mx-auto mt-2"></div>
           </div>
           
-          <div class="bg-gray-900 p-6 space-y-4 text-center">
+          <div class="bg-ncad-dark-gray p-6 space-y-4 text-center">
             <div class="space-y-2 text-gray-300">
               <p><strong class="text-white">Questions or Feedback?</strong></p>
               <p>

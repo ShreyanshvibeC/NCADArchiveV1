@@ -66,7 +66,7 @@
             <router-link 
               to="/signup" 
               @click="isOpen = false"
-              class="block w-full bg-black text-white text-center py-2 px-4 font-medium hover:bg-gray-800 transition-all border border-white"
+              class="block w-full bg-black text-white text-center py-2 px-4 font-medium hover:bg-ncad-dark-gray transition-all border border-white"
             >
               CREATE ACCOUNT
             </router-link>

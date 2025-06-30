@@ -20,7 +20,7 @@
       <!-- Hamburger Button - Vertically centered in header -->
       <button 
         @click="hamburgerMenu?.toggleMenu()"
-        class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-gray-900 transition-colors"
+        class="w-12 h-12 bg-black border border-gray-600 flex items-center justify-center hover:bg-ncad-dark-gray transition-colors"
       >
         <div class="w-6 h-6 flex flex-col justify-center space-y-1">
           <div 
@@ -116,7 +116,7 @@
             <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
               <button 
                 @click.stop="showGoneSoonModal = true; selectedPhoto = photo"
-                class="bg-black border border-white px-3 py-1 hover:bg-gray-800 transition-colors"
+                class="bg-black border border-white px-3 py-1 hover:bg-ncad-dark-gray transition-colors"
               >
                 <span class="text-xs font-medium text-white">GONE SOON</span>
               </button>

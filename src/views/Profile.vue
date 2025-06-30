@@ -47,7 +47,7 @@
           
           <router-link 
             to="/signup"
-            class="block w-full bg-black text-white py-3 font-medium hover:bg-gray-800 transition-all text-center border border-gray-600"
+            class="block w-full bg-black text-white py-3 font-medium hover:bg-ncad-dark-gray transition-all text-center border border-gray-600"
           >
             Create Account
           </router-link>
@@ -91,15 +91,15 @@
 
           <!-- Stats -->
           <div class="grid grid-cols-3 gap-4">
-            <div class="bg-gray-900 p-4 text-center">
+            <div class="bg-ncad-dark-gray p-4 text-center">
               <div class="text-2xl font-bold">{{ actualPhotoCount }}</div>
               <div class="text-sm text-gray-400">Photos</div>
             </div>
-            <div class="bg-gray-900 p-4 text-center">
+            <div class="bg-ncad-dark-gray p-4 text-center">
               <div class="text-2xl font-bold">{{ totalLikes }}</div>
               <div class="text-sm text-gray-400">Likes</div>
             </div>
-            <div class="bg-gray-900 p-4 text-center">
+            <div class="bg-ncad-dark-gray p-4 text-center">
               <div class="text-2xl font-bold">{{ totalVisits }}</div>
               <div class="text-sm text-gray-400">Total Visits</div>
             </div>
@@ -114,7 +114,7 @@
         </div>
 
         <!-- Tab Navigation - Only show for own profile -->
-        <div v-if="isOwnProfile" class="flex space-x-1 bg-gray-900">
+        <div v-if="isOwnProfile" class="flex space-x-1 bg-ncad-dark-gray">
           <button 
             @click="activeTab = 'photos'"
             :class="{ 
@@ -166,7 +166,7 @@
                 :alt="photo.title || 'Photo'"
                 class="w-full aspect-square object-cover"
               />
-              <div class="absolute bottom-2 left-2 bg-gray-900 bg-opacity-75 px-2 py-1">
+              <div class="absolute bottom-2 left-2 bg-ncad-dark-gray bg-opacity-75 px-2 py-1">
                 <span class="text-xs">{{ photo.visits }} visits</span>
               </div>
             </div>
@@ -196,7 +196,7 @@
                 :alt="photo.title || 'Photo'"
                 class="w-full aspect-square object-cover"
               />
-              <div class="absolute bottom-2 left-2 bg-gray-900 bg-opacity-75 px-2 py-1">
+              <div class="absolute bottom-2 left-2 bg-ncad-dark-gray bg-opacity-75 px-2 py-1">
                 <span class="text-xs">{{ photo.visits }} visits</span>
               </div>
             </div>
@@ -227,7 +227,7 @@
                 :alt="photo.title || 'Photo'"
                 class="w-full aspect-square object-cover"
               />
-              <div class="absolute bottom-2 left-2 bg-gray-900 bg-opacity-75 px-2 py-1">
+              <div class="absolute bottom-2 left-2 bg-ncad-dark-gray bg-opacity-75 px-2 py-1">
                 <span class="text-xs">{{ photo.visits }} visits</span>
               </div>
             </div>
@@ -238,7 +238,7 @@
 
     <!-- Edit Profile Modal - Only show for own profile -->
     <div v-if="showEditProfile && isOwnProfile" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div class="bg-gray-900 p-4 w-full max-w-md">
+      <div class="bg-ncad-dark-gray p-4 w-full max-w-md">
         <h3 class="text-lg font-semibold mb-4">Edit Profile</h3>
         
         <form @submit.prevent="updateProfile" class="space-y-4">

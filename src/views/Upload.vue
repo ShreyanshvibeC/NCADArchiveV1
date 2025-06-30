@@ -33,7 +33,7 @@
           </router-link>
           <router-link 
             to="/signup" 
-            class="block bg-black text-white px-6 py-3 font-medium hover:bg-gray-800 transition-all border border-gray-600"
+            class="block bg-black text-white px-6 py-3 font-medium hover:bg-ncad-dark-gray transition-all border border-gray-600"
           >
             Create Account
           </router-link>
@@ -95,7 +95,7 @@
               <!-- Secondary CTA - Select from Device -->
               <button 
                 @click="deviceInput?.click()"
-                class="w-full bg-black text-white px-6 py-3 font-medium hover:bg-gray-800 transition-all border border-gray-600"
+                class="w-full bg-black text-white px-6 py-3 font-medium hover:bg-ncad-dark-gray transition-all border border-gray-600"
               >
                 Select from Device
               </button>
@@ -112,7 +112,7 @@
             <img :src="previewUrl" alt="Preview" class="w-full aspect-square object-cover" />
             <button 
               @click="clearSelection"
-              class="absolute top-4 right-4 bg-gray-900 bg-opacity-75 p-2 hover:bg-opacity-100 transition-all"
+              class="absolute top-4 right-4 bg-ncad-dark-gray bg-opacity-75 p-2 hover:bg-opacity-100 transition-all"
             >
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -126,7 +126,7 @@
               <label class="block text-sm font-medium mb-2">
                 Add Title*
               </label>
-              <input 
+              <input  
                 v-model="title"
                 type="text" 
                 required

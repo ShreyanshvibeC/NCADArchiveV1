@@ -68,7 +68,7 @@
                   <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
                     <button 
                       @click="showGoneSoonModal = true"
-                      class="bg-black border border-white px-3 py-1 hover:bg-gray-800 transition-colors"
+                      class="bg-black border border-white px-3 py-1 hover:bg-ncad-dark-gray transition-colors"
                     >
                       <span class="text-xs font-medium text-white">GONE SOON</span>
                     </button>
@@ -88,7 +88,7 @@
                 </div>
 
                 <!-- Back Side - Title and Description -->
-                <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8" style="background-color: #1B1B1B;">
+                <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8" style="background-color: #1F2022;">
                   <div class="text-center space-y-4">
                     <!-- Title -->
                     <h1 v-if="photo.title" class="text-2xl font-bold text-white mb-4">
@@ -171,7 +171,7 @@
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
         <button 
           @click="showLocationDrawer = true"
-          class="w-full bg-black text-white py-3 flex items-center justify-center space-x-2 border border-gray-600 hover:bg-gray-800 transition-all"
+          class="w-full bg-black text-white py-3 flex items-center justify-center space-x-2 border border-gray-600 hover:bg-ncad-dark-gray transition-all"
         >
           <!-- Filled pin icon -->
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -246,7 +246,7 @@
           </div>
           
           <!-- Show temporary spot warning only for temporary photos -->
-          <div v-if="photo.temporary" class="bg-gray-800 p-4 border-l-4 border-yellow-500">
+          <div v-if="photo.temporary" class="bg-ncad-dark-gray p-4 border-l-4 border-yellow-500">
             <p class="text-white text-sm">
               The object might be removed from here as it comes under temporary spot.
             </p>
@@ -262,7 +262,7 @@
           </button>
           <button 
             @click="openInGoogleMaps"
-            class="flex-1 bg-black text-white py-3 font-medium hover:bg-gray-800 transition-colors border border-white"
+            class="flex-1 bg-black text-white py-3 font-medium hover:bg-ncad-dark-gray transition-colors border border-white"
           >
             TAKE ME THERE
           </button>
@@ -272,7 +272,7 @@
 
     <!-- Delete Confirmation Modal -->
     <div v-if="showDeleteConfirm" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-      <div class="bg-gray-900 p-4 w-full max-w-md">
+      <div class="bg-ncad-dark-gray p-4 w-full max-w-md">
         <h3 class="text-lg font-semibold mb-4 text-white">Delete Photo</h3>
         <p class="text-gray-400 mb-6">Are you sure you want to delete this photo? This action cannot be undone.</p>
         

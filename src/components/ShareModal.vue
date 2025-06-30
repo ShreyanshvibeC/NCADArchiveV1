@@ -15,7 +15,7 @@
       </div>
       
       <!-- CORS Status Info (only in development) -->
-      <div v-if="showDebugInfo" class="bg-gray-800 p-3 text-xs text-gray-400 space-y-1">
+      <div v-if="showDebugInfo" class="bg-ncad-dark-gray p-3 text-xs text-gray-400 space-y-1">
         <div class="font-medium text-white mb-2">Debug Information:</div>
         <div>Native Share: {{ showNativeShare ? '✅ Yes' : '❌ No' }}</div>
         <div>Can Share Files: {{ canShareFiles ? '✅ Yes' : '❌ No' }}</div>
@@ -68,7 +68,7 @@
           <!-- Copy Message -->
           <button 
             @click="copyMessage"
-            class="bg-gray-800 text-white py-3 px-4 font-medium hover:bg-gray-700 transition-all flex items-center justify-center space-x-2"
+            class="bg-ncad-dark-gray text-white py-3 px-4 font-medium hover:bg-gray-700 transition-all flex items-center justify-center space-x-2"
           >
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
