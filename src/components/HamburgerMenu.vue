@@ -100,7 +100,7 @@ const isOpen = ref(false)
 
 // Only show hamburger menu on homepage
 const showMenu = computed(() => {
-  return route.name === 'Home'
+  return route && route.name === 'Home'
 })
 
 const handleLogout = async () => {
