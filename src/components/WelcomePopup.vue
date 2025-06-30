@@ -16,7 +16,7 @@
       <!-- Image at the top -->
       <div class="w-full">
         <img 
-          src="/popup image.png" 
+          src="/ncad-welcome-popup.png" 
           alt="NCAD Archive Welcome" 
           class="w-full h-auto object-cover"
           @error="handleImageError"

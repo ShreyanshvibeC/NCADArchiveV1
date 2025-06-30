@@ -15,7 +15,7 @@
       <!-- NCAD Archive Banner Image -->
       <div class="w-full">
         <img 
-          src="/image copy copy copy copy copy copy copy copy copy copy.png" 
+          src="/ncad-archive-banner.png" 
           alt="NCAD Archive" 
           class="w-full h-auto object-cover"
           @error="handleBannerError"

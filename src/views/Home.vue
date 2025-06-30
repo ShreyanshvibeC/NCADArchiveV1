@@ -7,7 +7,7 @@
     <header class="fixed top-[40px] left-0 right-0 z-30 flex items-center justify-between p-4 border-b border-gray-600 bg-black xl:px-[200px]">
       <div class="flex items-center">
         <img 
-          src="/logo -gif.gif" 
+          src="/ncad-logo-animated.gif" 
           alt="NCAD Logo" 
           class="h-8 mr-4" 
           @error="handleImageError"

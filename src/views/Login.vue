@@ -26,7 +26,7 @@
 
         <!-- Image after the welcome text -->
         <div class="flex justify-center">
-          <img src="/image copy.png" alt="NCAD Archive" class="max-w-full h-auto" />
+          <img src="/ncad-login-hero.png" alt="NCAD Archive" class="max-w-full h-auto" />
         </div>
 
         <form @submit.prevent="handleLogin" class="space-y-4">

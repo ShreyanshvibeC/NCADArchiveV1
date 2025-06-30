@@ -21,7 +21,7 @@
         <!-- Hero Image -->
         <div class="w-full h-64 relative overflow-hidden">
           <img 
-            src="/image copy copy copy copy copy copy copy copy copy copy copy copy copy.png" 
+            src="/ncad-about-banner.png" 
             alt="NCAD Archive - Student Photography Platform" 
             class="w-full h-full object-cover"
             @error="handleImageError"
