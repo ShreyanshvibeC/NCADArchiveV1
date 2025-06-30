@@ -536,11 +536,11 @@ const uploadPhoto = async () => {
       // Set flag for reveal animation on homepage
       sessionStorage.setItem('ncad-archive-from-upload', 'true')
       
-      // Redirect to home page after toast is shown
+      // Redirect to home page immediately after showing toast
       setTimeout(() => {
         console.log('Redirecting to home page...')
         router.push('/')
-      }, 1500) // Wait for toast to be visible
+      }, 800) // Shorter delay - redirect while toast is still visible
     } else {
       console.error('Upload failed:', result.error)
       error.value = result.error || 'Upload failed. Please try again.'
