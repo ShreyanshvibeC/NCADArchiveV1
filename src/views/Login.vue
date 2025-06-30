@@ -17,16 +17,9 @@
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-8">
       <!-- Login Form -->
       <div class="space-y-6">
-        <div class="text-center space-y-4">
-          <h2 class="text-2xl font-bold">Welcome Back</h2>
-          <p class="text-gray-400">
-            Sign in to your NCAD Archive account
-          </p>
-        </div>
-
-        <!-- Image after the welcome text -->
+        <!-- Welcome Back Image -->
         <div class="flex justify-center">
-          <img src="/image copy.png" alt="NCAD Archive" class="max-w-full h-auto" />
+          <img src="/login.png" alt="Welcome Back" class="max-w-full h-auto" />
         </div>
 
         <form @submit.prevent="handleLogin" class="space-y-4">

@@ -17,16 +17,14 @@
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-8">
       <!-- Signup Form -->
       <div class="space-y-6">
-        <div class="text-center space-y-4">
+        <!-- Create Share Explore Image -->
+        <div class="flex justify-center">
+          <img src="/signup.png" alt="Create Share Explore" class="max-w-full h-auto" />
+        </div>
+
+        <!-- Join NCAD Archive Header -->
+        <div class="text-center">
           <h2 class="text-2xl font-bold">Join NCAD Archive</h2>
-          <p class="text-gray-400">
-            Create your account to start sharing and exploring photos
-          </p>
-          <div class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
-            <p class="text-ncad-green text-sm">
-              Use your NCAD email address
-            </p>
-          </div>
         </div>
 
         <form @submit.prevent="handleSignup" class="space-y-4">
