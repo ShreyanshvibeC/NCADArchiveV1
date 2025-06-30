@@ -74,11 +74,11 @@
                     </button>
                   </div>
 
-                  <!-- Info Icon - Top right of image -->
+                  <!-- Info Icon - Top right of image with square design -->
                   <div class="absolute top-4 right-4 z-20">
                     <button 
                       @click="showInfoModal = true"
-                      class="bg-black bg-opacity-75 p-2 hover:bg-opacity-100 transition-all rounded-full"
+                      class="w-8 h-8 bg-black border border-white flex items-center justify-center hover:bg-ncad-dark-gray transition-colors"
                     >
                       <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
@@ -202,58 +202,51 @@
       @shared="onPhotoShared"
     />
 
-    <!-- Info Modal - Instructions for users -->
-    <div v-if="showInfoModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" @click="showInfoModal = false">
-      <div class="bg-black border border-gray-600 w-full max-w-md mx-auto transform transition-transform duration-300" 
-           :class="{ 'scale-100': showInfoModal, 'scale-95': !showInfoModal }"
+    <!-- Info Modal - Bottom Drawer Style matching other modals -->
+    <div v-if="showInfoModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-end justify-center z-50" @click="showInfoModal = false">
+      <div class="bg-black w-full max-w-md mx-auto p-4 space-y-4 transform transition-transform duration-300" 
+           :class="{ 'translate-y-0': showInfoModal, 'translate-y-full': !showInfoModal }"
            @click.stop>
         
-        <!-- Content -->
-        <div class="p-6 space-y-6">
-          <!-- Icon and Title -->
-          <div class="text-center space-y-4">
-            <div class="w-16 h-16 mx-auto bg-ncad-green bg-opacity-20 rounded-full flex items-center justify-center">
-              <svg class="w-8 h-8 text-ncad-green" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-              </svg>
-            </div>
-            
-            <h2 class="text-xl font-bold text-white">How to Use</h2>
-          </div>
-          
-          <!-- Instructions -->
-          <div class="space-y-4 text-gray-300">
+        <!-- Handle bar -->
+        <div class="w-12 h-1 bg-gray-600 mx-auto mb-4"></div>
+        
+        <!-- Header -->
+        <div class="text-center">
+          <h3 class="text-lg font-semibold text-white">How to Use</h3>
+          <p class="text-sm text-gray-400 mt-1">Photo interaction guide</p>
+        </div>
+        
+        <!-- Instructions -->
+        <div class="space-y-4">
+          <div class="bg-black bg-opacity-80 p-4 border-l-4 border-ncad-green">
             <div class="flex items-start space-x-3">
-              <div class="w-8 h-8 bg-ncad-green bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span class="text-ncad-green text-sm font-bold">1</span>
-              </div>
+              <div class="w-6 h-6 bg-ncad-green flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">1</div>
               <div>
-                <p class="text-white font-medium">Swipe right on the image</p>
-                <p class="text-sm text-gray-400 mt-1">to view title and description details</p>
-              </div>
-            </div>
-            
-            <div class="flex items-start space-x-3">
-              <div class="w-8 h-8 bg-ncad-green bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                <span class="text-ncad-green text-sm font-bold">2</span>
-              </div>
-              <div>
-                <p class="text-white font-medium">Double tap the image</p>
-                <p class="text-sm text-gray-400 mt-1">to quickly like the photo</p>
+                <p class="text-white text-sm font-medium">Swipe right on the image</p>
+                <p class="text-gray-400 text-xs mt-1">to view title and description details</p>
               </div>
             </div>
           </div>
           
-          <!-- Close Button -->
-          <div class="pt-4">
-            <button 
-              @click="showInfoModal = false"
-              class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
-            >
-              Got it!
-            </button>
+          <div class="bg-black bg-opacity-80 p-4 border-l-4 border-blue-500">
+            <div class="flex items-start space-x-3">
+              <div class="w-6 h-6 bg-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">2</div>
+              <div>
+                <p class="text-white text-sm font-medium">Double tap the image</p>
+                <p class="text-gray-400 text-xs mt-1">to quickly like the photo</p>
+              </div>
+            </div>
           </div>
         </div>
+        
+        <!-- Close Button -->
+        <button 
+          @click="showInfoModal = false"
+          class="w-full bg-black text-white py-3 px-4 font-medium hover:bg-gray-700 transition-all border border-white"
+        >
+          Got it!
+        </button>
       </div>
     </div>
 
