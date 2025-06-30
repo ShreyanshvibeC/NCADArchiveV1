@@ -42,27 +42,14 @@
     <!-- Hamburger Menu Component -->
     <HamburgerMenu ref="hamburgerMenu" />
 
-    <!-- Photos Loading Screen - Primary loader -->
+    <!-- Photos Loading Screen - Primary loader with original design -->
     <div v-if="showPhotosLoading" class="fixed inset-0 bg-black flex items-center justify-center z-50">
-      <div class="text-center space-y-6">
-        <!-- Loading Animation -->
-        <div class="relative">
-          <div class="w-16 h-16 border-4 border-gray-600 border-t-ncad-green rounded-full animate-spin mx-auto"></div>
-        </div>
-        
-        <!-- Loading Text -->
-        <div class="space-y-2">
-          <h2 class="text-xl font-semibold text-white">{{ loadingProgress }}</h2>
-          <p class="text-gray-400 text-sm">Preparing your creative journey...</p>
-        </div>
-        
-        <!-- Progress Indicator -->
-        <div v-if="imageLoadingProgress > 0" class="w-64 bg-gray-700 rounded-full h-2 mx-auto">
-          <div 
-            class="bg-ncad-green h-2 rounded-full transition-all duration-300"
-            :style="{ width: `${imageLoadingProgress}%` }"
-          ></div>
-        </div>
+      <div class="text-center space-y-4">
+        <!-- Simple loading text with blinking cursor - matching original -->
+        <h2 class="text-xl font-semibold text-white">
+          {{ loadingProgress }}<span class="text-ncad-green animate-blink">|</span>
+        </h2>
+        <p class="text-gray-400 text-sm">Preparing your creative journey...</p>
       </div>
     </div>
 
@@ -256,7 +243,6 @@ const route = useRoute()
 const showPhotosLoading = ref(false)
 const showRevealAnimation = ref(false)
 const loadingProgress = ref('Loading photos...')
-const imageLoadingProgress = ref(0)
 const hamburgerMenu = ref()
 const welcomePopup = ref()
 const devicePopup = ref()
@@ -447,7 +433,6 @@ onMounted(async () => {
       // Show photos loading first
       showPhotosLoading.value = true
       loadingProgress.value = 'Fetching photos...'
-      imageLoadingProgress.value = 0
       
       // Reset pagination state and load initial photos
       galleryStore.resetPagination()
@@ -465,10 +450,9 @@ onMounted(async () => {
       
       loadingProgress.value = 'Loading images...'
       
-      // Preload the top 5 images with progress tracking
+      // Preload the top 5 images
       const imagePromises = topPhotos.map((photo, index) => {
         return preloadImage(photo.imageURL).then(() => {
-          imageLoadingProgress.value = Math.round(((index + 1) / topPhotos.length) * 100)
           loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
         })
       })
