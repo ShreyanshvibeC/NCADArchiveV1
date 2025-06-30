@@ -130,18 +130,19 @@
                 v-model="title"
                 type="text" 
                 required
+                maxlength="25"
                 class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
                 :class="{ 'border-red-500': titleError }"
                 placeholder="Enter a title for your photo"
               />
               
-              <!-- Word count and error message for title -->
+              <!-- Character count and error message for title -->
               <div class="flex justify-between items-center mt-2">
                 <div class="text-xs" :class="titleError ? 'text-red-400' : 'text-gray-400'">
-                  {{ titleWordCount }}/25 words
+                  {{ titleCharCount }}/25 characters
                 </div>
                 <div v-if="titleError" class="text-red-400 text-xs">
-                  Word limit exceeded
+                  Character limit exceeded
                 </div>
               </div>
             </div>
@@ -153,18 +154,19 @@
               <textarea 
                 v-model="description"
                 rows="4"
+                maxlength="250"
                 class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none resize-none transition-colors"
                 :class="{ 'border-red-500': descriptionError }"
                 placeholder="Describe your photo"
               ></textarea>
               
-              <!-- Word count and error message for description -->
+              <!-- Character count and error message for description -->
               <div class="flex justify-between items-center mt-2">
                 <div class="text-xs" :class="descriptionError ? 'text-red-400' : 'text-gray-400'">
-                  {{ descriptionWordCount }}/250 words
+                  {{ descriptionCharCount }}/250 characters
                 </div>
                 <div v-if="descriptionError" class="text-red-400 text-xs">
-                  Word limit exceeded
+                  Character limit exceeded
                 </div>
               </div>
             </div>
@@ -299,23 +301,23 @@ const uploading = ref(false)
 const error = ref('')
 const showUploadToast = ref(false)
 
-// Word counting functions
-const countWords = (text: string): number => {
-  return text.trim() === '' ? 0 : text.trim().split(/\s+/).length
+// Character counting functions
+const countCharacters = (text: string): number => {
+  return text.length
 }
 
-// Computed properties for word counts
-const titleWordCount = computed(() => countWords(title.value))
-const descriptionWordCount = computed(() => countWords(description.value))
+// Computed properties for character counts
+const titleCharCount = computed(() => countCharacters(title.value))
+const descriptionCharCount = computed(() => countCharacters(description.value))
 
-// Check if title exceeds word limit
+// Check if title exceeds character limit
 const titleError = computed(() => {
-  return titleWordCount.value > 25
+  return titleCharCount.value > 25
 })
 
-// Check if description exceeds word limit
+// Check if description exceeds character limit
 const descriptionError = computed(() => {
-  return descriptionWordCount.value > 250
+  return descriptionCharCount.value > 250
 })
 
 // Computed property to check if upload is ready
@@ -339,21 +341,19 @@ const showTroubleshooting = computed(() => {
   )
 })
 
-// Watch title for word limit validation
+// Watch title for character limit validation
 watch(title, (newValue) => {
-  const words = newValue.trim().split(/\s+/)
-  if (words.length > 25 && newValue.trim() !== '') {
-    // Automatically trim to 25 words
-    title.value = words.slice(0, 25).join(' ')
+  if (newValue.length > 25) {
+    // Automatically trim to 25 characters
+    title.value = newValue.substring(0, 25)
   }
 })
 
-// Watch description for word limit validation
+// Watch description for character limit validation
 watch(description, (newValue) => {
-  const words = newValue.trim().split(/\s+/)
-  if (words.length > 250 && newValue.trim() !== '') {
-    // Automatically trim to 250 words
-    description.value = words.slice(0, 250).join(' ')
+  if (newValue.length > 250) {
+    // Automatically trim to 250 characters
+    description.value = newValue.substring(0, 250)
   }
 })
 
@@ -449,15 +449,15 @@ const uploadPhoto = async () => {
     return
   }
   
-  // Check title word limit
-  if (titleWordCount.value > 25) {
-    error.value = 'Title must be 25 words or less'
+  // Check title character limit
+  if (titleCharCount.value > 25) {
+    error.value = 'Title must be 25 characters or less'
     return
   }
   
-  // Check description word limit
-  if (descriptionWordCount.value > 250) {
-    error.value = 'Description must be 250 words or less'
+  // Check description character limit
+  if (descriptionCharCount.value > 250) {
+    error.value = 'Description must be 250 characters or less'
     return
   }
   
