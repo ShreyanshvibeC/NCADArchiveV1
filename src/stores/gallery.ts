@@ -43,17 +43,23 @@ export const useGalleryStore = defineStore('gallery', () => {
   const loading = ref(false)
   const hasMorePhotos = ref(true)
   const lastPhotoDoc = ref(null)
-  const PHOTOS_PER_PAGE = 10
+  
+  // 🚀 OPTIMIZATION: Reduced initial load size
+  const INITIAL_PHOTOS_COUNT = 4  // Reduced from 10 to 4
+  const SUBSEQUENT_PHOTOS_COUNT = 6 // Load more photos in batches of 6
 
   const loadPhotos = async (loadMore = false) => {
     if (loading.value || (!hasMorePhotos.value && loadMore)) return
 
     loading.value = true
     try {
+      // 🚀 Use different limits for initial vs subsequent loads
+      const photosLimit = loadMore ? SUBSEQUENT_PHOTOS_COUNT : INITIAL_PHOTOS_COUNT
+      
       let q = query(
         collection(db, 'photos'), 
         orderBy('timestamp', 'desc'),
-        limit(PHOTOS_PER_PAGE)
+        limit(photosLimit)
       )
 
       // If loading more, start after the last document
@@ -62,7 +68,7 @@ export const useGalleryStore = defineStore('gallery', () => {
           collection(db, 'photos'), 
           orderBy('timestamp', 'desc'),
           startAfter(lastPhotoDoc.value),
-          limit(PHOTOS_PER_PAGE)
+          limit(photosLimit)
         )
       }
 
@@ -81,13 +87,15 @@ export const useGalleryStore = defineStore('gallery', () => {
       }
 
       // Update pagination state
-      if (querySnapshot.docs.length < PHOTOS_PER_PAGE) {
+      if (querySnapshot.docs.length < photosLimit) {
         hasMorePhotos.value = false
       }
       
       if (querySnapshot.docs.length > 0) {
         lastPhotoDoc.value = querySnapshot.docs[querySnapshot.docs.length - 1]
       }
+
+      console.log(`📊 Loaded ${newPhotos.length} photos (${loadMore ? 'subsequent' : 'initial'} load)`)
 
     } catch (error) {
       console.error('Error loading photos:', error)

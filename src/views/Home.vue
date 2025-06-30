@@ -92,7 +92,7 @@
         </div>
 
         <div 
-          v-for="photo in galleryStore.photos" 
+          v-for="(photo, index) in galleryStore.photos" 
           :key="photo.id"
           class="mb-10 cursor-pointer"
           @click="navigateToPhoto(photo.id)"
@@ -102,13 +102,29 @@
             <h2 class="text-2xl font-medium text-white text-left">{{ photo.title }}</h2>
           </div>
 
-          <!-- Image Container - 1:1 aspect ratio with lazy loading -->
+          <!-- 🚀 OPTIMIZED: Image Container with Lazy Loading -->
           <div class="relative w-full aspect-square overflow-hidden">
+            <!-- Placeholder while loading -->
+            <div 
+              v-if="!imageLoaded[photo.id]" 
+              class="w-full h-full bg-gray-800 flex items-center justify-center"
+            >
+              <div class="text-gray-600">
+                <svg class="w-8 h-8 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Actual Image with Lazy Loading -->
             <img 
               :src="photo.imageURL" 
               :alt="photo.title || 'NCAD Archive Photo'"
-              class="w-full h-full object-cover"
+              class="w-full h-full object-cover transition-opacity duration-300"
+              :class="{ 'opacity-0': !imageLoaded[photo.id], 'opacity-100': imageLoaded[photo.id] }"
               loading="lazy"
+              :data-index="index"
+              @load="onImageLoad(photo.id)"
               @error="handleImageError"
             />
             
@@ -154,6 +170,17 @@
         <!-- Loading indicator for pagination -->
         <div v-if="galleryStore.loading" class="text-center py-8">
           <div class="text-gray-400">Loading more photos...</div>
+        </div>
+
+        <!-- 🚀 OPTIMIZED: Load More Button (instead of infinite scroll for better performance) -->
+        <div v-if="galleryStore.hasMorePhotos && !galleryStore.loading && galleryStore.photos.length > 0" class="text-center py-8">
+          <button 
+            @click="loadMorePhotos"
+            :disabled="isLoadingMore"
+            class="bg-ncad-green text-white px-8 py-3 font-medium hover:bg-opacity-80 transition-all disabled:opacity-50"
+          >
+            {{ isLoadingMore ? 'Loading...' : 'Load More Photos' }}
+          </button>
         </div>
 
         <!-- End of photos indicator -->
@@ -260,7 +287,8 @@ const selectedPhoto = ref(null)
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
 
-// Infinite scroll state
+// 🚀 OPTIMIZED: Image loading state tracking
+const imageLoaded = ref<Record<string, boolean>>({})
 const isLoadingMore = ref(false)
 
 // Check if we're coming from upload (to trigger reveal animation)
@@ -268,6 +296,27 @@ const isFromUpload = ref(false)
 
 // Check if page was refreshed
 const isPageRefresh = ref(false)
+
+// 🚀 OPTIMIZED: Image load handler
+const onImageLoad = (photoId: string) => {
+  imageLoaded.value[photoId] = true
+  console.log(`📸 Image loaded: ${photoId}`)
+}
+
+// 🚀 OPTIMIZED: Manual load more function (better than infinite scroll)
+const loadMorePhotos = async () => {
+  if (isLoadingMore.value || !galleryStore.hasMorePhotos) return
+  
+  isLoadingMore.value = true
+  try {
+    await galleryStore.loadPhotos(true) // true = load more
+    console.log('📊 Loaded more photos successfully')
+  } catch (error) {
+    console.error('Error loading more photos:', error)
+  } finally {
+    isLoadingMore.value = false
+  }
+}
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
@@ -346,29 +395,6 @@ const onWelcomePopupClose = () => {
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
   console.warn('Image failed to load:', img.src)
-}
-
-// Infinite scroll functionality
-const handleScroll = async () => {
-  if (isLoadingMore.value || !galleryStore.hasMorePhotos || galleryStore.loading) {
-    return
-  }
-
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-  const windowHeight = window.innerHeight
-  const documentHeight = document.documentElement.scrollHeight
-
-  // Load more when user is 200px from bottom
-  if (scrollTop + windowHeight >= documentHeight - 200) {
-    isLoadingMore.value = true
-    try {
-      await galleryStore.loadPhotos(true) // true = load more
-    } catch (error) {
-      console.error('Error loading more photos:', error)
-    } finally {
-      isLoadingMore.value = false
-    }
-  }
 }
 
 // Detect if page was refreshed
@@ -498,19 +524,21 @@ onMounted(async () => {
         return
       }
       
-      // Get the top 5 most recent photos
-      const topPhotos = galleryStore.photos.slice(0, 5)
+      // 🚀 OPTIMIZED: Only preload first 2 images for faster initial load
+      const topPhotos = galleryStore.photos.slice(0, 2)
       
       loadingProgress.value = 'Loading images...'
       
-      // Preload the top 5 images
+      // Preload only the first 2 images
       const imagePromises = topPhotos.map((photo, index) => {
         return preloadImage(photo.imageURL).then(() => {
           loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
+          // Mark as loaded
+          imageLoaded.value[photo.id] = true
         })
       })
       
-      // Wait for all top 5 images to load
+      // Wait for first 2 images to load
       await Promise.all(imagePromises)
       
       // Hide photos loading and show reveal animation immediately
@@ -529,9 +557,6 @@ onMounted(async () => {
       }, 100)
     }
     
-    // Add scroll listener for infinite scroll
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    
   } catch (error) {
     console.error('Error loading initial content:', error)
     // Hide loading screens and show content even if there's an error
@@ -541,9 +566,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  // Clean up scroll listener
-  window.removeEventListener('scroll', handleScroll)
-  
   // Clean up beforeunload listener
   window.removeEventListener('beforeunload', () => {
     sessionStorage.setItem('ncad-archive-page-refreshed', 'true')

@@ -1,4 +1,8 @@
-export const compressImage = (file: File, targetSize = 800, quality = 0.8): Promise<File> => {
+/**
+ * Enhanced image compression with multiple quality levels and better optimization
+ */
+
+export const compressImage = (file: File, targetSize = 400, quality = 0.6): Promise<File> => {
   return new Promise((resolve) => {
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')!
@@ -12,9 +16,13 @@ export const compressImage = (file: File, targetSize = 800, quality = 0.8): Prom
       const srcX = (width - minDimension) / 2
       const srcY = (height - minDimension) / 2
       
-      // Set canvas to square dimensions
+      // Set canvas to target size (much smaller than before)
       canvas.width = targetSize
       canvas.height = targetSize
+      
+      // Enable image smoothing for better quality at smaller sizes
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
       
       // Draw the center square crop, scaled to target size
       ctx.drawImage(
@@ -23,21 +31,38 @@ export const compressImage = (file: File, targetSize = 800, quality = 0.8): Prom
         0, 0, targetSize, targetSize // Destination: full canvas
       )
       
+      // Use lower quality for much smaller file sizes
       canvas.toBlob((blob) => {
         if (blob) {
           const compressedFile = new File([blob], file.name, {
             type: 'image/jpeg',
             lastModified: Date.now()
           })
+          
+          console.log(`🗜️ Image compressed: ${(file.size / 1024 / 1024).toFixed(2)}MB → ${(blob.size / 1024 / 1024).toFixed(2)}MB`)
           resolve(compressedFile)
         } else {
           resolve(file)
         }
-      }, 'image/jpeg', quality)
+      }, 'image/jpeg', quality) // Reduced from 0.8 to 0.6 for smaller files
     }
     
     img.src = URL.createObjectURL(file)
   })
+}
+
+/**
+ * Create thumbnail for feed display (even smaller)
+ */
+export const createThumbnail = (file: File): Promise<File> => {
+  return compressImage(file, 300, 0.5) // Very small for feed
+}
+
+/**
+ * Create full-size version for detail view
+ */
+export const createFullSize = (file: File): Promise<File> => {
+  return compressImage(file, 800, 0.7) // Larger for detail view
 }
 
 export const getCurrentLocation = (): Promise<{ lat: number; lng: number } | null> => {
