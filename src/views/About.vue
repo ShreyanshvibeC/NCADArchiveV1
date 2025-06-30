@@ -186,7 +186,7 @@
                   href="https://docs.google.com/forms/d/e/1FAIpQLSf-MZETVdtnk2iJgHwr-iYh49HxBANgq4aIzxep3CfaefhQwQ/viewform?usp=sharing&ouid=101717117311011543340"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="text-ncad-green hover:text-opacity-80 transition-colors underline"
+                  class="text-white hover:text-opacity-80 transition-colors underline"
                 >
                   Fill this form → Link
                 </a>
