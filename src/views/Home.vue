@@ -492,7 +492,7 @@ onMounted(async () => {
       await galleryStore.loadPhotos()
       
       if (galleryStore.photos.length === 0) {
-        // No photos to load, hide loading and show reveal animation
+        // No photos to load, hide loading and show reveal animation immediately
         showPhotosLoading.value = false
         showRevealAnimation.value = true
         return
@@ -513,13 +513,9 @@ onMounted(async () => {
       // Wait for all top 5 images to load
       await Promise.all(imagePromises)
       
-      // Hide photos loading and show reveal animation
+      // Hide photos loading and show reveal animation immediately
       showPhotosLoading.value = false
-      
-      // Small delay before showing reveal animation
-      setTimeout(() => {
-        showRevealAnimation.value = true
-      }, 300)
+      showRevealAnimation.value = true
       
       // Mark that homepage has been visited
       sessionStorage.setItem('ncad-archive-homepage-visited', 'true')
