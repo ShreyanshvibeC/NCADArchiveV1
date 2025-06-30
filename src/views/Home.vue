@@ -385,22 +385,25 @@ const onAnimationComplete = () => {
     startTypewriterAnimation()
   })
   
-  // Show device detection popup first, then welcome popup (only for new signups)
+  // Show device detection popup first for new signups only
   if (isFromSignup.value) {
     setTimeout(() => {
       devicePopup.value?.showDevicePopup()
+    }, 1000)
+  } else {
+    // For all other cases, show welcome popup directly after animation
+    setTimeout(() => {
+      welcomePopup.value?.showPopup()
     }, 1000)
   }
 }
 
 const onDevicePopupClose = () => {
   console.log('Device popup closed')
-  // Show welcome popup after device popup is closed (only for new signups)
-  if (isFromSignup.value) {
-    setTimeout(() => {
-      welcomePopup.value?.showPopup()
-    }, 500)
-  }
+  // Show welcome popup after device popup is closed (for new signups)
+  setTimeout(() => {
+    welcomePopup.value?.showPopup()
+  }, 500)
 }
 
 const onWelcomePopupClose = () => {
@@ -631,6 +634,11 @@ onMounted(async () => {
       setTimeout(() => {
         startTypewriterAnimation()
       }, 100)
+      
+      // Show welcome popup for all visitors who haven't seen it this session
+      setTimeout(() => {
+        welcomePopup.value?.showPopup()
+      }, 2000)
     }
     
     // Add scroll listener for infinite scroll with passive option
