@@ -4,7 +4,7 @@
     <div 
       v-if="isOpen"
       class="fixed inset-0 bg-black bg-opacity-75 z-40"
-      @click="isOpen = false"
+      @click="closeMenu"
     ></div>
 
     <!-- Menu Panel - Slides from Right -->
@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter, useRoute } from 'vue-router'
 
@@ -97,7 +97,7 @@ const authStore = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-// Ensure menu starts closed
+// Ensure menu starts closed - explicitly set to false
 const isOpen = ref(false)
 
 // Only show hamburger menu on homepage
@@ -105,17 +105,32 @@ const showMenu = computed(() => {
   return route.name === 'Home'
 })
 
-// Ensure menu is closed when component mounts
+// Force close menu when component mounts
 onMounted(() => {
   isOpen.value = false
+  console.log('HamburgerMenu mounted, isOpen set to:', isOpen.value)
+})
+
+// Watch for route changes and close menu
+watch(() => route.path, () => {
+  closeMenu()
+})
+
+// Watch for showMenu changes and close menu when not on homepage
+watch(showMenu, (newValue) => {
+  if (!newValue) {
+    closeMenu()
+  }
 })
 
 const closeMenu = () => {
   isOpen.value = false
+  console.log('Menu closed, isOpen:', isOpen.value)
 }
 
 const toggleMenu = () => {
   isOpen.value = !isOpen.value
+  console.log('Menu toggled, isOpen:', isOpen.value)
 }
 
 const handleLogout = async () => {
@@ -139,6 +154,6 @@ const handleBannerError = (event: Event) => {
 defineExpose({
   toggleMenu,
   closeMenu,
-  isOpen
+  isOpen: readonly(isOpen) // Make it readonly to prevent external modification
 })
 </script>

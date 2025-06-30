@@ -278,7 +278,7 @@ const showGoneSoonModal = ref(false)
 const selectedPhoto = ref(null)
 const scrollContainer = ref<HTMLElement>()
 
-// Hamburger menu state - ensure it starts closed
+// Hamburger menu state - explicitly ensure it starts closed
 const isMenuOpen = ref(false)
 
 // Like progress tracking
@@ -326,17 +326,34 @@ watch(() => galleryStore.photos, (newPhotos) => {
   })
 }, { immediate: true })
 
-// Function to toggle hamburger menu
+// Function to toggle hamburger menu with explicit state management
 const toggleHamburgerMenu = () => {
+  console.log('Toggle hamburger menu clicked')
   if (hamburgerMenu.value) {
     hamburgerMenu.value.toggleMenu()
+    // Force sync the state
     isMenuOpen.value = hamburgerMenu.value.isOpen
+    console.log('Menu state after toggle:', isMenuOpen.value)
   }
 }
 
-// Watch for hamburger menu state changes
+// Watch for hamburger menu state changes and force close if needed
 watch(() => hamburgerMenu.value?.isOpen, (newValue) => {
+  console.log('Hamburger menu isOpen changed to:', newValue)
   isMenuOpen.value = newValue || false
+  
+  // Force close if it's somehow open when it shouldn't be
+  if (newValue && !route.name === 'Home') {
+    hamburgerMenu.value?.closeMenu()
+  }
+})
+
+// Force close menu when leaving homepage
+watch(() => route.name, (newRouteName) => {
+  if (newRouteName !== 'Home' && hamburgerMenu.value) {
+    hamburgerMenu.value.closeMenu()
+    isMenuOpen.value = false
+  }
 })
 
 // Function to update which photos should be loaded based on viewport
@@ -568,8 +585,23 @@ const startTypewriterAnimation = () => {
 
 onMounted(async () => {
   try {
-    // Ensure hamburger menu starts closed
+    // FORCE hamburger menu to be closed on mount
     isMenuOpen.value = false
+    console.log('Home.vue mounted - forcing menu closed:', isMenuOpen.value)
+    
+    // Also force close the hamburger menu component
+    if (hamburgerMenu.value) {
+      hamburgerMenu.value.closeMenu()
+    }
+    
+    // Double-check after a short delay
+    setTimeout(() => {
+      if (hamburgerMenu.value) {
+        hamburgerMenu.value.closeMenu()
+        isMenuOpen.value = false
+        console.log('Double-check: Menu forced closed')
+      }
+    }, 100)
     
     // Initialize mobile optimizations
     lockOrientationToPortrait()
