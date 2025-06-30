@@ -483,7 +483,7 @@ const shouldShowRevealAnimation = (): boolean => {
          !sessionStorage.getItem('ncad-archive-homepage-visited')
 }
 
-// IMPROVED typewriter animation with better mobile handling
+// Performance optimization: Memoized typewriter animation
 let typewriterAnimationId: number | null = null
 const startTypewriterAnimation = () => {
   const element = document.getElementById("hero-typewriter")
@@ -500,16 +500,14 @@ const startTypewriterAnimation = () => {
   const lines = ["CREATIVE", "TRAILS", "ACROSS", "NCAD"]
   let currentLine = 0
   let currentChar = 0
-  let isRestarting = false
+  let fullText = ""
 
   function typeNextChar() {
-    if (isRestarting) return
-    
     const currentWord = lines[currentLine]
     if (currentChar <= currentWord.length) {
-      const fullText = lines.slice(0, currentLine).join("<br>") +
-                      (currentLine > 0 ? "<br>" : "") +
-                      currentWord.slice(0, currentChar)
+      fullText = lines.slice(0, currentLine).join("<br>") +
+                 (currentLine > 0 ? "<br>" : "") +
+                 currentWord.slice(0, currentChar)
 
       element.innerHTML = fullText + '<span class="text-ncad-green animate-blink">|</span>'
       currentChar++
@@ -524,7 +522,6 @@ const startTypewriterAnimation = () => {
           setTimeout(typeNextChar, 400)
         })
       } else {
-        // All lines completed, wait then restart
         typewriterAnimationId = requestAnimationFrame(() => {
           setTimeout(restartTyping, 4000)
         })
@@ -533,17 +530,10 @@ const startTypewriterAnimation = () => {
   }
 
   function restartTyping() {
-    isRestarting = true
-    
-    // IMPROVED: Clear everything at once (including cursor) for consistent behavior
-    element.innerHTML = ""
-    
-    // Reset variables
     currentLine = 0
     currentChar = 0
-    isRestarting = false
-    
-    // Start typing again after a brief pause
+    fullText = ""
+    element.innerHTML = ""
     typewriterAnimationId = requestAnimationFrame(() => {
       setTimeout(typeNextChar, 400)
     })
