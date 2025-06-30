@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showMenu">
+  <div v-show="showMenu">
     <!-- Menu Overlay -->
     <div 
       v-if="isOpen"
