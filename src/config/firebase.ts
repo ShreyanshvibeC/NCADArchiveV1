@@ -1,8 +1,7 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore'
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getStorage, connectStorageEmulator } from 'firebase/storage'
-import { isMobileDevice } from '../utils/mobileUtils'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -40,16 +39,9 @@ try {
   throw error
 }
 
-// Mobile-optimized Firestore settings
-const firestoreSettings = {
-  localCache: persistentLocalCache({
-    cacheSizeBytes: isMobileDevice() ? 10 * 1024 * 1024 : 40 * 1024 * 1024 // 10MB on mobile vs 40MB desktop
-  })
-}
-
-// Initialize Firebase services with mobile optimization
+// Initialize Firebase services
 export const auth = getAuth(app)
-export const db = initializeFirestore(app, firestoreSettings)
+export const db = getFirestore(app)
 export const storage = getStorage(app)
 
 // Enable persistence for better offline support
@@ -57,15 +49,6 @@ try {
   auth.useDeviceLanguage()
 } catch (error) {
   console.warn('Could not set device language for Firebase Auth:', error)
-}
-
-// Log mobile optimization status
-if (isMobileDevice()) {
-  console.log('Mobile optimizations enabled:', {
-    cacheSize: '10MB',
-    optimizedQueries: true,
-    reducedBatchSizes: true
-  })
 }
 
 export default app

@@ -57,7 +57,7 @@
           <div class="w-3 h-3 bg-white loading-dot"></div>
         </div>
         
-        <p class="text-gray-400 text-sm">{{ mobileLoadingMessage }}</p>
+        <p class="text-gray-400 text-sm">Preparing your creative journey...</p>
       </div>
     </div>
 
@@ -105,12 +105,11 @@
           <!-- Image Container - 1:1 aspect ratio with lazy loading -->
           <div class="relative w-full aspect-square overflow-hidden">
             <img 
-              :src="getMobileOptimizedImageUrl(photo.imageURL)" 
+              :src="photo.imageURL" 
               :alt="photo.title || 'NCAD Archive Photo'"
-              class="w-full h-full object-cover mobile-optimized-image"
-              :loading="isMobileDevice() ? 'lazy' : 'eager'"
+              class="w-full h-full object-cover"
+              loading="lazy"
               @error="handleImageError"
-              @load="handleImageLoad"
             />
             
             <!-- Temporary Badge - Clickable -->
@@ -154,7 +153,7 @@
 
         <!-- Loading indicator for pagination -->
         <div v-if="galleryStore.loading" class="text-center py-8">
-          <div class="text-gray-400">{{ mobileLoadingMessage }}</div>
+          <div class="text-gray-400">Loading more photos...</div>
         </div>
 
         <!-- End of photos indicator -->
@@ -243,9 +242,6 @@ import RevealAnimation from '../components/RevealAnimation.vue'
 import WelcomePopup from '../components/WelcomePopup.vue'
 import DeviceDetectionPopup from '../components/DeviceDetectionPopup.vue'
 import { lockOrientationToPortrait, showRotationWarning } from '../utils/deviceUtils'
-import { isMobileDevice, getMobileOptimizedImageUrl, createMobileIntersectionObserver } from '../utils/mobileUtils'
-import { MobilePerformanceTracker } from '../utils/mobilePerformance'
-import { preloadImage } from '../utils/imageUtils'
 
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
@@ -273,16 +269,17 @@ const isFromUpload = ref(false)
 // Check if page was refreshed
 const isPageRefresh = ref(false)
 
-// Mobile-specific loading messages
-const mobileLoadingMessage = ref('Preparing your creative journey...')
-
-// Mobile intersection observer
-let intersectionObserver: IntersectionObserver | null = null
-
-// Function to preload an image with mobile optimization
-const preloadImageMobile = (src: string): Promise<void> => {
-  const optimizedSrc = getMobileOptimizedImageUrl(src)
-  return preloadImage(optimizedSrc)
+// Function to preload an image
+const preloadImage = (src: string): Promise<void> => {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => resolve()
+    img.onerror = () => {
+      console.warn(`Failed to load image: ${src}`)
+      resolve() // Resolve instead of reject to allow Promise.all to continue
+    }
+    img.src = src
+  })
 }
 
 const handleUploadClick = () => {
@@ -351,15 +348,7 @@ const handleImageError = (event: Event) => {
   console.warn('Image failed to load:', img.src)
 }
 
-// Handle image load success with mobile performance tracking
-const handleImageLoad = (event: Event) => {
-  const img = event.target as HTMLImageElement
-  if (isMobileDevice()) {
-    MobilePerformanceTracker.trackImageLoad(img.src)
-  }
-}
-
-// Mobile-optimized infinite scroll functionality
+// Infinite scroll functionality
 const handleScroll = async () => {
   if (isLoadingMore.value || !galleryStore.hasMorePhotos || galleryStore.loading) {
     return
@@ -369,10 +358,8 @@ const handleScroll = async () => {
   const windowHeight = window.innerHeight
   const documentHeight = document.documentElement.scrollHeight
 
-  // Mobile-optimized scroll threshold
-  const scrollThreshold = isMobileDevice() ? 150 : 200
-  
-  if (scrollTop + windowHeight >= documentHeight - scrollThreshold) {
+  // Load more when user is 200px from bottom
+  if (scrollTop + windowHeight >= documentHeight - 200) {
     isLoadingMore.value = true
     try {
       await galleryStore.loadPhotos(true) // true = load more
@@ -381,33 +368,6 @@ const handleScroll = async () => {
     } finally {
       isLoadingMore.value = false
     }
-  }
-}
-
-// Mobile preloading strategy
-const mobilePreloadStrategy = async () => {
-  if (!isMobileDevice()) return
-  
-  // Only preload the next 2 images on mobile
-  const currentLength = galleryStore.photos.length
-  const nextImages = galleryStore.photos.slice(currentLength - 2, currentLength)
-  
-  nextImages.forEach(photo => {
-    const link = document.createElement('link')
-    link.rel = 'prefetch' // Use prefetch instead of preload on mobile
-    link.href = getMobileOptimizedImageUrl(photo.imageURL)
-    document.head.appendChild(link)
-  })
-}
-
-// Update mobile loading messages based on connection
-const updateMobileLoadingMessage = () => {
-  if (!isMobileDevice()) return
-  
-  if (MobilePerformanceTracker.isSlowConnection()) {
-    mobileLoadingMessage.value = 'Optimizing for your connection...'
-  } else {
-    mobileLoadingMessage.value = 'Preparing your creative journey...'
   }
 }
 
@@ -493,36 +453,11 @@ const startTypewriterAnimation = () => {
   typeNextChar()
 }
 
-// Setup mobile intersection observer for lazy loading
-const setupMobileIntersectionObserver = () => {
-  if (intersectionObserver) {
-    intersectionObserver.disconnect()
-  }
-  
-  intersectionObserver = createMobileIntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const img = entry.target as HTMLImageElement
-        if (img.dataset.src) {
-          img.src = getMobileOptimizedImageUrl(img.dataset.src)
-          intersectionObserver?.unobserve(img)
-        }
-      }
-    })
-  })
-}
-
 onMounted(async () => {
   try {
     // Initialize mobile optimizations
     lockOrientationToPortrait()
     showRotationWarning()
-    
-    // Setup mobile intersection observer
-    setupMobileIntersectionObserver()
-    
-    // Update mobile loading messages
-    updateMobileLoadingMessage()
     
     // Detect page refresh
     isPageRefresh.value = detectPageRefresh()
@@ -544,8 +479,7 @@ onMounted(async () => {
     console.log('Animation triggers:', {
       isFromUpload: isFromUpload.value,
       isPageRefresh: isPageRefresh.value,
-      shouldShowAnimations,
-      isMobile: isMobileDevice()
+      shouldShowAnimations
     })
     
     if (shouldShowAnimations) {
@@ -564,20 +498,19 @@ onMounted(async () => {
         return
       }
       
-      // Get the top photos for preloading (fewer on mobile)
-      const topPhotosCount = isMobileDevice() ? 3 : 5
-      const topPhotos = galleryStore.photos.slice(0, topPhotosCount)
+      // Get the top 5 most recent photos
+      const topPhotos = galleryStore.photos.slice(0, 5)
       
       loadingProgress.value = 'Loading images...'
       
-      // Preload the top images with mobile optimization
+      // Preload the top 5 images
       const imagePromises = topPhotos.map((photo, index) => {
-        return preloadImageMobile(photo.imageURL).then(() => {
+        return preloadImage(photo.imageURL).then(() => {
           loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
         })
       })
       
-      // Wait for all top images to load
+      // Wait for all top 5 images to load
       await Promise.all(imagePromises)
       
       // Hide photos loading and show reveal animation immediately
@@ -596,14 +529,8 @@ onMounted(async () => {
       }, 100)
     }
     
-    // Add scroll listener for infinite scroll with mobile optimization
-    const scrollOptions = isMobileDevice() ? { passive: true } : { passive: true }
-    window.addEventListener('scroll', handleScroll, scrollOptions)
-    
-    // Setup mobile preloading strategy
-    if (isMobileDevice()) {
-      setTimeout(mobilePreloadStrategy, 2000)
-    }
+    // Add scroll listener for infinite scroll
+    window.addEventListener('scroll', handleScroll, { passive: true })
     
   } catch (error) {
     console.error('Error loading initial content:', error)
@@ -617,31 +544,9 @@ onUnmounted(() => {
   // Clean up scroll listener
   window.removeEventListener('scroll', handleScroll)
   
-  // Clean up intersection observer
-  if (intersectionObserver) {
-    intersectionObserver.disconnect()
-  }
-  
   // Clean up beforeunload listener
   window.removeEventListener('beforeunload', () => {
     sessionStorage.setItem('ncad-archive-page-refreshed', 'true')
   })
 })
-
-// Watch for photos changes to trigger mobile preloading
-watch(() => galleryStore.photos.length, () => {
-  if (isMobileDevice()) {
-    setTimeout(mobilePreloadStrategy, 1000)
-  }
-})
 </script>
-
-<style scoped>
-/* Mobile-specific optimizations */
-@media (max-width: 768px) {
-  .mobile-optimized-image {
-    will-change: transform;
-    backface-visibility: hidden;
-  }
-}
-</style>
