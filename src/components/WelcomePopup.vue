@@ -75,19 +75,19 @@ const closePopup = () => {
   isVisible.value = false
   emit('close')
   
-  // Store in localStorage that user has seen the welcome popup
-  localStorage.setItem('ncad-archive-welcome-shown', 'true')
+  // Store in sessionStorage that user has seen the welcome popup for this session
+  sessionStorage.setItem('ncad-archive-welcome-shown', 'true')
 }
 
 const showPopup = () => {
-  // Check if user has already seen the welcome popup
-  const hasSeenWelcome = localStorage.getItem('ncad-archive-welcome-shown')
+  // Check if user has already seen the welcome popup in this session
+  const hasSeenWelcome = sessionStorage.getItem('ncad-archive-welcome-shown')
   
   if (!hasSeenWelcome) {
-    // Show popup after 5 seconds
+    // Show popup after 2 seconds (reduced from 5 seconds)
     setTimeout(() => {
       isVisible.value = true
-    }, 5000)
+    }, 2000)
   }
 }
 
