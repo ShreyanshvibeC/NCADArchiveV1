@@ -221,8 +221,6 @@
         <div class="space-y-4">
           <div class="bg-black bg-opacity-80 p-4 border-l-4 border-ncad-green">
             <div class="flex items-start space-x-3">
-              <div class="w-6 h-6 bg-ncad-green flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">1</div>
-              <div>
                 <p class="text-white text-sm font-medium">Swipe right on the image</p>
                 <p class="text-gray-400 text-xs mt-1">to view title and description details</p>
               </div>
@@ -231,8 +229,6 @@
           
           <div class="bg-black bg-opacity-80 p-4 border-l-4 border-blue-500">
             <div class="flex items-start space-x-3">
-              <div class="w-6 h-6 bg-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">2</div>
-              <div>
                 <p class="text-white text-sm font-medium">Double tap the image</p>
                 <p class="text-gray-400 text-xs mt-1">to quickly like the photo</p>
               </div>
