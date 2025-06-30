@@ -1,28 +1,27 @@
 <template>
   <div class="min-h-screen bg-black p-4">
-    <!-- Header -->
-<header class="flex items-center justify-between bg-black py-4 px-4">
-  <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-    </svg>
-  </button>
+    <!-- Header with Desktop Margins -->
+    <header class="flex items-center justify-between bg-black py-4 px-4 xl:px-[200px]">
+      <button @click="$router.back()" class="p-2 text-white hover:text-gray-400 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+      </button>
 
-  <h1 class="text-xl font-semibold text-white leading-none">{{ isOwnProfile ? 'Profile' : `${profileUser?.name || 'User'}'s Profile` }}</h1>
+      <h1 class="text-xl font-semibold text-white leading-none">{{ isOwnProfile ? 'Profile' : `${profileUser?.name || 'User'}'s Profile` }}</h1>
 
-  <button
-    v-if="authStore.isAuthenticated && isOwnProfile"
-    @click="handleLogout"
-    class="p-2 text-gray-400 hover:text-white text-sm transition-colors"
-  >
-    Logout
-  </button>
-  <div v-else class="w-6"></div>
-</header>
-
+      <button
+        v-if="authStore.isAuthenticated && isOwnProfile"
+        @click="handleLogout"
+        class="p-2 text-gray-400 hover:text-white text-sm transition-colors"
+      >
+        Logout
+      </button>
+      <div v-else class="w-6"></div>
+    </header>
 
     <!-- Main Content Container with Desktop Margins -->
-    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-8">
+    <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-8 xl:px-[200px]">
       <!-- Loading State -->
       <div v-if="loading" class="flex justify-center items-center py-12">
         <div class="text-gray-400">Loading...</div>
