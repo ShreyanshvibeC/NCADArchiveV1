@@ -36,7 +36,7 @@
               v-model="name"
               type="text" 
               required
-              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors rounded-none"
               placeholder="Enter your name"
             />
           </div>
@@ -47,7 +47,7 @@
               v-model="email"
               type="email" 
               required
-              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
+              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors rounded-none"
               :class="{ 'border-red-500': emailError }"
               placeholder="Enter your NCAD email address"
               @input="validateEmail"
@@ -60,26 +60,56 @@
 
           <div>
             <label class="block text-sm font-medium mb-2">Password</label>
-            <input 
-              v-model="password"
-              type="password" 
-              required
-              minlength="6"
-              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
-              placeholder="Create a password (min 6 characters)"
-            />
+            <div class="relative">
+              <input 
+                v-model="password"
+                :type="showPassword ? 'text' : 'password'" 
+                required
+                minlength="6"
+                class="w-full bg-black border border-gray-600 p-3 pr-12 text-white focus:border-white focus:outline-none transition-colors rounded-none"
+                placeholder="Create a password (min 6 characters)"
+              />
+              <button 
+                type="button"
+                @click="showPassword = !showPassword"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              >
+                <svg v-if="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium mb-2">Confirm Password</label>
-            <input 
-              v-model="confirmPassword"
-              type="password" 
-              required
-              minlength="6"
-              class="w-full bg-black border border-gray-600 p-3 text-white focus:border-white focus:outline-none transition-colors"
-              placeholder="Confirm your password"
-            />
+            <div class="relative">
+              <input 
+                v-model="confirmPassword"
+                :type="showConfirmPassword ? 'text' : 'password'" 
+                required
+                minlength="6"
+                class="w-full bg-black border border-gray-600 p-3 pr-12 text-white focus:border-white focus:outline-none transition-colors rounded-none"
+                placeholder="Confirm your password"
+              />
+              <button 
+                type="button"
+                @click="showConfirmPassword = !showConfirmPassword"
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              >
+                <svg v-if="showConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"></path>
+                </svg>
+                <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <!-- Error Message Display -->
@@ -131,6 +161,8 @@ const loading = ref(false)
 const error = ref('')
 const success = ref('')
 const emailError = ref('')
+const showPassword = ref(false)
+const showConfirmPassword = ref(false)
 
 const isValidForm = computed(() => {
   return name.value && 
@@ -143,7 +175,7 @@ const isValidForm = computed(() => {
 
 const validateEmail = () => {
   if (email.value && !authStore.validateNCADEmail(email.value)) {
-    emailError.value = 'Please use your NCAD email address'
+    emailError.value = 'Access is limited to NCAD email accounts. Please use your NCAD email to continue.'
   } else {
     emailError.value = ''
   }
@@ -168,7 +200,7 @@ const handleSignup = async () => {
   
   // Validate NCAD email
   if (!authStore.validateNCADEmail(email.value)) {
-    error.value = 'Please use your NCAD email address'
+    error.value = 'Access is limited to NCAD email accounts. Please use your NCAD email to continue.'
     return
   }
   

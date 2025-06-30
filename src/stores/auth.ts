@@ -142,7 +142,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!validateNCADEmail(email)) {
         return { 
           success: false, 
-          error: 'Only NCAD email addresses ending with .ncad.ie are allowed to access this platform.' 
+          error: 'Access is limited to NCAD email accounts. Please use your NCAD email to continue.' 
         }
       }
       
@@ -160,13 +160,13 @@ export const useAuthStore = defineStore('auth', () => {
       let userFriendlyMessage = 'Login failed. Please try again.'
       
       if (error.code === 'auth/user-not-found') {
-        userFriendlyMessage = 'Looks like the email ID is incorrect. Please check your email address.'
+        userFriendlyMessage = 'We couldn\'t find an account with that email. Please check and try again.'
       } else if (error.code === 'auth/wrong-password') {
-        userFriendlyMessage = 'Maybe the email ID or the password is not correct. Please check your credentials.'
+        userFriendlyMessage = 'Incorrect password. Please try again.'
       } else if (error.code === 'auth/invalid-email') {
         userFriendlyMessage = 'Please enter a valid email address.'
       } else if (error.code === 'auth/invalid-credential') {
-        userFriendlyMessage = 'Maybe the email ID or the password is not correct. Please check your credentials and try again.'
+        userFriendlyMessage = 'Email or password is incorrect. Please check your details and try again.'
       } else if (error.code === 'auth/user-disabled') {
         userFriendlyMessage = 'This account has been disabled.'
       } else if (error.code === 'auth/too-many-requests') {
@@ -185,7 +185,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (!validateNCADEmail(email)) {
         return { 
           success: false, 
-          error: 'Only NCAD email addresses ending with .ncad.ie are allowed to create accounts on this platform.' 
+          error: 'Accounts can only be created with an NCAD email. Please use your NCAD email.' 
         }
       }
       
