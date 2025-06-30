@@ -13,6 +13,12 @@
       <div class="w-6"></div>
     </header>
 
+    <!-- Upload Success Toast -->
+    <UploadToast 
+      :is-visible="showUploadToast"
+      @hide="showUploadToast = false"
+    />
+
     <!-- Main Content Container with Desktop Margins -->
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-8">
       <!-- Authentication Check -->
@@ -233,11 +239,6 @@
               </label>
             </div>
 
-            <!-- Success Message -->
-            <div v-if="success" class="bg-ncad-green bg-opacity-20 border border-ncad-green p-3">
-              <p class="text-ncad-green text-sm">{{ success }}</p>
-            </div>
-
             <!-- Error Message -->
             <div v-if="error" class="bg-red-900 bg-opacity-20 border border-red-500 p-3">
               <p class="text-red-400 text-sm">{{ error }}</p>
@@ -280,6 +281,7 @@ import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { compressImage, getCurrentLocation } from '../utils/imageUtils'
 import { getAuth } from 'firebase/auth'
+import UploadToast from '../components/UploadToast.vue'
 
 const router = useRouter()
 const galleryStore = useGalleryStore()
@@ -295,7 +297,7 @@ const isTemporary = ref(false)
 const includeLocation = ref(true) // Default to true (enabled by default)
 const uploading = ref(false)
 const error = ref('')
-const success = ref('')
+const showUploadToast = ref(false)
 
 // Word counting functions
 const countWords = (text: string): number => {
@@ -392,8 +394,7 @@ const clearSelection = () => {
   isTemporary.value = false
   includeLocation.value = true // Reset to default (enabled)
   error.value = ''
-  success.value = ''
-  
+
   // Reset both file inputs
   if (cameraInput.value) {
     cameraInput.value.value = ''
@@ -462,7 +463,6 @@ const uploadPhoto = async () => {
   
   uploading.value = true
   error.value = ''
-  success.value = ''
   
   try {
     console.log('Starting upload process...')
@@ -522,7 +522,9 @@ const uploadPhoto = async () => {
     
     if (result.success) {
       console.log('Photo uploaded successfully, ID:', result.photoId)
-      success.value = 'Photo uploaded successfully! Redirecting...'
+      
+      // Show success toast
+      showUploadToast.value = true
       
       // Increment user upload count
       await authStore.incrementUploadCount()
@@ -531,11 +533,14 @@ const uploadPhoto = async () => {
       // Clear form
       clearSelection()
       
-      // Redirect directly to home page after a short delay
+      // Set flag for reveal animation on homepage
+      sessionStorage.setItem('ncad-archive-from-upload', 'true')
+      
+      // Redirect to home page after toast is shown
       setTimeout(() => {
         console.log('Redirecting to home page...')
         router.push('/')
-      }, 1000) // Reduced delay to 1 second for faster redirect
+      }, 1500) // Wait for toast to be visible
     } else {
       console.error('Upload failed:', result.error)
       error.value = result.error || 'Upload failed. Please try again.'

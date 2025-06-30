@@ -42,6 +42,30 @@
     <!-- Hamburger Menu Component -->
     <HamburgerMenu ref="hamburgerMenu" />
 
+    <!-- Photos Loading Screen - Primary loader -->
+    <div v-if="showPhotosLoading" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+      <div class="text-center space-y-6">
+        <!-- Loading Animation -->
+        <div class="relative">
+          <div class="w-16 h-16 border-4 border-gray-600 border-t-ncad-green rounded-full animate-spin mx-auto"></div>
+        </div>
+        
+        <!-- Loading Text -->
+        <div class="space-y-2">
+          <h2 class="text-xl font-semibold text-white">{{ loadingProgress }}</h2>
+          <p class="text-gray-400 text-sm">Preparing your creative journey...</p>
+        </div>
+        
+        <!-- Progress Indicator -->
+        <div v-if="imageLoadingProgress > 0" class="w-64 bg-gray-700 rounded-full h-2 mx-auto">
+          <div 
+            class="bg-ncad-green h-2 rounded-full transition-all duration-300"
+            :style="{ width: `${imageLoadingProgress}%` }"
+          ></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Main Content Container with Desktop Margins and top padding for marquee + fixed header -->
     <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl pt-[100px]">
       <!-- Hero Section -->
@@ -62,7 +86,7 @@
 
       <!-- Image Feed -->
       <div class="pb-24">
-        <div v-if="galleryStore.photos.length === 0 && !galleryStore.loading" class="text-center py-12 text-gray-400">
+        <div v-if="galleryStore.photos.length === 0 && !galleryStore.loading && !showPhotosLoading" class="text-center py-12 text-gray-400">
           <p>No photos uploaded yet</p>
           <button 
             @click="handleUploadClick"
@@ -152,7 +176,7 @@
       <span class="text-4xl font-bold relative z-10">+</span>
     </button> 
 
-    <!-- Reveal Animation - Show after images are loaded, on top of main content -->
+    <!-- Screen Reveal Animation - Show after photos are loaded -->
     <RevealAnimation 
       v-if="showRevealAnimation" 
       @animation-complete="onAnimationComplete"
@@ -216,7 +240,7 @@
 import { onMounted, ref, watch, onUnmounted } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import MarqueeBanner from '../components/MarqueeBanner.vue'
 import HamburgerMenu from '../components/HamburgerMenu.vue'
 import RevealAnimation from '../components/RevealAnimation.vue'
@@ -227,10 +251,12 @@ import { lockOrientationToPortrait, showRotationWarning } from '../utils/deviceU
 const galleryStore = useGalleryStore()
 const authStore = useAuthStore()
 const router = useRouter()
+const route = useRoute()
 
-const initialImagesLoaded = ref(false)
+const showPhotosLoading = ref(false)
 const showRevealAnimation = ref(false)
 const loadingProgress = ref('Loading photos...')
+const imageLoadingProgress = ref(0)
 const hamburgerMenu = ref()
 const welcomePopup = ref()
 const devicePopup = ref()
@@ -242,6 +268,9 @@ const likingInProgress = ref<Record<string, boolean>>({})
 
 // Infinite scroll state
 const isLoadingMore = ref(false)
+
+// Check if we're coming from upload (to trigger reveal animation)
+const isFromUpload = ref(false)
 
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
@@ -315,13 +344,6 @@ const onDevicePopupClose = () => {
 const onWelcomePopupClose = () => {
   console.log('Welcome popup closed')
 }
-
-// Watch for when initial images are loaded to trigger reveal animation
-watch(initialImagesLoaded, (loaded) => {
-  if (loaded) {
-    showRevealAnimation.value = true
-  }
-})
 
 // Handle image loading errors
 const handleImageError = (event: Event) => {
@@ -398,49 +420,90 @@ const startTypewriterAnimation = () => {
   typeNextChar()
 }
 
+// Check if we should show reveal animation
+const shouldShowRevealAnimation = (): boolean => {
+  // Show reveal animation if:
+  // 1. Coming from upload (isFromUpload is true)
+  // 2. First time visiting homepage (no session storage)
+  return isFromUpload.value || !sessionStorage.getItem('ncad-archive-homepage-visited')
+}
+
 onMounted(async () => {
   try {
     // Initialize mobile optimizations
     lockOrientationToPortrait()
     showRotationWarning()
     
-    loadingProgress.value = 'Fetching photos...'
+    // Check if coming from upload
+    isFromUpload.value = sessionStorage.getItem('ncad-archive-from-upload') === 'true'
     
-    // Reset pagination state and load initial photos
-    galleryStore.resetPagination()
-    await galleryStore.loadPhotos()
+    // Clear the upload flag
+    sessionStorage.removeItem('ncad-archive-from-upload')
     
-    if (galleryStore.photos.length === 0) {
-      // No photos to load, show the page and trigger reveal animation
-      initialImagesLoaded.value = true
-      return
-    }
+    // Determine if we should show animations
+    const shouldShowAnimations = shouldShowRevealAnimation()
     
-    // Get the top 5 most recent photos
-    const topPhotos = galleryStore.photos.slice(0, 5)
-    
-    loadingProgress.value = 'Loading images...'
-    
-    // Preload the top 5 images
-    const imagePromises = topPhotos.map((photo, index) => {
-      return preloadImage(photo.imageURL).then(() => {
-        loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
+    if (shouldShowAnimations) {
+      // Show photos loading first
+      showPhotosLoading.value = true
+      loadingProgress.value = 'Fetching photos...'
+      imageLoadingProgress.value = 0
+      
+      // Reset pagination state and load initial photos
+      galleryStore.resetPagination()
+      await galleryStore.loadPhotos()
+      
+      if (galleryStore.photos.length === 0) {
+        // No photos to load, hide loading and show reveal animation
+        showPhotosLoading.value = false
+        showRevealAnimation.value = true
+        return
+      }
+      
+      // Get the top 5 most recent photos
+      const topPhotos = galleryStore.photos.slice(0, 5)
+      
+      loadingProgress.value = 'Loading images...'
+      
+      // Preload the top 5 images with progress tracking
+      const imagePromises = topPhotos.map((photo, index) => {
+        return preloadImage(photo.imageURL).then(() => {
+          imageLoadingProgress.value = Math.round(((index + 1) / topPhotos.length) * 100)
+          loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
+        })
       })
-    })
-    
-    // Wait for all top 5 images to load
-    await Promise.all(imagePromises)
-    
-    // Mark initial images as loaded - this will trigger the reveal animation
-    initialImagesLoaded.value = true
+      
+      // Wait for all top 5 images to load
+      await Promise.all(imagePromises)
+      
+      // Hide photos loading and show reveal animation
+      showPhotosLoading.value = false
+      
+      // Small delay before showing reveal animation
+      setTimeout(() => {
+        showRevealAnimation.value = true
+      }, 300)
+      
+      // Mark that homepage has been visited
+      sessionStorage.setItem('ncad-archive-homepage-visited', 'true')
+    } else {
+      // No animations needed, just load photos normally
+      await galleryStore.loadPhotos()
+      
+      // Start typewriter animation immediately
+      setTimeout(() => {
+        startTypewriterAnimation()
+      }, 100)
+    }
     
     // Add scroll listener for infinite scroll
     window.addEventListener('scroll', handleScroll, { passive: true })
     
   } catch (error) {
     console.error('Error loading initial content:', error)
-    // Show the main content even if there's an error
-    initialImagesLoaded.value = true
+    // Hide loading screens and show content even if there's an error
+    showPhotosLoading.value = false
+    showRevealAnimation.value = false
   }
 })
 
