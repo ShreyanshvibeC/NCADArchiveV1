@@ -73,6 +73,7 @@
   border: 3px solid transparent;
   animation: rainbow 3s linear infinite;
   overflow: hidden;
+  will-change: background-position; /* Performance optimization */
 }
 
 .rainbow-button::before {
@@ -89,6 +90,7 @@
   filter: blur(12px);
   animation: rainbow 3s linear infinite;
   pointer-events: none;
+  will-change: background-position; /* Performance optimization */
 }
 
 /* Shimmer effect overlay */ 
@@ -111,6 +113,7 @@
   animation: shimmer 6s ease-in-out infinite;
   pointer-events: none;
   z-index: 1;
+  will-change: transform; /* Performance optimization */
 }
 
 /* Ensure the button content stays above the shimmer */
@@ -165,6 +168,7 @@
 /* Loading dots animation utility classes */
 .loading-dot {
   animation: loadingDots 1.5s ease-in-out infinite;
+  will-change: transform, opacity; /* Performance optimization */
 }
 
 .loading-dot:nth-child(1) {
@@ -182,15 +186,16 @@
 /* Spinner animation utility class */
 .animate-spin {
   animation: spin 1s linear infinite;
+  will-change: transform; /* Performance optimization */
 }
 
-/* Define Spenser font family using local WOFF files */
+/* Define Spenser font family using local WOFF files with font-display: swap for better performance */
 @font-face {
   font-family: 'Spenser';
   src: url('/fonts/Spenser-Regular.woff') format('woff');
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: swap; /* Performance optimization */
 }
 
 @font-face {
@@ -198,7 +203,7 @@
   src: url('/fonts/Spenser-Medium.woff') format('woff');
   font-weight: 500;
   font-style: normal;
-  font-display: swap;
+  font-display: swap; /* Performance optimization */
 }
 
 @font-face {
@@ -206,7 +211,7 @@
   src: url('/fonts/Spenser-Bold.woff') format('woff');
   font-weight: 700;
   font-style: normal;
-  font-display: swap;
+  font-display: swap; /* Performance optimization */
 }
 
 body {
@@ -214,4 +219,24 @@ body {
   background-color: #000000;
   color: #ffffff;
   font-family: 'Spenser', sans-serif;
+}
+
+/* Performance optimizations for images */
+img {
+  content-visibility: auto; /* Performance optimization */
+}
+
+/* Performance optimizations for transitions */
+* {
+  backface-visibility: hidden; /* Prevent flickering during animations */
+}
+
+/* Optimize scrolling performance */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Performance optimization for large lists */
+.photo-container {
+  contain: layout style paint; /* CSS containment for better performance */
 }

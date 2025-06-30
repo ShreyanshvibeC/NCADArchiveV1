@@ -68,7 +68,7 @@ export default defineConfig({
       }
     },
     // Enable source maps for better debugging
-    sourcemap: true,
+    sourcemap: false, // Disable in production for better performance
     // Optimize assets
     assetsInlineLimit: 4096,
     // Enable compression
@@ -76,7 +76,8 @@ export default defineConfig({
     terserOptions: {
       compress: {
         drop_console: true,
-        drop_debugger: true
+        drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info', 'console.debug']
       }
     }
   },
@@ -85,5 +86,9 @@ export default defineConfig({
     hmr: {
       overlay: false
     }
+  },
+  // Performance optimizations
+  optimizeDeps: {
+    include: ['vue', 'vue-router', 'pinia', 'firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage']
   }
 })

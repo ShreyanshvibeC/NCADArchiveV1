@@ -45,6 +45,12 @@ export const useGalleryStore = defineStore('gallery', () => {
   const lastPhotoDoc = ref(null)
   const PHOTOS_PER_PAGE = 10
 
+  // Performance optimization: Cache for user names
+  const userNameCache = ref(new Map<string, string>())
+
+  // Performance optimization: Cache for photo states
+  const photoStateCache = ref(new Map<string, { liked: boolean; saved: boolean }>())
+
   const loadPhotos = async (loadMore = false) => {
     if (loading.value || (!hasMorePhotos.value && loadMore)) return
 
@@ -253,7 +259,11 @@ export const useGalleryStore = defineStore('gallery', () => {
       const userId = getCurrentUserId()
       if (!userId) throw new Error('User not authenticated')
       
-      const likeRef = doc(db, 'likes', `${userId}_${photoId}`)
+      // Check cache first
+      const cacheKey = `${userId}_${photoId}`
+      const cached = photoStateCache.value.get(cacheKey)
+      
+      const likeRef = doc(db, 'likes', cacheKey)
       const likeDoc = await getDoc(likeRef)
       
       const photoRef = doc(db, 'photos', photoId)
@@ -270,6 +280,9 @@ export const useGalleryStore = defineStore('gallery', () => {
         if (photo) {
           photo.likes = Math.max(0, photo.likes - 1)
         }
+        
+        // Update cache
+        photoStateCache.value.set(cacheKey, { ...cached, liked: false })
         
         return false // Not liked anymore
       } else {
@@ -289,6 +302,9 @@ export const useGalleryStore = defineStore('gallery', () => {
           photo.likes++
         }
         
+        // Update cache
+        photoStateCache.value.set(cacheKey, { ...cached, liked: true })
+        
         return true // Now liked
       }
     } catch (error) {
@@ -302,9 +318,21 @@ export const useGalleryStore = defineStore('gallery', () => {
       const userId = getCurrentUserId()
       if (!userId) return false
       
-      const likeRef = doc(db, 'likes', `${userId}_${photoId}`)
+      // Check cache first
+      const cacheKey = `${userId}_${photoId}`
+      const cached = photoStateCache.value.get(cacheKey)
+      if (cached !== undefined) {
+        return cached.liked
+      }
+      
+      const likeRef = doc(db, 'likes', cacheKey)
       const likeDoc = await getDoc(likeRef)
-      return likeDoc.exists()
+      const isLiked = likeDoc.exists()
+      
+      // Update cache
+      photoStateCache.value.set(cacheKey, { liked: isLiked, saved: cached?.saved || false })
+      
+      return isLiked
     } catch (error) {
       console.error('Error checking if photo is liked:', error)
       return false
@@ -322,6 +350,11 @@ export const useGalleryStore = defineStore('gallery', () => {
         photoId,
         timestamp: new Date()
       })
+      
+      // Update cache
+      const cacheKey = `${userId}_${photoId}`
+      const cached = photoStateCache.value.get(cacheKey)
+      photoStateCache.value.set(cacheKey, { ...cached, saved: true })
     } catch (error) {
       console.error('Error saving photo:', error)
       throw error
@@ -335,6 +368,11 @@ export const useGalleryStore = defineStore('gallery', () => {
       
       const saveRef = doc(db, 'savedPhotos', `${userId}_${photoId}`)
       await deleteDoc(saveRef)
+      
+      // Update cache
+      const cacheKey = `${userId}_${photoId}`
+      const cached = photoStateCache.value.get(cacheKey)
+      photoStateCache.value.set(cacheKey, { ...cached, saved: false })
     } catch (error) {
       console.error('Error unsaving photo:', error)
       throw error
@@ -346,9 +384,21 @@ export const useGalleryStore = defineStore('gallery', () => {
       const userId = getCurrentUserId()
       if (!userId) return false
       
-      const saveRef = doc(db, 'savedPhotos', `${userId}_${photoId}`)
+      // Check cache first
+      const cacheKey = `${userId}_${photoId}`
+      const cached = photoStateCache.value.get(cacheKey)
+      if (cached !== undefined) {
+        return cached.saved
+      }
+      
+      const saveRef = doc(db, 'savedPhotos', cacheKey)
       const saveDoc = await getDoc(saveRef)
-      return saveDoc.exists()
+      const isSaved = saveDoc.exists()
+      
+      // Update cache
+      photoStateCache.value.set(cacheKey, { saved: isSaved, liked: cached?.liked || false })
+      
+      return isSaved
     } catch (error) {
       console.error('Error checking if photo is saved:', error)
       return false
@@ -504,6 +554,10 @@ export const useGalleryStore = defineStore('gallery', () => {
         console.log('✅ Photo removed from main photos array')
       }
       
+      // Clear cache entries for this photo
+      const keysToDelete = Array.from(photoStateCache.value.keys()).filter(key => key.endsWith(`_${photoId}`))
+      keysToDelete.forEach(key => photoStateCache.value.delete(key))
+      
       // Step 6: Force refresh photos from server to ensure consistency
       console.log('🔄 Refreshing photos from server...')
       await loadPhotos()
@@ -632,12 +686,17 @@ export const useGalleryStore = defineStore('gallery', () => {
         throw new Error('Authentication token expired. Please sign out and sign back in.')
       }
       
-      // Get user's name for denormalization
+      // Get user's name for denormalization (check cache first)
       console.log('Getting user name for denormalization...')
-      const userDoc = await getDoc(doc(db, 'users', photoData.userId))
-      let authorName = 'Anonymous'
-      if (userDoc.exists()) {
-        authorName = userDoc.data().name || 'Anonymous'
+      let authorName = userNameCache.value.get(photoData.userId)
+      if (!authorName) {
+        const userDoc = await getDoc(doc(db, 'users', photoData.userId))
+        if (userDoc.exists()) {
+          authorName = userDoc.data().name || 'Anonymous'
+          userNameCache.value.set(photoData.userId, authorName)
+        } else {
+          authorName = 'Anonymous'
+        }
       }
       console.log('Author name:', authorName)
       
@@ -709,9 +768,17 @@ export const useGalleryStore = defineStore('gallery', () => {
 
   const getUserName = async (userId: string): Promise<string> => {
     try {
+      // Check cache first
+      const cached = userNameCache.value.get(userId)
+      if (cached) {
+        return cached
+      }
+
       const userDoc = await getDoc(doc(db, 'users', userId))
       if (userDoc.exists()) {
-        return userDoc.data().name || 'Anonymous'
+        const name = userDoc.data().name || 'Anonymous'
+        userNameCache.value.set(userId, name)
+        return name
       }
       return 'Anonymous'
     } catch (error) {
@@ -725,6 +792,12 @@ export const useGalleryStore = defineStore('gallery', () => {
     photos.value = []
     hasMorePhotos.value = true
     lastPhotoDoc.value = null
+  }
+
+  // Performance optimization: Clear caches
+  const clearCaches = () => {
+    userNameCache.value.clear()
+    photoStateCache.value.clear()
   }
 
   return {
@@ -744,7 +817,8 @@ export const useGalleryStore = defineStore('gallery', () => {
     isPhotoSaved,
     toggleLike,
     isPhotoLiked,
-    resetPagination
+    resetPagination,
+    clearCaches
   }
 })
 

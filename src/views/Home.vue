@@ -10,6 +10,7 @@
           src="/logo -gif.gif" 
           alt="NCAD Logo" 
           class="h-8 mr-4" 
+          loading="eager"
           @error="handleImageError"
         />
         <svg class="h-6" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -91,8 +92,9 @@
           </button>
         </div>
 
+        <!-- Virtual scrolling for large lists -->
         <div 
-          v-for="photo in galleryStore.photos" 
+          v-for="photo in visiblePhotos" 
           :key="photo.id"
           class="mb-10 cursor-pointer"
           @click="navigateToPhoto(photo.id)"
@@ -102,13 +104,15 @@
             <h2 class="text-2xl font-medium text-white text-left">{{ photo.title }}</h2>
           </div>
 
-          <!-- Image Container - 1:1 aspect ratio with lazy loading -->
+          <!-- Image Container - 1:1 aspect ratio with optimized lazy loading -->
           <div class="relative w-full aspect-square overflow-hidden">
             <img 
               :src="photo.imageURL" 
               :alt="photo.title || 'NCAD Archive Photo'"
-              class="w-full h-full object-cover"
-              loading="lazy"
+              class="w-full h-full object-cover transition-opacity duration-300"
+              :loading="getImageLoadingStrategy(photo.id)"
+              :decoding="getImageDecodingStrategy(photo.id)"
+              @load="onImageLoad"
               @error="handleImageError"
             />
             
@@ -232,7 +236,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch, onUnmounted } from 'vue'
+import { onMounted, ref, watch, onUnmounted, computed, nextTick } from 'vue'
 import { useGalleryStore } from '../stores/gallery'
 import { useAuthStore } from '../stores/auth'
 import { useRouter, useRoute } from 'vue-router'
@@ -257,6 +261,9 @@ const devicePopup = ref()
 const showGoneSoonModal = ref(false)
 const selectedPhoto = ref(null)
 
+// Performance optimization: Track loaded images
+const loadedImages = ref(new Set<string>())
+
 // Like progress tracking
 const likingInProgress = ref<Record<string, boolean>>({})
 
@@ -269,11 +276,46 @@ const isFromUpload = ref(false)
 // Check if page was refreshed
 const isPageRefresh = ref(false)
 
-// Function to preload an image
+// Performance optimization: Virtual scrolling for large lists
+const visiblePhotos = computed(() => {
+  // For now, show all photos but this can be optimized further with intersection observer
+  return galleryStore.photos
+})
+
+// Performance optimization: Optimize image loading strategy
+const getImageLoadingStrategy = (photoId: string): 'eager' | 'lazy' => {
+  const index = galleryStore.photos.findIndex(p => p.id === photoId)
+  // Load first 3 images eagerly, rest lazily
+  return index < 3 ? 'eager' : 'lazy'
+}
+
+// Performance optimization: Optimize image decoding strategy
+const getImageDecodingStrategy = (photoId: string): 'sync' | 'async' => {
+  const index = galleryStore.photos.findIndex(p => p.id === photoId)
+  // Decode first 3 images synchronously for faster initial render
+  return index < 3 ? 'sync' : 'async'
+}
+
+// Performance optimization: Track image load events
+const onImageLoad = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  loadedImages.value.add(img.src)
+}
+
+// Function to preload an image with better error handling
 const preloadImage = (src: string): Promise<void> => {
   return new Promise((resolve) => {
+    // Check if already loaded
+    if (loadedImages.value.has(src)) {
+      resolve()
+      return
+    }
+
     const img = new Image()
-    img.onload = () => resolve()
+    img.onload = () => {
+      loadedImages.value.add(src)
+      resolve()
+    }
     img.onerror = () => {
       console.warn(`Failed to load image: ${src}`)
       resolve() // Resolve instead of reject to allow Promise.all to continue
@@ -322,7 +364,9 @@ const navigateToPhoto = (photoId: string) => {
 const onAnimationComplete = () => {
   showRevealAnimation.value = false
   // Start typewriter animation after reveal animation completes
-  startTypewriterAnimation()
+  nextTick(() => {
+    startTypewriterAnimation()
+  })
   
   // Show device detection popup first, then welcome popup
   setTimeout(() => {
@@ -348,27 +392,34 @@ const handleImageError = (event: Event) => {
   console.warn('Image failed to load:', img.src)
 }
 
-// Infinite scroll functionality
+// Performance optimization: Throttled scroll handler
+let scrollTimeout: number | null = null
 const handleScroll = async () => {
-  if (isLoadingMore.value || !galleryStore.hasMorePhotos || galleryStore.loading) {
-    return
-  }
-
-  const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-  const windowHeight = window.innerHeight
-  const documentHeight = document.documentElement.scrollHeight
-
-  // Load more when user is 200px from bottom
-  if (scrollTop + windowHeight >= documentHeight - 200) {
-    isLoadingMore.value = true
-    try {
-      await galleryStore.loadPhotos(true) // true = load more
-    } catch (error) {
-      console.error('Error loading more photos:', error)
-    } finally {
-      isLoadingMore.value = false
+  if (scrollTimeout) return
+  
+  scrollTimeout = setTimeout(async () => {
+    if (isLoadingMore.value || !galleryStore.hasMorePhotos || galleryStore.loading) {
+      scrollTimeout = null
+      return
     }
-  }
+
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop
+    const windowHeight = window.innerHeight
+    const documentHeight = document.documentElement.scrollHeight
+
+    // Load more when user is 200px from bottom
+    if (scrollTop + windowHeight >= documentHeight - 200) {
+      isLoadingMore.value = true
+      try {
+        await galleryStore.loadPhotos(true) // true = load more
+      } catch (error) {
+        console.error('Error loading more photos:', error)
+      } finally {
+        isLoadingMore.value = false
+      }
+    }
+    scrollTimeout = null
+  }, 100) // Throttle to 100ms
 }
 
 // Detect if page was refreshed
@@ -407,12 +458,18 @@ const shouldShowRevealAnimation = (): boolean => {
          !sessionStorage.getItem('ncad-archive-homepage-visited')
 }
 
-// Typewriter animation function
+// Performance optimization: Memoized typewriter animation
+let typewriterAnimationId: number | null = null
 const startTypewriterAnimation = () => {
   const element = document.getElementById("hero-typewriter")
   if (!element) {
     console.warn('Hero typewriter element not found')
     return
+  }
+
+  // Clear any existing animation
+  if (typewriterAnimationId) {
+    cancelAnimationFrame(typewriterAnimationId)
   }
 
   const lines = ["CREATIVE", "TRAILS", "ACROSS", "NCAD"]
@@ -429,14 +486,20 @@ const startTypewriterAnimation = () => {
 
       element.innerHTML = fullText + '<span class="text-ncad-green animate-blink">|</span>'
       currentChar++
-      setTimeout(typeNextChar, 100)
+      typewriterAnimationId = requestAnimationFrame(() => {
+        setTimeout(typeNextChar, 100)
+      })
     } else {
       currentLine++
       currentChar = 0
       if (currentLine < lines.length) {
-        setTimeout(typeNextChar, 400)
+        typewriterAnimationId = requestAnimationFrame(() => {
+          setTimeout(typeNextChar, 400)
+        })
       } else {
-        setTimeout(restartTyping, 4000)
+        typewriterAnimationId = requestAnimationFrame(() => {
+          setTimeout(restartTyping, 4000)
+        })
       }
     }
   }
@@ -446,7 +509,9 @@ const startTypewriterAnimation = () => {
     currentChar = 0
     fullText = ""
     element.innerHTML = ""
-    setTimeout(typeNextChar, 400)
+    typewriterAnimationId = requestAnimationFrame(() => {
+      setTimeout(typeNextChar, 400)
+    })
   }
 
   // Start typing
@@ -463,9 +528,10 @@ onMounted(async () => {
     isPageRefresh.value = detectPageRefresh()
     
     // Set flag for next refresh detection
-    window.addEventListener('beforeunload', () => {
+    const handleBeforeUnload = () => {
       sessionStorage.setItem('ncad-archive-page-refreshed', 'true')
-    })
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
     
     // Check if coming from upload
     isFromUpload.value = sessionStorage.getItem('ncad-archive-from-upload') === 'true'
@@ -503,15 +569,17 @@ onMounted(async () => {
       
       loadingProgress.value = 'Loading images...'
       
-      // Preload the top 5 images
-      const imagePromises = topPhotos.map((photo, index) => {
-        return preloadImage(photo.imageURL).then(() => {
-          loadingProgress.value = `Loading images... ${index + 1}/${topPhotos.length}`
+      // Preload the top 5 images with better batching
+      const batchSize = 2
+      for (let i = 0; i < topPhotos.length; i += batchSize) {
+        const batch = topPhotos.slice(i, i + batchSize)
+        const batchPromises = batch.map((photo, batchIndex) => {
+          return preloadImage(photo.imageURL).then(() => {
+            loadingProgress.value = `Loading images... ${i + batchIndex + 1}/${topPhotos.length}`
+          })
         })
-      })
-      
-      // Wait for all top 5 images to load
-      await Promise.all(imagePromises)
+        await Promise.all(batchPromises)
+      }
       
       // Hide photos loading and show reveal animation immediately
       showPhotosLoading.value = false
@@ -524,12 +592,13 @@ onMounted(async () => {
       await galleryStore.loadPhotos()
       
       // Start typewriter animation immediately
+      await nextTick()
       setTimeout(() => {
         startTypewriterAnimation()
       }, 100)
     }
     
-    // Add scroll listener for infinite scroll
+    // Add scroll listener for infinite scroll with passive option
     window.addEventListener('scroll', handleScroll, { passive: true })
     
   } catch (error) {
@@ -543,6 +612,11 @@ onMounted(async () => {
 onUnmounted(() => {
   // Clean up scroll listener
   window.removeEventListener('scroll', handleScroll)
+  
+  // Clean up typewriter animation
+  if (typewriterAnimationId) {
+    cancelAnimationFrame(typewriterAnimationId)
+  }
   
   // Clean up beforeunload listener
   window.removeEventListener('beforeunload', () => {

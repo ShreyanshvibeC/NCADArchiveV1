@@ -18,6 +18,7 @@
           src="/image copy copy copy copy copy copy copy copy copy copy.png" 
           alt="NCAD Archive" 
           class="w-full h-auto object-cover"
+          loading="lazy"
           @error="handleBannerError"
         />
       </div>
@@ -27,7 +28,7 @@
         <nav class="space-y-2 mb-8">
           <router-link 
             to="/" 
-            @click="isOpen = false"
+            @click="closeMenu"
             class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'Home' }"
           >
@@ -36,7 +37,7 @@
 
           <router-link 
             to="/about" 
-            @click="isOpen = false"
+            @click="closeMenu"
             class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'About' }"
           >
@@ -45,7 +46,7 @@
 
           <router-link 
             to="/profile" 
-            @click="isOpen = false"
+            @click="closeMenu"
             class="flex items-center text-white hover:text-ncad-green transition-colors py-3 text-xl font-medium"
             :class="{ 'text-ncad-green': $route.name === 'Profile' }"
           >
@@ -58,14 +59,14 @@
           <div v-if="!authStore.isAuthenticated" class="space-y-3">
             <router-link 
               to="/login" 
-              @click="isOpen = false"
+              @click="closeMenu"
               class="block w-full bg-ncad-green text-white text-center py-2 px-4 font-medium hover:bg-opacity-80 transition-all"
             >
               SIGN IN
             </router-link>
             <router-link 
               to="/signup" 
-              @click="isOpen = false"
+              @click="closeMenu"
               class="block w-full bg-black text-white text-center py-2 px-4 font-medium hover:bg-ncad-dark-gray transition-all border border-white"
             >
               CREATE ACCOUNT
@@ -103,10 +104,14 @@ const showMenu = computed(() => {
   return route.name === 'Home'
 })
 
+const closeMenu = () => {
+  isOpen.value = false
+}
+
 const handleLogout = async () => {
   try {
     await authStore.logout()
-    isOpen.value = false
+    closeMenu()
     router.push('/')
   } catch (error) {
     console.error('Error during logout:', error)
