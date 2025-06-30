@@ -64,13 +64,25 @@
                     @dblclick="toggleLike"
                   />
                   
-                  <!-- Temporary Badge - Clickable -->
+                  <!-- Temporary Badge - Only on front side -->
                   <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
                     <button 
                       @click="showGoneSoonModal = true"
                       class="bg-black border border-white px-3 py-1 hover:bg-ncad-dark-gray transition-colors"
                     >
                       <span class="text-xs font-medium text-white">GONE SOON</span>
+                    </button>
+                  </div>
+
+                  <!-- Info Icon - Top right of image -->
+                  <div class="absolute top-4 right-4 z-20">
+                    <button 
+                      @click="showInfoModal = true"
+                      class="bg-black bg-opacity-75 p-2 hover:bg-opacity-100 transition-all rounded-full"
+                    >
+                      <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                      </svg>
                     </button>
                   </div>
 
@@ -189,6 +201,61 @@
       @close="showShareModal = false"
       @shared="onPhotoShared"
     />
+
+    <!-- Info Modal - Instructions for users -->
+    <div v-if="showInfoModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" @click="showInfoModal = false">
+      <div class="bg-black border border-gray-600 w-full max-w-md mx-auto transform transition-transform duration-300" 
+           :class="{ 'scale-100': showInfoModal, 'scale-95': !showInfoModal }"
+           @click.stop>
+        
+        <!-- Content -->
+        <div class="p-6 space-y-6">
+          <!-- Icon and Title -->
+          <div class="text-center space-y-4">
+            <div class="w-16 h-16 mx-auto bg-ncad-green bg-opacity-20 rounded-full flex items-center justify-center">
+              <svg class="w-8 h-8 text-ncad-green" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            
+            <h2 class="text-xl font-bold text-white">How to Use</h2>
+          </div>
+          
+          <!-- Instructions -->
+          <div class="space-y-4 text-gray-300">
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-ncad-green bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-ncad-green text-sm font-bold">1</span>
+              </div>
+              <div>
+                <p class="text-white font-medium">Swipe right on the image</p>
+                <p class="text-sm text-gray-400 mt-1">to view title and description details</p>
+              </div>
+            </div>
+            
+            <div class="flex items-start space-x-3">
+              <div class="w-8 h-8 bg-ncad-green bg-opacity-20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <span class="text-ncad-green text-sm font-bold">2</span>
+              </div>
+              <div>
+                <p class="text-white font-medium">Double tap the image</p>
+                <p class="text-sm text-gray-400 mt-1">to quickly like the photo</p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Close Button -->
+          <div class="pt-4">
+            <button 
+              @click="showInfoModal = false"
+              class="w-full bg-ncad-green text-white py-3 px-4 font-medium hover:bg-opacity-80 transition-all"
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- Gone Soon Modal - Bottom Drawer Style -->
     <div v-if="showGoneSoonModal" class="fixed inset-0 bg-black bg-opacity-75 flex items-end justify-center z-50" @click="showGoneSoonModal = false">
@@ -332,7 +399,8 @@ const deleting = ref(false)
 const deleteError = ref('')
 const showLocationDrawer = ref(false)
 const showShareModal = ref(false)
-const showGoneSoonModal = ref(false) // New modal state
+const showGoneSoonModal = ref(false)
+const showInfoModal = ref(false) // New modal state for instructions
 
 // New reactive variables for like improvements
 const likingInProgress = ref(false)
