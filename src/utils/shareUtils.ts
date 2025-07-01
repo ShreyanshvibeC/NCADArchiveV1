@@ -19,20 +19,20 @@ export const createShareMessage = (shareData: ShareData): string => {
   const title = shareData.title || 'NCAD Archive Photo'
   const description = shareData.description || ''
   
-  let message = title
-  
+  let message = `*${title}*` // Bold
+
   if (description) {
-    message += `\n\n${description}`
+    message += `\n\n_${description}_` // Italic
   }
-  
-  message += `\n\nExplore creative trails from across NCAD — a window you may have overlooked.`
-  
+
+  message += `\n\nExplore creative trails from across NCAD — a window you might have overlooked.`
   message += `\n\nlink link 👉 ${shareData.pageUrl}`
-  
-  message += `\n\n#NCADArchive #MadeAtNCAD`
-  
+  message += `\n\n#NCADArchive #NCADArchive`
+
   return message
 }
+
+
 
 /**
  * Creates a thumbnail from an image URL with enhanced CORS handling
