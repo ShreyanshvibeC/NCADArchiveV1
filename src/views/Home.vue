@@ -9,9 +9,8 @@
         <img 
           src="/logo -gif.gif" 
           alt="NCAD Logo" 
-          class="h-8 mr-4 cursor-pointer" 
+          class="h-8 mr-4" 
           @error="handleImageError"
-          @click="openWelcomePopupForTesting"
         />
         <svg class="h-6" viewBox="0 0 120 20" fill="none" xmlns="http://www.w3.org/2000/svg">
           <text x="0" y="15" fill="white" font-family="Spenser" font-size="18" font-weight="900">ARCHIVE</text>
@@ -352,12 +351,6 @@ const onDevicePopupClose = () => {
 
 const onWelcomePopupClose = () => {
   console.log('Welcome popup closed')
-}
-
-// Testing function to open welcome popup
-const openWelcomePopupForTesting = () => {
-  console.log('🧪 Opening welcome popup for testing')
-  welcomePopup.value?.showPopupForTesting()
 }
 
 // Handle image loading errors
