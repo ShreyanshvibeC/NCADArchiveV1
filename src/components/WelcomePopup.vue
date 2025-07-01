@@ -1,5 +1,5 @@
 <template>
-  <!-- Welcome Popup Overlay -->
+  <!-- Welcome Popup Overlay - Vertically and horizontally centered -->
   <div v-if="isVisible" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" @click="closePopup">
     <div class="bg-black border border-gray-600 w-full max-w-md mx-auto transform transition-transform duration-300 relative" 
          :class="{ 'scale-100': isVisible, 'scale-95': !isVisible }"
@@ -84,7 +84,7 @@ const showPopup = () => {
   const hasSeenWelcome = sessionStorage.getItem('ncad-archive-welcome-shown')
   
   if (!hasSeenWelcome) {
-    // Show popup after 2 seconds (reduced from 5 seconds)
+    // Show popup after 2 seconds
     setTimeout(() => {
       isVisible.value = true
     }, 2000)

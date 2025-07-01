@@ -263,12 +263,6 @@ const likingInProgress = ref<Record<string, boolean>>({})
 // Infinite scroll state
 const isLoadingMore = ref(false)
 
-// Check if we're coming from upload (to trigger reveal animation)
-const isFromUpload = ref(false)
-
-// Check if page was refreshed
-const isPageRefresh = ref(false)
-
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
   return new Promise((resolve) => {
@@ -371,40 +365,10 @@ const handleScroll = async () => {
   }
 }
 
-// Detect if page was refreshed
-const detectPageRefresh = (): boolean => {
-  // Check if page was refreshed using performance navigation API
-  if (performance.navigation) {
-    return performance.navigation.type === performance.navigation.TYPE_RELOAD
-  }
-  
-  // Fallback for modern browsers
-  if (performance.getEntriesByType) {
-    const navigationEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
-    if (navigationEntries.length > 0) {
-      return navigationEntries[0].type === 'reload'
-    }
-  }
-  
-  // Additional check using session storage
-  const wasRefreshed = sessionStorage.getItem('ncad-archive-page-refreshed')
-  if (wasRefreshed) {
-    sessionStorage.removeItem('ncad-archive-page-refreshed')
-    return true
-  }
-  
-  return false
-}
-
-// Check if we should show reveal animation
+// Check if we should show reveal animation - only for first visit in session
 const shouldShowRevealAnimation = (): boolean => {
-  // Show reveal animation if:
-  // 1. Coming from upload (isFromUpload is true)
-  // 2. Page was refreshed (isPageRefresh is true)
-  // 3. First time visiting homepage (no session storage)
-  return isFromUpload.value || 
-         isPageRefresh.value || 
-         !sessionStorage.getItem('ncad-archive-homepage-visited')
+  // Show reveal animation only if this is the first time visiting homepage in this session
+  return !sessionStorage.getItem('ncad-archive-homepage-visited')
 }
 
 // Typewriter animation function
@@ -459,27 +423,12 @@ onMounted(async () => {
     lockOrientationToPortrait()
     showRotationWarning()
     
-    // Detect page refresh
-    isPageRefresh.value = detectPageRefresh()
-    
-    // Set flag for next refresh detection
-    window.addEventListener('beforeunload', () => {
-      sessionStorage.setItem('ncad-archive-page-refreshed', 'true')
-    })
-    
-    // Check if coming from upload
-    isFromUpload.value = sessionStorage.getItem('ncad-archive-from-upload') === 'true'
-    
-    // Clear the upload flag
-    sessionStorage.removeItem('ncad-archive-from-upload')
-    
-    // Determine if we should show animations
+    // Determine if we should show animations - only for first visit in session
     const shouldShowAnimations = shouldShowRevealAnimation()
     
-    console.log('Animation triggers:', {
-      isFromUpload: isFromUpload.value,
-      isPageRefresh: isPageRefresh.value,
-      shouldShowAnimations
+    console.log('Animation trigger:', {
+      shouldShowAnimations,
+      hasVisitedBefore: !!sessionStorage.getItem('ncad-archive-homepage-visited')
     })
     
     if (shouldShowAnimations) {
@@ -495,6 +444,8 @@ onMounted(async () => {
         // No photos to load, hide loading and show reveal animation immediately
         showPhotosLoading.value = false
         showRevealAnimation.value = true
+        // Mark that homepage has been visited
+        sessionStorage.setItem('ncad-archive-homepage-visited', 'true')
         return
       }
       
@@ -543,10 +494,5 @@ onMounted(async () => {
 onUnmounted(() => {
   // Clean up scroll listener
   window.removeEventListener('scroll', handleScroll)
-  
-  // Clean up beforeunload listener
-  window.removeEventListener('beforeunload', () => {
-    sessionStorage.setItem('ncad-archive-page-refreshed', 'true')
-  })
 })
 </script>
