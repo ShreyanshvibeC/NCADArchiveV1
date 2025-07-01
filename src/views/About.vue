@@ -44,7 +44,7 @@
             </p>
             
             <p>
-              From spontaneous art installations in forgotten corners to the buzz of studio life, from quiet study nooks to explosive exhibition openings – let's document it all. Every photo tells a story, every location holds a memory, and every moment captured adds to our legacy.
+             From unexpected art spots to focused😏 studios, chill corners to wild openings — let’s shoot it all. Every pic’s a story, every spot’s a memory, and it all adds up to our legacy.
             </p>
           </div>
         </section>
