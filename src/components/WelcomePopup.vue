@@ -62,7 +62,7 @@
                 </svg>
                 <div>
                   <p class="text-sm text-gray-400">
-                    On the Photo Page: Double tap to like, swipe to view description
+                    On the Photo Page -> Double tap to like a photo, Swipe left to view title and description
                   </p>
                 </div>
               </div>
@@ -74,7 +74,7 @@
                 </svg>
                 <div>
                   <p class="text-sm text-gray-400">
-                    Share your work. Explore what others are creating across NCAD.
+                   Explore what others are creating across NCAD. A space exclusive to the NCAD community.
                   </p>
                 </div>
               </div>
