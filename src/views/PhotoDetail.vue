@@ -74,7 +74,7 @@
                     </button>
                   </div>
 
-                  <!-- Info Icon - Top right of image with square design -->
+                  <!-- Info Icon - Top right of image with square design - Only on front side -->
                   <div class="absolute top-4 right-4 z-20">
                     <button 
                       @click="showInfoModal = true"
@@ -99,7 +99,7 @@
                   </div>
                 </div>
 
-                <!-- Back Side - Title and Description -->
+                <!-- Back Side - Title and Description (NO badges or icons here) -->
                 <div class="card-face card-back absolute inset-0 backface-hidden rotate-y-180 flex flex-col items-center justify-center p-8" style="background-color: #1F2022;">
                   <div class="text-center space-y-4">
                     <!-- Title -->
