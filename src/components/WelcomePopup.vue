@@ -147,7 +147,7 @@ const goToSlide = (index: number) => {
 const startAutoSlide = () => {
   autoSlideInterval.value = setInterval(() => {
     nextSlide()
-  }, 3000) // 3 seconds
+  }, 4000) // 4 seconds
 }
 
 const stopAutoSlide = () => {
