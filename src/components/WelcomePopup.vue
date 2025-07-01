@@ -64,13 +64,17 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { isMobileDevice } from '../utils/deviceUtils'
 
 const emit = defineEmits<{
   'close': []
 }>()
 
 const isVisible = ref(false)
+
+// Device detection function
+const isMobileDevice = (): boolean => {
+  return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
 
 const closePopup = () => {
   isVisible.value = false
@@ -85,15 +89,62 @@ const showPopup = () => {
   const hasSeenWelcome = sessionStorage.getItem('ncad-archive-welcome-shown')
   
   if (!hasSeenWelcome) {
-    if (isMobileDevice()) {
-      // Mobile: Show popup after 2 seconds (only welcome popup, no device popup)
-      setTimeout(() => {
-        isVisible.value = true
-      }, 2000)
-    } else {
-      // Desktop/Non-mobile: Show popup immediately when called (after device popup)
-      isVisible.value = true
-    }
+    console.log('📱 Showing welcome popup - device type:', isMobileDevice() ? 'mobile' : 'desktop')
+    isVisible.value = true
+  } else {
+    console.log('📱 Welcome popup already shown in this session')
+  }
+}
+
+// For testing - show popup immediately (can be used on any device for testing)
+const showPopupForTesting = () => {
+  isVisible.value = true
+}
+
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  console.warn('Popup image failed to load:', img.src)
+}
+
+// Expose functions for parent component
+defineExpose({
+  showPopup,
+  showPopupForTesting
+})
+</script>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const emit = defineEmits<{
+  'close': []
+}>()
+
+const isVisible = ref(false)
+
+// Device detection function
+const isMobileDevice = (): boolean => {
+  return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
+const closePopup = () => {
+  isVisible.value = false
+  emit('close')
+  
+  // Store in sessionStorage that user has seen the welcome popup for this session
+  sessionStorage.setItem('ncad-archive-welcome-shown', 'true')
+}
+
+const showPopup = () => {
+  // Check if user has already seen the welcome popup in this session
+  const hasSeenWelcome = sessionStorage.getItem('ncad-archive-welcome-shown')
+  
+  if (!hasSeenWelcome) {
+    console.log('📱 Showing welcome popup - device type:', isMobileDevice() ? 'mobile' : 'desktop')
+    isVisible.value = true
+  } else {
+    console.log('📱 Welcome popup already shown in this session')
   }
 }
 

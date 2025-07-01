@@ -263,6 +263,11 @@ const likingInProgress = ref<Record<string, boolean>>({})
 // Infinite scroll state
 const isLoadingMore = ref(false)
 
+// Device detection function
+const isMobileDevice = (): boolean => {
+  return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+}
+
 // Function to preload an image
 const preloadImage = (src: string): Promise<void> => {
   return new Promise((resolve) => {
@@ -318,18 +323,30 @@ const onAnimationComplete = () => {
   // Start typewriter animation after reveal animation completes
   startTypewriterAnimation()
   
-  // Show device detection popup first, then welcome popup
-  setTimeout(() => {
-    devicePopup.value?.showDevicePopup()
-  }, 1000)
+  // Handle popup display based on device type
+  if (isMobileDevice()) {
+    // Mobile: Show welcome popup directly after 2 seconds
+    console.log('📱 Mobile device detected - showing welcome popup after 2 seconds')
+    setTimeout(() => {
+      welcomePopup.value?.showPopup()
+    }, 2000)
+  } else {
+    // Desktop: Show device detection popup first, then welcome popup
+    console.log('🖥️ Desktop device detected - showing device popup first')
+    setTimeout(() => {
+      devicePopup.value?.showDevicePopup()
+    }, 1000)
+  }
 }
 
 const onDevicePopupClose = () => {
   console.log('Device popup closed')
-  // Show welcome popup after device popup is closed
-  setTimeout(() => {
-    welcomePopup.value?.showPopup()
-  }, 500)
+  // Show welcome popup after device popup is closed (only for desktop)
+  if (!isMobileDevice()) {
+    setTimeout(() => {
+      welcomePopup.value?.showPopup()
+    }, 500)
+  }
 }
 
 const onWelcomePopupClose = () => {
@@ -428,7 +445,8 @@ onMounted(async () => {
     
     console.log('Animation trigger:', {
       shouldShowAnimations,
-      hasVisitedBefore: !!sessionStorage.getItem('ncad-archive-homepage-visited')
+      hasVisitedBefore: !!sessionStorage.getItem('ncad-archive-homepage-visited'),
+      isMobile: isMobileDevice()
     })
     
     if (shouldShowAnimations) {
@@ -478,6 +496,17 @@ onMounted(async () => {
       setTimeout(() => {
         startTypewriterAnimation()
       }, 100)
+      
+      // For mobile devices, show welcome popup after 2 seconds if not shown before
+      if (isMobileDevice()) {
+        const hasSeenWelcome = sessionStorage.getItem('ncad-archive-welcome-shown')
+        if (!hasSeenWelcome) {
+          console.log('📱 Mobile device - showing welcome popup after 2 seconds (no animations)')
+          setTimeout(() => {
+            welcomePopup.value?.showPopup()
+          }, 2000)
+        }
+      }
     }
     
     // Add scroll listener for infinite scroll
