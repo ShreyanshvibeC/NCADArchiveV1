@@ -40,11 +40,11 @@
           <div class="space-y-4 text-gray-300 leading-relaxed">
             <p class="text-lg">
               <strong class="text-white">NCAD Archive is a window into the creative soul of our campus.</strong> 
-              It's a collaborative photography platform built exclusively for the NCAD community, where students capture and share the hidden gems, artistic moments, and vibrant life that makes our college unique.
+              It's a collaborative platform built exclusively for the NCAD community, where we capture and share the hidden gems, artistic moments, and vibrant life that makes our college unique.
             </p>
             
             <p>
-              From spontaneous art installations in forgotten corners to the buzz of studio life, from quiet study nooks to explosive exhibition openings – let's document it all. Every photo tells a story, every location holds memories, and every moment captured adds to the creative legacy.
+              From spontaneous art installations in forgotten corners to the buzz of studio life, from quiet study nooks to explosive exhibition openings – let's document it all. Every photo tells a story, every location holds a memory, and every moment captured adds to our legacy.
             </p>
           </div>
         </section>
