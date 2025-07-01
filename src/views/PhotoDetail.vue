@@ -178,7 +178,7 @@
       </div>
     </div>
 
-    <!-- Fixed Take Me There CTA - Only show if there's location data -->
+    <!-- Fixed Follow the trails CTA - Only show if there's location data -->
     <div v-if="photo.location" class="flex-shrink-0 p-4 pb-6">
       <div class="max-w-md mx-auto lg:max-w-lg xl:max-w-xl">
         <button 
@@ -573,7 +573,7 @@ const openInGoogleMaps = async () => {
   // Close the drawer
   showLocationDrawer.value = false
   
-  // Increment visits when user clicks "Take me there"
+  // Increment visits when user clicks "Follow the trails"
   try {
     await galleryStore.incrementVisits(photo.value.id)
   } catch (error) {
