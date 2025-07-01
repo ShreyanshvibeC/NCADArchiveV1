@@ -28,7 +28,7 @@
         <!-- Main content -->
         <div class="space-y-4 text-gray-300">
           <p class="leading-relaxed">
-            Hello! Hello! NCAD Archive is built exclusively for the <strong class="text-white">NCAD community</strong> — a space to share our work, explore hidden corners of our college, and most importantly discover what others are creating!
+            Hello hello! Dive into the NCAD Archive — share your stuff, snoop around, and see what everyone’s been up to.
           </p>
           
           <!-- Visit icon explanation -->
@@ -40,7 +40,7 @@
               </svg>
               <div>
                 <p class="text-sm text-gray-400">
-                See this icon? That means you can visit the exact location or artwork captured in the image.
+                See this icon? That means you can visit the exact location in the image, just follow the trails!
                 </p>
               </div>
             </div>
