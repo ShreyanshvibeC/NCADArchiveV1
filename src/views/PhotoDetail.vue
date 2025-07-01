@@ -2,7 +2,7 @@
   <div v-if="photo" class="h-screen bg-black overflow-hidden flex flex-col">
     <!-- Header - Fixed height -->
     <header class="flex items-center justify-between p-4 px-4 bg-black flex-shrink-0">
-      <button @click="$router.back()" class="text-white hover:text-gray-400 transition-colors">
+      <button @click="handleBackNavigation" class="text-white hover:text-gray-400 transition-colors">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
@@ -417,6 +417,27 @@ const shareData = computed((): ShareData | null => {
     pageUrl: window.location.href
   }
 })
+
+// Smart back navigation function
+const handleBackNavigation = () => {
+  // Check if there's a previous page in the app's history
+  if (window.history.length > 1 && document.referrer) {
+    // Check if the referrer is from the same domain (within the app)
+    const referrerUrl = new URL(document.referrer)
+    const currentUrl = new URL(window.location.href)
+    
+    if (referrerUrl.origin === currentUrl.origin) {
+      // User came from within the app, use normal back navigation
+      router.back()
+    } else {
+      // User came from external source (shared link), go to home
+      router.push('/')
+    }
+  } else {
+    // No history or no referrer, go to home
+    router.push('/')
+  }
+}
 
 onMounted(async () => {
   const id = route.params.id as string
