@@ -100,7 +100,7 @@
               <div class="w-8 h-8 bg-ncad-green flex items-center justify-center text-white font-bold text-sm flex-shrink-0 mt-1">2</div>
               <div>
                 <h4 class="text-white font-semibold mb-1">Explore & Discover</h4>
-                <p class="text-gray-300 text-sm">Browse photos from other students, save interesting locations, and use the "Take Me There" feature to visit spots yourself.</p>
+                <p class="text-gray-300 text-sm">Browse photos from other students, save interesting locations, and use the "Follow the trails" feature to visit spots yourself.</p>
               </div>
             </div>
             
