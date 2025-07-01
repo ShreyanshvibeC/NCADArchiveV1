@@ -64,6 +64,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { isMobileDevice } from '../utils/deviceUtils'
 
 const emit = defineEmits<{
   'close': []
@@ -83,15 +84,16 @@ const showPopup = () => {
   // Check if user has already seen the welcome popup in this session
   const hasSeenWelcome = sessionStorage.getItem('ncad-archive-welcome-shown')
   
-  if (!hasSeenWelcome) {
-    // Show popup after 2 seconds
+  // Only show popup on mobile devices for new sessions
+  if (!hasSeenWelcome && isMobileDevice()) {
+    // Show popup after 2 seconds on mobile
     setTimeout(() => {
       isVisible.value = true
     }, 2000)
   }
 }
 
-// For testing - show popup immediately
+// For testing - show popup immediately (can be used on any device for testing)
 const showPopupForTesting = () => {
   isVisible.value = true
 }
