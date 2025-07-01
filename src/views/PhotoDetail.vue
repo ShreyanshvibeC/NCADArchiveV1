@@ -65,7 +65,7 @@
                   />
                   
                   <!-- Temporary Badge - Only on front side -->
-                  <div v-if="photo.temporary" class="absolute top-4 left-4 z-20">
+                  <div v-if="photo.temporary && !isFlipped" class="absolute top-4 left-4 z-20">
                     <button 
                       @click="showGoneSoonModal = true"
                       class="bg-black border border-white px-3 py-1 hover:bg-ncad-dark-gray transition-colors"
@@ -75,7 +75,7 @@
                   </div>
 
                   <!-- Info Icon - Top right of image with square design - Only on front side -->
-                  <div class="absolute top-4 right-4 z-20">
+                  <div v-if="!isFlipped" class="absolute top-4 right-4 z-20">
                     <button 
                       @click="showInfoModal = true"
                       class="w-8 h-8 bg-black flex items-center justify-center hover:bg-ncad-dark-gray transition-colors"
