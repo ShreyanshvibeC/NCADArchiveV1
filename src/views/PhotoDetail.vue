@@ -222,7 +222,7 @@
           <div class="bg-black bg-opacity-80 p-4 border-l-4 border-ncad-green">
             <div class="flex items-start space-x-3">
               <div>
-                <p class="text-white text-sm font-medium">Swipe right on the image</p>
+                <p class="text-white text-sm font-medium">Swipe left on the image</p>
                 <p class="text-gray-400 text-xs mt-1">to view title and description details</p>
               </div>
             </div>
