@@ -189,7 +189,7 @@
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
           </svg>
-          <span class="font-medium">TAKE ME THERE</span>
+          <span class="font-medium">FOLLOW THE TRAILS</span>
         </button>
       </div>
     </div>
@@ -322,7 +322,7 @@
             @click="openInGoogleMaps"
             class="flex-1 bg-black text-white py-3 font-medium hover:bg-ncad-dark-gray transition-colors border border-white"
           >
-            TAKE ME THERE
+            FOLLOW THE TRAILS
           </button>
         </div>
       </div>
