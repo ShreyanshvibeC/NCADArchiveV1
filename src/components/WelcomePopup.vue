@@ -84,12 +84,16 @@ const showPopup = () => {
   // Check if user has already seen the welcome popup in this session
   const hasSeenWelcome = sessionStorage.getItem('ncad-archive-welcome-shown')
   
-  // Only show popup on mobile devices for new sessions
-  if (!hasSeenWelcome && isMobileDevice()) {
-    // Show popup after 2 seconds on mobile
-    setTimeout(() => {
+  if (!hasSeenWelcome) {
+    if (isMobileDevice()) {
+      // Mobile: Show popup after 2 seconds (only welcome popup, no device popup)
+      setTimeout(() => {
+        isVisible.value = true
+      }, 2000)
+    } else {
+      // Desktop/Non-mobile: Show popup immediately when called (after device popup)
       isVisible.value = true
-    }, 2000)
+    }
   }
 }
 
